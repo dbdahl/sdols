@@ -1,0 +1,13 @@
+#!/bin/bash
+
+cd $(dirname $(readlink -f "$0"))/..
+
+JARDEST=$PWD/R/austin/inst/java
+mkdir -p "$JARDEST"
+cp target/scala-2.12/austin_2.12-1.0.jar "$JARDEST"
+cp lib_managed/jars/org.apache.commons/commons-math3/commons-math3-3.6.1.jar "$JARDEST"
+
+cd R
+
+R CMD INSTALL austin
+

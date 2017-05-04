@@ -1,0 +1,11 @@
+Package: austin
+Type: Package
+Title: Graphs summaries
+Version: 1.0
+Date: 2017-05-04
+Authors@R: c(person(given="David B.",family="Dahl",role=c("aut","cre"),email="dahl@stat.byu.edu"), person(given="The Apache Software Foundation",role=c("ctb","cph")))
+URL: https://dahl.byu.edu
+BugReports: https://dahl.byu.edu
+Description: Provides summaries of distribution on graphs.
+Imports: rscala (>= 2.0.0), stats
+License: Apache License 2.0 | file LICENSE
