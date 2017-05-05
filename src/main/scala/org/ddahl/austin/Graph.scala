@@ -51,11 +51,11 @@ object UndirectedGraph {
     val vertices = adjacency.indices.map(i => Node(i)).toSet
     val edges = scala.collection.mutable.Set[UndirectedEdge]()
     for (i <- adjacency.indices) {
-      for (j <- adjacency.indices) {
+      for (j <- 0 until i) {
         if (adjacency(i)(j)) edges += UndirectedEdge(Node(i), Node(j))
       }
     }
-    apply(vertices, edges.toSet)
+    new UndirectedGraph(vertices, edges.toSet)
   }
 
 }
@@ -78,7 +78,7 @@ object DirectedGraph {
         if (adjacency(i)(j)) edges += DirectedEdge(Node(i), Node(j))
       }
     }
-    apply(vertices, edges.toSet)
+    new DirectedGraph(vertices, edges.toSet)
   }
 
 }
