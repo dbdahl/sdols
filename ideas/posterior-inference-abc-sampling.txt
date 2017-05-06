@@ -1,0 +1,11 @@
+Recall my original partition distribution indexed by pairwise information
+defined by modifying Neal's algorithm 8.  The prior distribution is the implied
+target distribution of the Markov chain.
+
+First, I should use this distribution in Brandon's project on clustering.
+
+Second, I can do posterior inference in this modeling framework using ABC
+sampling.  Recall that in ABC sampling we need to be able to simulate from the
+prior distribution but do not need to be able to evalute its pdf/pmf.  This is
+exactly my situation.
+

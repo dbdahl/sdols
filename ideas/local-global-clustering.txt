@@ -1,0 +1,6 @@
+Local/global clustering...
+  Shred the data into overlapping mini datasets.
+  Run of the clustering on the mini datasets.
+  Get the pairwise probability matrix for each mini analysis
+  Reconstruct the globals pairwise probability matrix
+  Apply Brandon's clustering procedure based on the global pairwise probability matrix
