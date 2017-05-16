@@ -12,12 +12,12 @@ case class DirectedEdge(override val a: Node, override val b: Node) extends Edge
 
 case class UndirectedEdge(override val a: Node, override val b: Node) extends Edge(a, b) {
 
-  override def equals(o: Any) = o match {
+  override def equals(o: Any): Boolean = o match {
     case that: UndirectedEdge => that.a == a && that.b == b || that.a == b && that.b == a
     case _ => false
   }
 
-  override def hashCode = a.hashCode * b.hashCode // commutative and unique
+  override def hashCode: Int = a.hashCode * b.hashCode // commutative and unique
 
 }
 
@@ -25,7 +25,7 @@ case class UndirectedEdge(override val a: Node, override val b: Node) extends Ed
 
 sealed abstract class Graph[A <: Edge](v: Set[Node], e: Set[A], directed: Boolean) {
 
-  lazy val toAdjacencyMatrix = {
+  lazy val toAdjacencyMatrix: Array[Array[Boolean]] = {
     val n = v.size
     val adjacency = Array.ofDim[Boolean](n, n)
     e.foreach(edge => {
@@ -42,7 +42,7 @@ class UndirectedGraph private(val v: Set[Node], val e: Set[UndirectedEdge]) exte
 object UndirectedGraph {
 
   def apply(v: Set[Node], e: Set[UndirectedEdge]): UndirectedGraph = {
-    val allVinE = e.map(x => List(x.a, x.b)).flatten
+    val allVinE = e.flatMap(x => List(x.a, x.b))
     if (!allVinE.subsetOf(v)) throw new IllegalArgumentException("Arguments do not form a valid graph.")
     new UndirectedGraph(v, e)
   }
@@ -65,7 +65,7 @@ class DirectedGraph[X] private(val v: Set[Node], val e: Set[DirectedEdge]) exten
 object DirectedGraph {
 
   def apply[X](v: Set[Node], e: Set[DirectedEdge]): DirectedGraph[X] = {
-    val allVinE = e.map(x => List(x.a, x.b)).flatten
+    val allVinE = e.flatMap(x => List(x.a, x.b))
     if (!allVinE.subsetOf(v)) throw new IllegalArgumentException("Arguments do not form a valid graph.")
     new DirectedGraph(v, e)
   }
