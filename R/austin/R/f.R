@@ -12,18 +12,44 @@ mkGraph <- function(adjacency, as.directed=FALSE) {
 }
 
 probLink <- function(w1,w2) 1 - exp(-2*w1*w2)
+probLink(0.01,0.01)
 
-poissonIntensity.generalizedGammaProcess <- function(w, alpha, kappa, gamma) {
-  p <- function(w) {
-    if ( alpha <= 0 ) stop("alpha must be greater than 0.")
-    if ( kappa < 0 ) stop("kappa must be greater than or equal to 0.")
-    if ( ( gamma < 0 ) || ( gamma >= 1 ) ) stop("gamma must be greater than or equal to 0 and less than 1.")
-    exp(-kappa*w) * ( w^(-1*(1+gamma)) / gamma(1-gamma) )
-  }
-  p(w)*alpha
+stochasticRound <- function(x) {
+  r <- x %% 1
+  floor(x) + ( runif(length(x)) < r )
 }
 
+sample.NGG <- function(alpha, kappa, gamma, sample.P0, nBins=1000000, lower=0.01, upper=10, normalized=TRUE) {
+  if ( alpha <= 0 ) stop("alpha must be greater than 0.")
+  if ( kappa < 0 ) stop("kappa must be greater than or equal to 0.")
+  if ( ( gamma < 0 ) || ( gamma >= 1 ) ) stop("gamma must be greater than or equal to 0 and less than 1.")
+  intensity <- function(w) exp(-kappa*w) / ( w^(1+gamma) * gamma(1-gamma) )
+  wseq <- seq(lower,upper,length=nBins)
+  pseq <- intensity(wseq)
+  ndraws <- stochasticRound(alpha*integrate(intensity,lower,upper)$value)
+  ws <- sample(wseq,ndraws,replace=TRUE,prob=pseq)
+  as <- sample.P0(ndraws)
+  ws <- ws/sum(ws)
+  list(weights=ws, atoms=as)
+}
+
+w <- sample.NGG(5,1,0,rnorm)
+w
+
+thresholds <- matrix(runif(length(w)^2),nrow=length(w))
+probs <-      kronecker(w,t(w),probLink)
+thresholds < probs
+
+
+length(w)
+mean(w)
+
+
+
+
 poissonIntensity.dirichletProcess <- function(w, alpha) {
+  # kappa <- 1
+  # gamma <- 0
   p <- function(w) {
     if ( alpha <= 0 ) stop("alpha must be greater than 0.")
     exp(-w) * w^(-1)
@@ -31,7 +57,7 @@ poissonIntensity.dirichletProcess <- function(w, alpha) {
   p(w)*alpha
 }
 
-# A <- integrate(function(w) poissonIntensity.generalizedGammaProcess(w,1,1,0.5),0.001,100)
+A <- integrate(function(w) poissonIntensity.generalizedGammaProcess(w,1,1,0),0.001,100)
 
 # w.seq <- seq(0.001,100,length=100)
 # prob <- poissonIntensity.generalizedGammaProcess(w.seq,1,1,0)

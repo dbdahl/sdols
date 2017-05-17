@@ -3,3 +3,4 @@
 /target
 /project/target
 /R/*/inst/java/*.jar
+.Rproj.user
