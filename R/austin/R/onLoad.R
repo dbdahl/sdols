@@ -3,6 +3,6 @@
     import org.ddahl.austin._
     import org.apache.commons.math3.random.{ RandomDataGenerator => RDG }
   '
-  .rscalaPackage(pkgname,snippet=snippet)   ## Tell uses to set heap.maximum using options("rscala.command.line.options"="-J-Xmx4g")
+  .rscalaPackage(pkgname,classpath.packages="commonsMath",snippet=snippet)   ## Tell uses to set heap.maximum using options("rscala.command.line.options"="-J-Xmx4g")
 }
 

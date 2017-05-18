@@ -30,7 +30,7 @@ sealed abstract class Graph[A <: Edge](v: Set[Node], e: Set[A], directed: Boolea
     val adjacency = Array.ofDim[Boolean](n, n)
     e.foreach(edge => {
       adjacency(edge.a.index)(edge.b.index) = true
-      if ( ! directed ) adjacency(edge.b.index)(edge.a.index) = true
+      if (!directed) adjacency(edge.b.index)(edge.a.index) = true
     })
     adjacency
   }

@@ -12,7 +12,7 @@ mkGraph <- function(adjacency, as.directed=FALSE) {
 }
 
 probLink <- function(w1,w2) 1 - exp(-2*w1*w2)
-probLink(0.01,0.01)
+# probLink(0.01,0.01)
 
 stochasticRound <- function(x) {
   r <- x %% 1
@@ -33,18 +33,12 @@ sample.NGG <- function(alpha, kappa, gamma, sample.P0, nBins=1000000, lower=0.01
   list(weights=ws, atoms=as)
 }
 
-w <- sample.NGG(5,1,0,rnorm)
-w
+#w <- sample.NGG(5,1,0,rnorm)
+#w
 
-thresholds <- matrix(runif(length(w)^2),nrow=length(w))
-probs <-      kronecker(w,t(w),probLink)
-thresholds < probs
-
-
-length(w)
-mean(w)
-
-
+#thresholds <- matrix(runif(length(w)^2),nrow=length(w))
+#probs <-      kronecker(w,t(w),probLink)
+#thresholds < probs
 
 
 poissonIntensity.dirichletProcess <- function(w, alpha) {
@@ -57,7 +51,7 @@ poissonIntensity.dirichletProcess <- function(w, alpha) {
   p(w)*alpha
 }
 
-A <- integrate(function(w) poissonIntensity.generalizedGammaProcess(w,1,1,0),0.001,100)
+# A <- integrate(function(w) poissonIntensity.generalizedGammaProcess(w,1,1,0),0.001,100)
 
 # w.seq <- seq(0.001,100,length=100)
 # prob <- poissonIntensity.generalizedGammaProcess(w.seq,1,1,0)

@@ -7,5 +7,5 @@ Authors@R: c(person(given="David B.",family="Dahl",role=c("aut","cre"),email="da
 URL: https://dahl.byu.edu
 BugReports: https://dahl.byu.edu
 Description: Provides summaries of distribution on graphs.
-Imports: rscala (>= 2.0.0), stats
+Imports: rscala (>= 2.1.2), commonsMath, stats
 License: Apache License 2.0 | file LICENSE
