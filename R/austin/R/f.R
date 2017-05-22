@@ -8,7 +8,7 @@ mkGraph <- function(adjacency, as.directed=FALSE) {
   if ( ( ! is.matrix(adjacency) ) || ( nrow(adjacency) != ncol(adjacency) ) ) stop("'adjacency' should be a square matrix.")
   storage.mode(adjacency) <- "logical"
   if ( as.directed ) s$.DirectedGraph$apply(adjacency)
-  s$.UndirectedGraph$apply(adjacency)
+  else s$.UndirectedGraph$apply(adjacency)
 }
 
 probLink <- function(w1,w2) 1 - exp(-2*w1*w2)
@@ -19,7 +19,7 @@ stochasticRound <- function(x) {
   floor(x) + ( runif(length(x)) < r )
 }
 
-sample.NGG <- function(alpha, kappa, gamma, sample.P0, nBins=1000000, lower=0.01, upper=10, normalized=TRUE) {
+sample.GGP <- function(alpha, kappa, gamma, sample.P0, nBins=1000000, lower=0.001, upper=10, normalized=TRUE) {
   if ( alpha <= 0 ) stop("alpha must be greater than 0.")
   if ( kappa < 0 ) stop("kappa must be greater than or equal to 0.")
   if ( ( gamma < 0 ) || ( gamma >= 1 ) ) stop("gamma must be greater than or equal to 0 and less than 1.")
@@ -29,9 +29,33 @@ sample.NGG <- function(alpha, kappa, gamma, sample.P0, nBins=1000000, lower=0.01
   ndraws <- stochasticRound(alpha*integrate(intensity,lower,upper)$value)
   ws <- sample(wseq,ndraws,replace=TRUE,prob=pseq)
   as <- sample.P0(ndraws)
-  ws <- ws/sum(ws)
+  ws <- if ( normalized ) ws/sum(ws)
   list(weights=ws, atoms=as)
 }
+
+sample.GGP2 <- function(alpha, kappa, gamma, sample.P0, smallestWeight=0.001, maxTailArea=0.00001, coarseness=10, rng=NULL, normalized=TRUE) {
+  ggp <- s$.org.ddahl.austin.GeneralizedGammaProcess$apply(alpha,kappa,gamma)
+  if ( is.null(rng) ) {
+    rng <- s$.org.apache.commons.math3.random.MersenneTwister$new()
+  }
+  ws <- ggp$sampleWeights(smallestWeight, maxTailArea, coarseness, rng)
+  ndraws <- length(ws)
+  as <- sample.P0(ndraws)
+  ws <- if ( normalized ) ws/sum(ws)
+  list(weights=ws, atoms=as)
+}
+
+sampleGraph <- function(alpha, kappa, gamma, as.directed=FALSE, smallestWeight=0.001, maxTailArea=0.00001, coarseness=10, rng=NULL) {
+  ggp <- s$.org.ddahl.austin.GeneralizedGammaProcess$apply(alpha,kappa,gamma)
+  if ( is.null(rng) ) {
+    rng <- s$.org.apache.commons.math3.random.MersenneTwister$new()
+  }
+  ws <- ggp$sampleWeights(smallestWeight, maxTailArea, coarseness, rng, .AS.REFERENCE=TRUE)
+  if ( as.directed ) s$.DirectedGraph$sample(ws,rng)
+  else s$.UndirectedGraph$sample(ws,rng)
+}
+
+
 
 #w <- sample.NGG(5,1,0,rnorm)
 #w

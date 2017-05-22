@@ -1,5 +1,8 @@
 package org.ddahl.austin
 
+import org.apache.commons.math3.random.RandomGenerator
+import org.apache.commons.math3.util.FastMath.exp
+
 // Node
 
 case class Node(index: Int)
@@ -58,20 +61,32 @@ object UndirectedGraph {
     new UndirectedGraph(vertices, edges.toSet)
   }
 
+  def sample(weights: Array[Double], rng: RandomGenerator) = {
+    def probLink(w1: Double, w2: Double) = 1 - exp(-2*w1*w2)
+    val vertices = (0 until weights.length).map(Node(_)).toSet
+    val edges = scala.collection.mutable.Set[UndirectedEdge]()
+    for ( i <- weights.indices ) {
+      for ( j <- 0 until i ) {
+        if ( ( i != j ) && ( rng.nextDouble() < probLink(weights(i),weights(j)) ) ) edges += UndirectedEdge(Node(i),Node(j))
+      }
+    }
+    new UndirectedGraph(vertices,edges.toSet)
+  }
+
 }
 
-class DirectedGraph[X] private(val v: Set[Node], val e: Set[DirectedEdge]) extends Graph(v, e, true)
+class DirectedGraph private(val v: Set[Node], val e: Set[DirectedEdge]) extends Graph(v, e, true)
 
 object DirectedGraph {
 
-  def apply[X](v: Set[Node], e: Set[DirectedEdge]): DirectedGraph[X] = {
+  def apply(v: Set[Node], e: Set[DirectedEdge]): DirectedGraph = {
     val allVinE = e.flatMap(x => List(x.a, x.b))
     if (!allVinE.subsetOf(v)) throw new IllegalArgumentException("Arguments do not form a valid graph.")
     new DirectedGraph(v, e)
   }
 
-  def apply(adjacency: Array[Array[Boolean]]): DirectedGraph[Int] = {
-    val vertices = adjacency.indices.map(i => Node(i)).toSet
+  def apply(adjacency: Array[Array[Boolean]]): DirectedGraph = {
+    val vertices = adjacency.indices.map(Node(_)).toSet
     val edges = scala.collection.mutable.Set[DirectedEdge]()
     for (i <- adjacency.indices) {
       for (j <- adjacency.indices) {
@@ -79,6 +94,18 @@ object DirectedGraph {
       }
     }
     new DirectedGraph(vertices, edges.toSet)
+  }
+
+  def sample(weights: Array[Double], rng: RandomGenerator): DirectedGraph = {
+    def probLink(w1: Double, w2: Double) = 1 - exp(-2*w1*w2)
+    val vertices = (0 until weights.length).map(Node(_)).toSet
+    val edges = scala.collection.mutable.Set[DirectedEdge]()
+    for ( i <- weights.indices ) {
+      for ( j <- weights.indices ) {
+        if ( ( i != j ) && ( rng.nextDouble() < probLink(weights(i),weights(j)) ) ) edges += DirectedEdge(Node(i),Node(j))
+      }
+    }
+    new DirectedGraph(vertices,edges.toSet)
   }
 
 }

@@ -10,33 +10,33 @@ adjacency <- '
 a <- mkGraph(adjacency)
 a$toAdjacencyMatrix()
 
+r <- matrix(0,nrow=100,ncol=2)
+for ( i in seq.int(nrow(r))) {
+  s <- sample.GGP(5,1,0,rnorm)
+  r[i,1] <- max(s$weights)
+  s <- sample.GGP2(5,1,0,rnorm)
+  r[i,2] <- max(s$weights)
+}
+
+a <- sampleGraph(1.0,1.0,0.0)
+a$toAdjacencyMatrix()
+
+
+
 
 library(rscala)
 s <- austin:::s
 
-ggp <- s$.org.ddahl.austin.GeneralizedGammaProcess$apply(1.0,1.0,0.0)
+ggp <- s$.org.ddahl.austin.GeneralizedGammaProcess$apply(100.0,1.0,0.0)
+rd <- s$.org.ddahl.austin.RampDistribution$apply(5,10,25,100)
+rd$distributionFunction(9.9)
+rd$quantileFunction(rd$distributionFunction(5.9))
 
-ggp$intensityIntervalArea(10.0,10000.0)
-ggp$intensityTailArea(0.5)
+rg <- s$.org.apache.commons.math3.random.MersenneTwister$new()
+rd$sample(rg)
 
-ggp$intensityTailArea(0.000000001)
-ggp$intensityTailArea(0.000000001^(1/2))
-ggp$intensityTailArea(0.000000001^(1/4))
-ggp$intensityTailArea(0.000000001^(1/8))
-ggp$intensityTailArea(0.000000001^(1/16))
-ggp$intensityTailArea(0.000000001^(1/32))
+ggp$steps(200, 0.001, 0.001)
 
-ggp$intensityTailArea(0.0000001)
-ggp$intensityTailArea(0.0000001^(1/2))
-ggp$intensity(0.0000001)
-ggp$intensity(0.0000001^(1/2))
-ggp$intensity(0.0000001^(1/3))
-
-
-
-
-
-ggp$steps(20,0.0001, 0.01)
 
 f <- function(t,m,x,kappa,gamma) {
   exp(-kappa*x) - m*exp(-kappa*t*x)/t^(1+gamma)
