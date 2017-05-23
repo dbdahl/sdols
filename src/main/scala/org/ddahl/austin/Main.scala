@@ -3,8 +3,7 @@ package org.ddahl.austin
 object Main {
 
   def main(args: Array[String]): Unit = {
-    println(args.mkString("<",",",">"))
+    println("Hello world! "+args.mkString("<",",",">"))
   }
 
 }
-

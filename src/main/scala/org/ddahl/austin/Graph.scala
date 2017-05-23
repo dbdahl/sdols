@@ -1,5 +1,6 @@
 package org.ddahl.austin
 
+import java.io.{FileWriter, BufferedWriter, PrintWriter}
 import org.apache.commons.math3.random.RandomGenerator
 import org.apache.commons.math3.util.FastMath.exp
 
@@ -38,6 +39,20 @@ sealed abstract class Graph[A <: Edge](v: Set[Node], e: Set[A], directed: Boolea
     adjacency
   }
 
+  def writeEdgeList(filename: String, separator: String = " "): Unit = {
+    val writer = new PrintWriter(new BufferedWriter(new FileWriter(filename)))
+    writer.println("Source"+separator+"Target")
+    e.foreach(edge => {
+      val tuple = if ( directed ) (edge.a,edge.b)
+      else {
+        if ( edge.a.index < edge.b.index ) (edge.a,edge.b)
+        else (edge.b,edge.a)
+      }
+      writer.println(tuple._1.index + separator + tuple._2.index)
+    })
+    writer.close()
+  }
+
 }
 
 class UndirectedGraph private(val v: Set[Node], val e: Set[UndirectedEdge]) extends Graph(v, e, false)
@@ -51,7 +66,7 @@ object UndirectedGraph {
   }
 
   def apply(adjacency: Array[Array[Boolean]]): UndirectedGraph = {
-    val vertices = adjacency.indices.map(i => Node(i)).toSet
+    val vertices = adjacency.indices.map(Node).toSet
     val edges = scala.collection.mutable.Set[UndirectedEdge]()
     for (i <- adjacency.indices) {
       for (j <- 0 until i) {
@@ -61,9 +76,9 @@ object UndirectedGraph {
     new UndirectedGraph(vertices, edges.toSet)
   }
 
-  def sample(weights: Array[Double], rng: RandomGenerator) = {
+  def sample(weights: Array[Double], rng: RandomGenerator): UndirectedGraph = {
     def probLink(w1: Double, w2: Double) = 1 - exp(-2*w1*w2)
-    val vertices = (0 until weights.length).map(Node(_)).toSet
+    val vertices = weights.indices.map(Node).toSet
     val edges = scala.collection.mutable.Set[UndirectedEdge]()
     for ( i <- weights.indices ) {
       for ( j <- 0 until i ) {
@@ -86,7 +101,7 @@ object DirectedGraph {
   }
 
   def apply(adjacency: Array[Array[Boolean]]): DirectedGraph = {
-    val vertices = adjacency.indices.map(Node(_)).toSet
+    val vertices = adjacency.indices.map(Node).toSet
     val edges = scala.collection.mutable.Set[DirectedEdge]()
     for (i <- adjacency.indices) {
       for (j <- adjacency.indices) {
@@ -98,7 +113,7 @@ object DirectedGraph {
 
   def sample(weights: Array[Double], rng: RandomGenerator): DirectedGraph = {
     def probLink(w1: Double, w2: Double) = 1 - exp(-2*w1*w2)
-    val vertices = (0 until weights.length).map(Node(_)).toSet
+    val vertices = weights.indices.map(Node).toSet
     val edges = scala.collection.mutable.Set[DirectedEdge]()
     for ( i <- weights.indices ) {
       for ( j <- weights.indices ) {
