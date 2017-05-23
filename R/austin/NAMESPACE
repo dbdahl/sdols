@@ -3,6 +3,6 @@ import(stats)
 
 export("mkGraph")
 export("sampleGraph")
-export("sample.GGP")
-export("sample.GGP2")
+export("sampleGGP")
+export("sampleGGP2")
 

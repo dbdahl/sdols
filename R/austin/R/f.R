@@ -19,7 +19,7 @@ stochasticRound <- function(x) {
   floor(x) + ( runif(length(x)) < r )
 }
 
-sample.GGP <- function(alpha, kappa, gamma, sample.P0, nBins=1000000, lower=0.001, upper=10, normalized=TRUE) {
+sampleGGP <- function(alpha, kappa, gamma, sample.P0, nBins=1000000, lower=0.001, upper=10, normalized=TRUE) {
   if ( alpha <= 0 ) stop("alpha must be greater than 0.")
   if ( kappa < 0 ) stop("kappa must be greater than or equal to 0.")
   if ( ( gamma < 0 ) || ( gamma >= 1 ) ) stop("gamma must be greater than or equal to 0 and less than 1.")
@@ -33,24 +33,24 @@ sample.GGP <- function(alpha, kappa, gamma, sample.P0, nBins=1000000, lower=0.00
   list(weights=ws, atoms=as)
 }
 
-sample.GGP2 <- function(alpha, kappa, gamma, sample.P0, smallestWeight=0.001, maxTailArea=0.00001, coarseness=10, rng=NULL, normalized=TRUE) {
+sampleGGP2 <- function(alpha, kappa, gamma, sample.P0, smallestWeight=0.001, nBreaks=10L, rng=NULL, normalized=TRUE) {
   ggp <- s$.org.ddahl.austin.GeneralizedGammaProcess$apply(alpha,kappa,gamma)
   if ( is.null(rng) ) {
     rng <- s$.org.apache.commons.math3.random.MersenneTwister$new()
   }
-  ws <- ggp$sampleWeights(smallestWeight, maxTailArea, coarseness, rng)
+  ws <- ggp$sampleWeights(smallestWeight, nBreaks, rng)
   ndraws <- length(ws)
   as <- sample.P0(ndraws)
   ws <- if ( normalized ) ws/sum(ws)
   list(weights=ws, atoms=as)
 }
 
-sampleGraph <- function(alpha, kappa, gamma, as.directed=FALSE, smallestWeight=0.001, maxTailArea=0.00001, coarseness=10, rng=NULL) {
-  ggp <- s$.org.ddahl.austin.GeneralizedGammaProcess$apply(alpha,kappa,gamma)
+sampleGraph <- function(alpha, kappa, gamma, as.directed=FALSE, smallestWeight=0.001, nBreaks=10L, rng=NULL) {
+  ggp <- s$.org.ddahl.austin.GeneralizedGammaProcess$apply(alpha, kappa, gamma)
   if ( is.null(rng) ) {
     rng <- s$.org.apache.commons.math3.random.MersenneTwister$new()
   }
-  ws <- ggp$sampleWeights(smallestWeight, maxTailArea, coarseness, rng, .AS.REFERENCE=TRUE)
+  ws <- ggp$sampleWeights(smallestWeight, nBreaks, rng, .AS.REFERENCE=TRUE)
   if ( as.directed ) s$.DirectedGraph$sample(ws,rng)
   else s$.UndirectedGraph$sample(ws,rng)
 }
