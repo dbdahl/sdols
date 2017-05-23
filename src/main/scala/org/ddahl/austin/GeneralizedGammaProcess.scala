@@ -108,7 +108,7 @@ case class GeneralizedGammaProcess(alpha: Double, kappa: Double, gamma: Double) 
     val func = new UnivariateFunction {
       def value(x: Double): Double = intensity(x)
     }
-    integrator.integrate(maxEval, func, a, b) * alpha / Gamma(1 - gamma)
+    integrator.integrate(maxEval, func, a, b) * alpha
   }
 
 }
