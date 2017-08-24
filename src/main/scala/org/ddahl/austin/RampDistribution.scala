@@ -5,6 +5,8 @@ import org.apache.commons.math3.util.FastMath.sqrt
 
 case class RampDistribution(lower: Double, upper: Double, fLower: Double, fUpper: Double) {
 
+  require(lower < upper, "Lower bound must be less than the upper bound.")
+
   val slope = ( fUpper - fLower ) / ( upper - lower )
   val normalizingConstant = 2 / ((upper-lower) * (slope * (upper-lower) + 2*fLower))
 
@@ -14,11 +16,7 @@ case class RampDistribution(lower: Double, upper: Double, fLower: Double, fUpper
       fLower + slope*(x-lower)
   }
 
-  def densityFunction(x: Double): Double = x match {
-    case w if w < lower || w > upper => 0.0
-    case _ =>
-      envelopFunction(x) * normalizingConstant
-  }
+  def densityFunction(x: Double): Double = envelopFunction(x) * normalizingConstant
 
   def distributionFunction(x: Double): Double = x match {
     case w if w < lower => 0.0
