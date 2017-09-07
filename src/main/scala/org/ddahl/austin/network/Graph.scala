@@ -1,4 +1,4 @@
-package org.ddahl.austin
+package org.ddahl.austin.network
 
 import java.io.{FileWriter, BufferedWriter, PrintWriter}
 import org.apache.commons.math3.random.RandomGenerator

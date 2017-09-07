@@ -3,6 +3,8 @@
  */
 package wilx.math.exponential.integrals;
 
+/* https://stackoverflow.com/questions/34482547/exponential-integral-and-gamma-function */
+
 /**
  * @author wilx
  */

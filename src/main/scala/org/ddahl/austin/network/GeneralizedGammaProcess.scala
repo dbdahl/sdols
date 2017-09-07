@@ -1,4 +1,4 @@
-package org.ddahl.austin
+package org.ddahl.austin.network
 
 import Special.incompleteGamma
 import org.apache.commons.math3.util.FastMath.{exp, pow, log}

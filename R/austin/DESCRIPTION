@@ -1,11 +1,11 @@
 Package: austin
 Type: Package
-Title: Graphs summaries
-Version: 1.0
-Date: 2017-05-04
-Authors@R: c(person(given="David B.",family="Dahl",role=c("aut","cre"),email="dahl@stat.byu.edu"), person(given="The Apache Software Foundation",role=c("ctb","cph")))
+Title: Summarizing Distributions of Latent Structure 
+Version: 1.0.0
+Date: 2017-09-06
+Authors@R: c(person(given="David B.",family="Dahl",role=c("aut","cre"),email="dahl@stat.byu.edu"))
 URL: https://dahl.byu.edu
 BugReports: https://dahl.byu.edu
-Description: Provides summaries of distribution on graphs.
-Imports: rscala (>= 2.1.2), commonsMath, stats
+Description: Provides summaries of distribution on networks, partitions, feature allocations, and variable selection.
+Imports: rscala (>= 2.3.5), commonsMath, shallot, stats
 License: Apache License 2.0 | file LICENSE

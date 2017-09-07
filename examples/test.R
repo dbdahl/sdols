@@ -19,7 +19,8 @@ for ( i in seq.int(nrow(r))) {
 }
 t.test(r[,1],r[,2])
 
-a <- sampleGraph(100,2,0.8)
+a <- sampleGraph(10,1,0.8)
+dim(a$toAdjacencyMatrix())
 a$writeEdgeList("edges.cvs")
 
 
@@ -27,7 +28,7 @@ a$writeEdgeList("edges.cvs")
 library(rscala)
 s <- austin:::s
 
-ggp <- s$.org.ddahl.austin.GeneralizedGammaProcess$apply(100.0,1.0,0.5)
+ggp <- s$.org.ddahl.austin.network.GeneralizedGammaProcess$apply(100.0,1.0,0.5)
 ggp$intensityIntervalArea(1,2)
 ggp$intensityIntervalAreaSlow(1,2,100L)
 
@@ -40,7 +41,7 @@ wseq <- seq(0.1,1,length=1000)
 y <- Vectorize(function(x) ggp$intensity(x))(wseq)
 plot(wseq,y,type="l")
 
-rd <- s$.org.ddahl.austin.RampDistribution$apply(5,10,25,100)
+rd <- s$.org.ddahl.austin.network.RampDistribution$apply(5,10,25,100)
 rd$distributionFunction(9.9)
 rd$quantileFunction(rd$distributionFunction(5.9))
 
