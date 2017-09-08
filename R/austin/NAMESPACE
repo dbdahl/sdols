@@ -6,3 +6,5 @@ export("sampleGraph")
 export("sampleGGP")
 export("sampleGGP2")
 
+export("psm")
+
