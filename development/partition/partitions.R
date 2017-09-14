@@ -1,4 +1,4 @@
-load("iris")
+load("iris-partitions.Rbin")
 
 library(rscala)
 options(rscala.heap.maximum="48g")
@@ -9,14 +9,6 @@ s %@% '
   import org.ddahl.shallot.parameter.partition.Partition
   import org.ddahl.shallot.parameter.partition.PairwiseProbability
 '
-
-library(shallot)
-example(shallot)
-
-raw <- sample.partitions(distribution, 50000, parallel=TRUE)
-samples <- process.samples(raw,as.matrix=TRUE)
-
-y <- samples$partitions$labels
 
 psm <- function(clusterings=matrix(0L), parallel=TRUE) {
   if ( ! is.matrix(clusterings) ) stop("'clusterings' must be a matrix.")
@@ -31,15 +23,15 @@ psm <- function(clusterings=matrix(0L), parallel=TRUE) {
   '
 }
 
-x1 <- psm(samples$partitions$labels)
+x1 <- psm(iris10.5)
 
 library(mcclust)
-x2 <- comp.psm(samples$partitions$labels)
+x2 <- comp.psm(iris10.5)
 
 library(microbenchmark)
 microbenchmark(
-  psm(samples$partitions$labels,TRUE),
-  psm(samples$partitions$labels,FALSE),
-  comp.psm(samples$partitions$labels),
-  times=5)
+  psm(iris10.5,TRUE),
+  psm(iris10.5,FALSE),
+  comp.psm(iris10.5),
+  times=1)
 
