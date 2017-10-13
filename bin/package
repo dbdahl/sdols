@@ -2,29 +2,22 @@
 
 cd $(dirname $(readlink -f "$0"))/..
 
-rm -rf lib_managed
 sbt +package
-stty echo
 
 JARDEST=$PWD/R/austin/inst/java
-JARDEST212=$JARDEST/scala-2.12
-JARDEST211=$JARDEST/scala-2.11
-JARDEST210=$JARDEST/scala-2.10
-
 rm -rf "$JARDEST"
-mkdir -p "$JARDEST212"
-mkdir -p "$JARDEST211"
-mkdir -p "$JARDEST210"
-
-AIBD_VERSION=$(cat build.sbt | grep '"org.ddahl" %% "aibd"' | sed -e 's/.*"org.ddahl" %% "aibd" % "\(.*\)".*/\1/')
 
 for v in 2.12 2.11 2.10
 do
-  cp target/scala-$v/austin_${v}-1.0.jar "$JARDEST/scala-${v}"
-  cp lib_managed/jars/org.ddahl/aibd_${v}/aibd_${v}-$AIBD_VERSION.jar "$JARDEST/scala-${v}"
+  JARDESTSPECIFIC=$JARDEST/scala-${v}
+  mkdir -p "$JARDESTSPECIFIC"
+  cp target/scala-$v/austin_${v}-1.0.jar "$JARDESTSPECIFIC"
 done
 
 cd R
 
-R CMD INSTALL austin
+R -e 'roxygen2::roxygenise("austin")'
+rm -rf austin_*.tar.gz
+R CMD build austin
+R CMD INSTALL austin_*.tar.gz
 
