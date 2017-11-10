@@ -1,12 +1,13 @@
 Package: austin
 Type: Package
 Title: Summarizing Distributions of Latent Structure 
-Version: 1.0.0
-Date: 2017-09-06
-Authors@R: c(person(given="David B.",family="Dahl",role=c("aut","cre"),email="dahl@stat.byu.edu"))
+Version: 0.0.1
+Date: 2017-11-10
+Authors@R: c(person(given="David B.",family="Dahl",role=c("aut","cre"),email="dahl@stat.byu.edu"),person(given="Brandon",family="Carter",role=c("aut"),email="carterj4@icloud.com"))
 URL: https://dahl.byu.edu
 BugReports: https://dahl.byu.edu
 Description: Provides summaries of distribution on networks, partitions, feature allocations, and variable selection.
 Imports: rscala (>= 2.4.0), commonsMath, stats
+Depends: mcclust
 License: Apache License 2.0 | file LICENSE
 RoxygenNote: 6.0.1

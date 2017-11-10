@@ -1,13 +1,15 @@
-options(rscala.heap.maximum="4g")
+# Uncomment to provide more memory if computations are really slow or crashes occcur.
+# options(rscala.heap.maximum="4g")
+
 library(austin)
 
 load("iris-partitions.Rbin")
 
 clusterings <- iris10.3
-est <- iris10.3[1,]
-
 ppm <- pairwiseProbabilityMatrix(clusterings)
-conf <- confidence(est,ppm)
+est.ls <- minbinder(ppm,clusterings,method="draws")$cl   # Do least-squares clustering.
+
+conf <- confidence(est.ls,ppm)
 
 plot(conf)
 plot(conf,data=iris)

@@ -7,8 +7,7 @@ object Partition {
   // Assumes that 'clusterings' is a non-zero-length array of arrays of equal lengths.
   def pairwiseProbabilityMatrix(clusterings: Array[Array[Int]]): Array[Array[Double]] = {
     val n = clusterings(0).length
-    val x = Array.ofDim[Double](n,n)
-    val unit = 1.0 / clusterings.length
+    val x = Array.ofDim[Int](n,n)
     var k = 0
     while ( k < clusterings.length ) {
       val p = clusterings(k)
@@ -18,14 +17,15 @@ object Partition {
         val pi = p(i)
         var j = 0
         while ( j < n ) {
-          if ( pi == p(j) ) xi(j) += unit
+          if ( pi == p(j) ) xi(j) += 1
           j += 1
         }
         i += 1
       }
       k += 1
     }
-    x
+    val cl: Double = clusterings.length
+    x.map(_.map(_/cl))
   }
 
   @tailrec
