@@ -5,10 +5,10 @@ library(austin)
 
 library(microbenchmark)
 
-microbenchmark(pairwiseProbabilityMatrixn(iris10.3), pairwiseProbabilityMatrixnn(iris10.3), times=50)
+microbenchmark(pairwiseProbabilityMatrix(iris10.3), times=50)
 
 
-microbenchmark(pairwiseProbabilityMatrixnn(iris10.3), pairwiseProbabilityMatrixn(iris10.3), times=500)
+microbenchmark(pairwiseProbabilityMatrix(iris10.3), pairwiseProbabilityMatrix(iris10.3), times=500)
 
 
 
