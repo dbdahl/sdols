@@ -1,4 +1,4 @@
-package org.ddahl.austin.network
+package org.ddahl.sdols.network
 
 import org.apache.commons.math3.random.RandomGenerator
 import org.apache.commons.math3.util.FastMath.sqrt

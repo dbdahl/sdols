@@ -1,8 +1,8 @@
 .onLoad <- function(libname, pkgname) {
   snippet <- '
-    import org.ddahl.austin._
-    import org.ddahl.austin.network._
-    import org.ddahl.austin.partition.Partition
+    import org.ddahl.sdols._
+    import org.ddahl.sdols.network._
+    import org.ddahl.sdols.partition
     import org.apache.commons.math3.random.{ RandomDataGenerator => RDG }
   '
   ## Tell users they may want to set heap.maximum using options(rscala.heap.maximum="4G")

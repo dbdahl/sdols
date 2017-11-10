@@ -1,4 +1,4 @@
-package org.ddahl.austin
+package org.ddahl.sdols
 
 object Main {
 

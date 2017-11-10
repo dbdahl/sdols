@@ -30,7 +30,7 @@ pairwiseProbabilityMatrix <- function(clusterings) {
       as.integer(as.factor(p))
     }))
   } else storage.mode(clusterings) <- "integer"
-  r <- s$.Partition$pairwiseProbabilityMatrix(clusterings)
+  r <- s$.partition$pairwiseProbabilityMatrix(clusterings)
   dimnames(r) <- list(colnames(clusterings),colnames(clusterings))
   r
 }
@@ -39,7 +39,7 @@ pairwiseProbabilityMatrix <- function(clusterings) {
 #' @import rscala
 
 confidence <- function(clustering, pairwiseProbabilityMatrix) {
-  tmpObj <- s$.Partition$confidenceComputations(clustering,pairwiseProbabilityMatrix)
+  tmpObj <- s$.partition$confidenceComputations(clustering,pairwiseProbabilityMatrix)
   partition <- tmpObj$"_1"() + 1
   names(partition) <- colnames(pairwiseProbabilityMatrix)
   confidence <- tmpObj$"_2"()

@@ -1,8 +1,6 @@
-package org.ddahl.austin.partition
+package org.ddahl.sdols
 
-import scala.annotation.tailrec
-
-object Partition {
+package object partition {
 
   // Assumes that 'clusterings' is a non-zero-length array of arrays of equal lengths.
   def pairwiseProbabilityMatrix(clusterings: Array[Array[Int]]): Array[Array[Double]] = {
@@ -26,20 +24,6 @@ object Partition {
     }
     val cl: Double = clusterings.length
     x.map(_.map(_/cl))
-  }
-
-  @tailrec
-  private def makePartition(labelsWithIndex: Iterable[(Int, Int)], list: List[Set[Int]]): List[Set[Int]] = {
-    val label = labelsWithIndex.head._1
-    val (left, right) = labelsWithIndex.partition(_._1 == label)
-    val longerList = left.map(_._2).toSet +: list
-    if (right.isEmpty) longerList
-    else makePartition(right, longerList)
-  }
-
-  private def makePartition(clustering: Array[Int]): List[Set[Int]] = {
-    if (clustering.isEmpty) throw new IllegalArgumentException("Labels may not by empty.")
-    makePartition(clustering.zipWithIndex, List[Set[Int]]())
   }
 
   def confidenceComputations[A](clustering: Array[Int], ppm: Array[Array[Double]]): (Array[Int], Array[Double], Array[Array[Double]], Array[Int], Array[Int]) = {
@@ -88,6 +72,20 @@ object Partition {
     })
     val labels = Array.range(0, nItems).map(i => map(partition.find(_.contains(i)).get))
     (labels, confidence, matrixOutSmall, order, exemplar)
+  }
+
+  @scala.annotation.tailrec
+  private def makePartition(labelsWithIndex: Iterable[(Int, Int)], list: List[Set[Int]]): List[Set[Int]] = {
+    val label = labelsWithIndex.head._1
+    val (left, right) = labelsWithIndex.partition(_._1 == label)
+    val longerList = left.map(_._2).toSet +: list
+    if (right.isEmpty) longerList
+    else makePartition(right, longerList)
+  }
+
+  private def makePartition(clustering: Array[Int]): List[Set[Int]] = {
+    if (clustering.isEmpty) throw new IllegalArgumentException("Labels may not by empty.")
+    makePartition(clustering.zipWithIndex, List[Set[Int]]())
   }
 
 }

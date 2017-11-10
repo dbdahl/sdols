@@ -4,20 +4,20 @@ cd $(dirname $(readlink -f "$0"))/..
 
 sbt +package
 
-JARDEST=$PWD/R/austin/inst/java
+JARDEST=$PWD/R/sdols/inst/java
 rm -rf "$JARDEST"
 
 for v in 2.12 2.11 2.10
 do
   JARDESTSPECIFIC=$JARDEST/scala-${v}
   mkdir -p "$JARDESTSPECIFIC"
-  cp target/scala-$v/austin_${v}-1.0.jar "$JARDESTSPECIFIC"
+  cp target/scala-$v/sdols_${v}-1.0.jar "$JARDESTSPECIFIC"
 done
 
 cd R
 
-R -e 'roxygen2::roxygenise("austin")'
-rm -rf austin_*.tar.gz
-R CMD build austin
-R CMD INSTALL austin_*.tar.gz
+R -e 'roxygen2::roxygenise("sdols")'
+rm -rf sdols_*.tar.gz
+R CMD build sdols
+R CMD INSTALL sdols_*.tar.gz
 

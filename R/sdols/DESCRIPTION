@@ -1,0 +1,14 @@
+Package: sdols
+Type: Package
+Title: Summarizing Distributions of Latent Structures
+Version: 0.1.0
+Date: 2017-11-10
+Authors@R: c(person(given="David B.",family="Dahl",role=c("aut","cre"),email="dahl@stat.byu.edu"),person(given="Brandon",family="Carter",role=c("aut"),email="carterj4@icloud.com"),person(given="Peter",family="Müller",role=c("aut"),email="pmueller@math.utexas.edu"))
+URL: https://dahl.byu.edu
+BugReports: https://dahl.byu.edu
+Description: Provides summaries of distribution on networks, partitions, feature allocations, and variable selection.
+Imports: rscala (>= 2.4.1-609), commonsMath, stats
+Depends: mcclust
+License: Apache License 2.0 | file LICENSE
+Encoding: UTF-8
+RoxygenNote: 6.0.1

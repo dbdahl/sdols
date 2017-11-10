@@ -1,9 +1,10 @@
 # Uncomment to provide more memory if computations are really slow or crashes occcur.
 # options(rscala.heap.maximum="4g")
 
-library(austin)
+library(sdols)
 
 load("iris-partitions.Rbin")
+ls()
 
 clusterings <- iris10.3
 ppm <- pairwiseProbabilityMatrix(clusterings)

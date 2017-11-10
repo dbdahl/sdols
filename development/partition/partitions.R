@@ -1,7 +1,7 @@
 load("iris-partitions.Rbin")
 
 options(rscala.heap.maximum="4g")
-library(austin)
+library(sdols)
 
 library(microbenchmark)
 
@@ -12,7 +12,7 @@ microbenchmark(pairwiseProbabilityMatrix(iris10.3), pairwiseProbabilityMatrix(ir
 
 
 
-library(austin)
+library(sdols)
 system.time(example(pairwiseProbabilityMatrix))
 q()
 

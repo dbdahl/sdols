@@ -1,5 +1,5 @@
 options(rscala.heap.maximum="6g")
-library(shallot)
+library(sdols)
 
 data <- iris[,-ncol(iris)]
 truth <- as.integer(iris[,ncol(iris)])

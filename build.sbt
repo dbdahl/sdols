@@ -1,12 +1,12 @@
-name := "austin"
+name := "sdols"
 
 organization := "org.ddahl"
 
 version := "1.0"
 
-scalaVersion := "2.12.3"
+scalaVersion := "2.12.4"
 
-crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.3")
+crossScalaVersions := Seq("2.10.6", "2.11.11", "2.12.4")
         
 libraryDependencies ++= Seq(
   "org.ddahl" %% "rscala" % "2.4.0",
@@ -16,5 +16,5 @@ libraryDependencies ++= Seq(
 
 retrieveManaged := true
 
-mainClass in (Compile,run) := Some("org.ddahl.austin.Main")
+mainClass in (Compile,run) := Some("org.ddahl.sdols.Main")
 

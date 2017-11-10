@@ -1,4 +1,4 @@
-package org.ddahl.austin.network
+package org.ddahl.sdols.network
 
 import org.apache.commons.math3.special.Gamma.regularizedGammaQ
 import org.apache.commons.math3.special.Gamma.{gamma => Gamma}
