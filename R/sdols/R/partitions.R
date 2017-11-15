@@ -51,7 +51,7 @@ confidence <- function(clustering, pairwiseProbabilityMatrix) {
   exemplar <- tmpObj$"_5"() + 1L
   names(exemplar) <- 1:length(exemplar)
   result <- list(clustering=partition,confidence=confidence,confidenceMatrix=confidenceMatrix,exemplar=exemplar,order=order,pairwiseProbabilityMatrix=pairwiseProbabilityMatrix)
-  class(result) <- "shallot.confidence"
+  class(result) <- "sdols.confidence"
   result
 }
 
@@ -71,7 +71,7 @@ confidence <- function(clustering, pairwiseProbabilityMatrix) {
 #' @export
 #' @import rscala
 
-plot.shallot.confidence <- function(x, clustering=NULL, data=NULL, show.labels=length(x$clustering)<=50, ...) {
+plot.sdols.confidence <- function(x, clustering=NULL, data=NULL, show.labels=length(x$clustering)<=50, ...) {
   if ( ! is.null(data) ) {
     if ( ! is.null(clustering) ) stop("'clustering' must be 'NULL' for pairs plot.")
     i <- x$exemplar[x$clustering]
