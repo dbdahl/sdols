@@ -2,7 +2,7 @@ package org.ddahl.sdols.featureallocation
 
 import scala.collection.mutable.ArrayBuffer
 
-class FeatureAllocation[A <% Ordered[A]] private (val nItems: Int, val isLeftOrderedForm: Boolean, private val features: Vector[Feature[A]]) extends Iterable[Feature[A]] {
+class FeatureAllocation[A] private (val nItems: Int, val isLeftOrderedForm: Boolean, private val features: Vector[Feature[A]]) extends Iterable[Feature[A]] {
 
   override def canEqual(a: Any) = a.isInstanceOf[FeatureAllocation[A]]
 
@@ -168,13 +168,13 @@ class FeatureAllocation[A <% Ordered[A]] private (val nItems: Int, val isLeftOrd
 
 object FeatureAllocation {
 
-  def apply[A: Ordering](nItems: Int, features: Vector[Feature[A]]): FeatureAllocation[A] = new FeatureAllocation(nItems,false,features.filter(_.size>0))
+  def apply[A](nItems: Int, features: Vector[Feature[A]]): FeatureAllocation[A] = new FeatureAllocation(nItems,false,features.filter(_.size>0))
 
-  def apply[A: Ordering](nItems: Int, features: Feature[A]*): FeatureAllocation[A] = new FeatureAllocation(nItems,false,features.filter(_.size>0).toVector)
+  def apply[A](nItems: Int, features: Feature[A]*): FeatureAllocation[A] = new FeatureAllocation(nItems,false,features.filter(_.size>0).toVector)
 
-  def empty[A: Ordering](nItems: Int) = new FeatureAllocation(nItems,true,Vector[Feature[A]]())
+  def empty[A](nItems: Int) = new FeatureAllocation(nItems,true,Vector[Feature[A]]())
 
-  def enumerate[A: Ordering](nItems: Int, atoms: List[A], maxNFeatures: Int): List[FeatureAllocation[A]] = {
+  def enumerate[A](nItems: Int, atoms: List[A], maxNFeatures: Int): List[FeatureAllocation[A]] = {
     var list = List[FeatureAllocation[A]]()
     foreach(nItems, atoms, maxNFeatures) {f =>
       list = f +: list
@@ -182,7 +182,7 @@ object FeatureAllocation {
     list
   }
 
-  def foreach[A: Ordering](nItems: Int, atoms: List[A], maxNFeatures: Int)(f: (FeatureAllocation[A]) => Unit): Unit = {
+  def foreach[A](nItems: Int, atoms: List[A], maxNFeatures: Int)(f: (FeatureAllocation[A]) => Unit): Unit = {
     def engine(base: FeatureAllocation[A], i: Int, availableFeatures: Seq[Feature[A]]): Unit = {
       if (i >= nItems) f(base)
       else if (!availableFeatures.isEmpty) {

@@ -1,6 +1,6 @@
 package org.ddahl.sdols.featureallocation
 
-case class Feature[A <% Ordered[A]] private (parameter: A, set: Set[Int], size: Int) extends Ordered[Feature[A]] {
+case class Feature[A] private (parameter: A, set: Set[Int], size: Int) extends Ordered[Feature[A]] {
 
   def compare(that: Feature[A]): Int = {
     val thisMax = this.set.max
@@ -18,7 +18,7 @@ case class Feature[A <% Ordered[A]] private (parameter: A, set: Set[Int], size: 
     else if ((this.parameter == null) && (that.parameter == null)) 0
     else if (this.parameter == null) 1
     else if (that.parameter == null) -1
-    else this.parameter.compare(that.parameter)
+    else 0
   }
 
   def dropParameter = Feature(null: Null, set, size)
@@ -26,7 +26,7 @@ case class Feature[A <% Ordered[A]] private (parameter: A, set: Set[Int], size: 
   def replace(parameter: A) = Feature(parameter, set, size)
 
   def add(i: Int) = {
-    if (set.contains(i)) this
+    if ((i < 0) || set.contains(i)) this
     else Feature(parameter, set + i, size + 1)
   }
 
@@ -75,15 +75,27 @@ case class Feature[A <% Ordered[A]] private (parameter: A, set: Set[Int], size: 
 
 object Feature {
 
-  def apply[A :Ordering](parameter: A, items: Int*): Feature[A] = Feature(parameter, Set(items: _*), items.size)
+  def apply[A](parameter: A, items: Int*): Feature[A] = {
+    val set = items.filter(_>=0).toSet
+    Feature(parameter, set, set.size)
+  }
 
-  def apply[A :Ordering](parameter: A, items: Array[Int]): Feature[A] = Feature(parameter, items.toSet, items.size)
+  def apply[A](parameter: A, items: Array[Int]): Feature[A] = {
+    val set = items.filter(_>=0).toSet
+    Feature(parameter, set, set.size)
+  }
 
-  def apply[A :Ordering](parameter: A, items: Set[Int]): Feature[A] = new Feature(parameter, items, items.size)
+  def apply[A](parameter: A, items: Set[Int]): Feature[A] = {
+    val set = items.filter(_>=0)
+    Feature(parameter, set, set.size)
+  }
 
-  def empty[A :Ordering](parameter: A): Feature[A] = Feature(parameter, Set[Int](), 0)
+  def empty[A](parameter: A): Feature[A] = Feature(parameter, Set[Int](), 0)
 
-  def apply(items: Int*): Feature[Null] = Feature(null: Null, Set(items: _*), items.size)
+  def apply(items: Int*): Feature[Null] = {
+    val set = Set(items: _*).filter(_>=0)
+    Feature(null: Null, set, set.size)
+  }
 
   def empty: Feature[Null] = Feature(null: Null, Set[Int](), 0)
 

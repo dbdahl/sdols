@@ -7,7 +7,7 @@ Authors@R: c(person(given="David B.",family="Dahl",role=c("aut","cre"),email="da
 URL: https://dahl.byu.edu
 BugReports: https://dahl.byu.edu
 Description: Provides summaries of distribution on networks, partitions, feature allocations, and variable selection.
-Imports: rscala (>= 2.4.1-609), commonsMath, stats
+Imports: rscala (>= 2.4.1-610), commonsMath (>= 1.1-20171116-1046), stats
 Depends: mcclust
 License: Apache License 2.0 | file LICENSE
 Encoding: UTF-8

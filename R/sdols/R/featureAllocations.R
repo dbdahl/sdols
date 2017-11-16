@@ -1,3 +1,128 @@
+#' @export
+
+feature <- function(parameter, items) {
+  if ( ! is.vector(items) ) stop("Items should be a vector of integers.")
+  if ( is.logical(items) ) items <- which(items)
+  if ( length(items) < 1 ) stop("Items may not be empty.")
+  storage.mode(items) <- "integer"
+  structure(list(parameter=parameter,items=sort(items)), class="sdolsFeatureR")
+}
+
+## x <- feature(3,c(2,3,4,5))
+
+#' @importFrom rscala II
+#' @export II
+#' @export
+
+scalaConvert.feature <- function(x) {
+  if ( inherits(x,"sdolsFeatureR") ) {
+    items <- I(x$items-1L)
+    parameter <- x$parameter
+    if ( is.null(parameter) ) {
+      s['items',drop='x'] %.!% 'Feature(null: Null, items: _*)'
+    } else if ( is.scalaReference(parameter) ) {
+      s['parameter','items',drop='x'] %.!% 'Feature(parameter, items: _*)'
+    } else if ( ! inherits(parameter,"ScalaAsIs") ) {
+      s['parameter','items',drop='x'] %.!% 'Feature(parameter, items: _*)'
+    } else {
+      s['parameter','items',drop='x'] %.!% 'Feature(R.getReference(parameter), items: _*)'
+    }
+  } else if ( is.scalaReference(x) ) {
+    feature(x$parameter(),sort(x$set()$toArray()+1L))
+  } else stop("Argument is not a feature.")
+}
+
+#' @export
+
+featureAllocation <- function(nItems, ...) {
+  nItems <- as.integer(nItems)
+  features <- list(...)
+  fs <- lapply(features, function(f) {
+    if ( is.scalaReference(f) ) f
+    else if ( inherits(f,"sdolsFeatureR") ) scalaConvert.feature(f)
+    else stop("Cannot interprete argument as a feature.")
+  })
+  type <- unique(sapply(fs, function(x) x$type))
+  if ( length(type) != 1 ) stop("'features' are of different types.")
+  features <- I(sapply(fs, function(x) get("identifier",envir=x$obj)))
+  obj <- s["features"] %.!% paste0('
+    val fs = features.map(R.cached(_).asInstanceOf[Feature[',type,']])
+    FeatureAllocation(nItems, fs: _*)
+  ')
+  structure(list(obj=obj, type=type), class="sdolsFeatureAllocation")
+}
+
+
+#' @export
+
+featureOff <- function(parameter, items) {
+  if ( missing(items) && is.list(parameter) && ( all(names(parameter) %in% c("parameter","items")) ) ) {
+    return(feature(parameter$parameter, parameter$items))
+  }
+  if ( ! is.vector(items) || length(items) == 0 ) stop("'items' is misspecified.")
+  if ( is.logical(items) ) items <- which(items)
+  if ( ! is.numeric(items) ) stop("'items' is misspecified.")
+  items <- I(as.integer(items-1))
+  obj <- if ( is.null(parameter) ) {
+    type <- "Null"
+    s %.!% 'Feature(null: Null, items: _*)'
+  } else if ( inherits(parameter,"ScalaInterpreterReference") || inherits(parameter,"ScalaCachedReference") ) {
+    type <- parameter$type
+    s %.!% 'Feature(parameter, items: _*)'
+  } else {
+    type <- "PersistentReference"
+    parameter <- II(parameter)
+    s %.!% 'Feature(R.getReference(parameter), items: _*)'
+  }
+  structure(list(obj=obj,type=type), class="sdolsFeature")
+}
+
+#' @export
+
+featureAllocationOff <- function(nItems, ...) {
+  nItems <- as.integer(nItems)
+  features <- list(...)
+  fs <- lapply(features, function(f) {
+    if ( inherits(f,"sdolsFeature") ) f else feature(f)
+  })
+  type <- unique(sapply(fs, function(x) x$type))
+  if ( length(type) != 1 ) stop("'features' are of different types.")
+  features <- I(sapply(fs, function(x) get("identifier",envir=x$obj)))
+  obj <- s["features"] %.!% paste0('
+    val fs = features.map(R.cached(_).asInstanceOf[Feature[',type,']])
+    FeatureAllocation(nItems, fs: _*)
+  ')
+  structure(list(obj=obj, type=type), class="sdolsFeatureAllocation")
+}
+
+#' @export
+
+toString.aibdFeatureAllocation <- function(x, ...) {
+  x$obj$toString(FALSE)
+}
+
+#' @export
+
+print.aibdFeatureAllocation <- function(x, ...) {
+  cat(x$obj$toString(FALSE),"\n",sep="")
+  invisible(x)
+}
+
+#' @export
+
+leastSquaresFA <- function(x, sfm=sharedFeaturesMatrix(x)) {
+  if ( ! inherits(x,"aibdFeatureAllocationVector") ) stop("'x' is not of the right type.")
+  obj <- s$.LeastSquaresFeatureAllocation$apply(x$obj,s$.Some$apply(sfm))
+  type <- x$type
+  structure(list(obj=obj, type=type), class="aibdFeatureAllocation")
+}
+
+#' @export
+
+sumOfSquaresFA <- function(fa, sfm) {
+  s$.LeastSquaresFeatureAllocation$sumOfSquares(fa$obj,sfm)
+}
+
 # Private
 
 deserializeFeatureAllocations <- function(x,y=NULL) {
