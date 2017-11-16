@@ -3,9 +3,9 @@
 feature <- function(parameter, items) {
   if ( ! is.vector(items) ) stop("Items should be a vector of integers.")
   if ( is.logical(items) ) items <- which(items)
-  if ( length(items) < 1 ) stop("Items may not be empty.")
+  items <- sort(unique(items[items>=1L]))
   storage.mode(items) <- "integer"
-  structure(list(parameter=parameter,items=sort(items)), class="sdolsFeatureR")
+  structure(list(parameter=parameter,items=items), class="sdolsFeature")
 }
 
 ## x <- feature(3,c(2,3,4,5))
@@ -15,20 +15,20 @@ feature <- function(parameter, items) {
 #' @export
 
 scalaConvert.feature <- function(x) {
-  if ( inherits(x,"sdolsFeatureR") ) {
+  if ( is.scalaReference(x) ) {
+    feature(x$parameter(),sort(x$set()$toArray()+1L))
+  } else if ( inherits(x,"sdolsFeature") ) {
     items <- I(x$items-1L)
     parameter <- x$parameter
     if ( is.null(parameter) ) {
       s['items',drop='x'] %.!% 'Feature(null: Null, items: _*)'
     } else if ( is.scalaReference(parameter) ) {
       s['parameter','items',drop='x'] %.!% 'Feature(parameter, items: _*)'
-    } else if ( ! inherits(parameter,"ScalaAsIs") ) {
-      s['parameter','items',drop='x'] %.!% 'Feature(parameter, items: _*)'
-    } else {
+    } else if ( inherits(parameter,"ScalaAsIs") ) {
       s['parameter','items',drop='x'] %.!% 'Feature(R.getReference(parameter), items: _*)'
+    } else {
+      s['parameter','items',drop='x'] %.!% 'Feature(parameter, items: _*)'
     }
-  } else if ( is.scalaReference(x) ) {
-    feature(x$parameter(),sort(x$set()$toArray()+1L))
   } else stop("Argument is not a feature.")
 }
 
@@ -37,62 +37,35 @@ scalaConvert.feature <- function(x) {
 featureAllocation <- function(nItems, ...) {
   nItems <- as.integer(nItems)
   features <- list(...)
-  fs <- lapply(features, function(f) {
-    if ( is.scalaReference(f) ) f
-    else if ( inherits(f,"sdolsFeatureR") ) scalaConvert.feature(f)
-    else stop("Cannot interprete argument as a feature.")
-  })
-  type <- unique(sapply(fs, function(x) x$type))
-  if ( length(type) != 1 ) stop("'features' are of different types.")
-  features <- I(sapply(fs, function(x) get("identifier",envir=x$obj)))
-  obj <- s["features"] %.!% paste0('
-    val fs = features.map(R.cached(_).asInstanceOf[Feature[',type,']])
-    FeatureAllocation(nItems, fs: _*)
-  ')
-  structure(list(obj=obj, type=type), class="sdolsFeatureAllocation")
-}
-
-
-#' @export
-
-featureOff <- function(parameter, items) {
-  if ( missing(items) && is.list(parameter) && ( all(names(parameter) %in% c("parameter","items")) ) ) {
-    return(feature(parameter$parameter, parameter$items))
-  }
-  if ( ! is.vector(items) || length(items) == 0 ) stop("'items' is misspecified.")
-  if ( is.logical(items) ) items <- which(items)
-  if ( ! is.numeric(items) ) stop("'items' is misspecified.")
-  items <- I(as.integer(items-1))
-  obj <- if ( is.null(parameter) ) {
-    type <- "Null"
-    s %.!% 'Feature(null: Null, items: _*)'
-  } else if ( inherits(parameter,"ScalaInterpreterReference") || inherits(parameter,"ScalaCachedReference") ) {
-    type <- parameter$type
-    s %.!% 'Feature(parameter, items: _*)'
-  } else {
-    type <- "PersistentReference"
-    parameter <- II(parameter)
-    s %.!% 'Feature(R.getReference(parameter), items: _*)'
-  }
-  structure(list(obj=obj,type=type), class="sdolsFeature")
+  for ( f in features) if ( ! inherits(f,"sdolsFeature") ) stop("Argument is not a feature.")
+  if ( length(features) > 0 ) features <- features[sapply(features,function(f) length(f$items)>0)]
+  structure(list(nItems=nItems, features=features), class="sdolsFeatureAllocation")
 }
 
 #' @export
 
-featureAllocationOff <- function(nItems, ...) {
-  nItems <- as.integer(nItems)
-  features <- list(...)
-  fs <- lapply(features, function(f) {
-    if ( inherits(f,"sdolsFeature") ) f else feature(f)
-  })
-  type <- unique(sapply(fs, function(x) x$type))
-  if ( length(type) != 1 ) stop("'features' are of different types.")
-  features <- I(sapply(fs, function(x) get("identifier",envir=x$obj)))
-  obj <- s["features"] %.!% paste0('
-    val fs = features.map(R.cached(_).asInstanceOf[Feature[',type,']])
-    FeatureAllocation(nItems, fs: _*)
-  ')
-  structure(list(obj=obj, type=type), class="sdolsFeatureAllocation")
+scalaConvert.featureAllocation <- function(x,typeIfEmpty="Null") {
+  if ( is.scalaReference(x) ) {
+    nItems <- x$nItems()
+    nFeatures <- x$nFeatures()
+    if ( nFeatures == 0 ) return(featureAllocation(nItems))
+    fs <- x$toVector()
+    features <- vector("list",nFeatures)
+    for ( i in 1:nFeatures ) {
+      features[[i]] <- scalaConvert.feature(fs$apply(i-1L))
+    }
+    do.call("featureAllocation",c(nItems,features))
+  } else if ( inherits(x,"sdolsFeatureAllocation") ) {
+    nItems <- x$nItems
+    features <- x$features
+    if ( length(features) == 0 ) {
+      fa <- s$.FeatureAllocation$do(paste0("empty[",typeIfEmpty,"]"))(nItems)
+    } else {
+      fa <- s$.FeatureAllocation$apply(nItems,scalaConvert.feature(features[[1]]))
+      if ( length(features) > 1 ) for ( f in features[2:length(features)] ) fa <- fa$add(scalaConvert.feature(f))
+    }
+    fa
+  } else stop("Argument is not a feature.")
 }
 
 #' @export

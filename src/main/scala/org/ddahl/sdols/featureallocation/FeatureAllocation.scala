@@ -172,7 +172,7 @@ object FeatureAllocation {
 
   def apply[A](nItems: Int, features: Feature[A]*): FeatureAllocation[A] = new FeatureAllocation(nItems,false,features.filter(_.size>0).toVector)
 
-  def empty[A](nItems: Int) = new FeatureAllocation(nItems,true,Vector[Feature[A]]())
+  def empty[A](nItems: Int): FeatureAllocation[A] = new FeatureAllocation(nItems,true,Vector[Feature[A]]())
 
   def enumerate[A](nItems: Int, atoms: List[A], maxNFeatures: Int): List[FeatureAllocation[A]] = {
     var list = List[FeatureAllocation[A]]()
