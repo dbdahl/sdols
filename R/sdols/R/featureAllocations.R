@@ -35,11 +35,34 @@ scalaConvert.feature <- function(x) {
 #' @export
 
 featureAllocation <- function(nItems, ...) {
-  nItems <- as.integer(nItems)
   features <- list(...)
-  for ( f in features) if ( ! inherits(f,"sdolsFeature") ) stop("Argument is not a feature.")
-  if ( length(features) > 0 ) features <- features[sapply(features,function(f) length(f$items)>0)]
+  if ( is.matrix(nItems) && ( length(features) == 0 ) ) {
+    Z <- nItems
+    nItems <- nrow(Z)
+    K <- ncol(Z)
+    features <- vector("list",K)
+    for ( k in seq_len(K) ) {
+      parameter <- if ( is.null(attr(Z,"parameters")) ) NULL else attr(Z,"parameters")[k,]
+      features[[k]] <- feature(parameter,which(Z[,k]==1))
+    }
+  } else {
+    nItems <- as.integer(nItems)
+    for ( f in features) if ( ! inherits(f,"sdolsFeature") ) stop("Argument is not a feature.")
+    if ( length(features) > 0 ) features <- features[sapply(features,function(f) length(f$items)>0)]
+  }
   structure(list(nItems=nItems, features=features), class="sdolsFeatureAllocation")
+}
+
+#' @export
+
+as.matrix.sdolsFeatureAllocation <- function(x) {
+  nItems <- x$nItems
+  K <- length(x$features)
+  Z <- matrix(0L,nrow=nItems,ncol=K)
+  for ( k in seq_len(K) ) Z[x$features[[k]]$items,k] <- 1L
+  W <- sapply(x$features, function(f) f$parameter)
+  if ( is.numeric(W) ) attr(Z,"parameters") <- matrix(W,nrow=K,byrow=TRUE)
+  Z
 }
 
 #' @export
@@ -96,9 +119,9 @@ sumOfSquaresFA <- function(fa, sfm) {
   s$.LeastSquaresFeatureAllocation$sumOfSquares(fa$obj,sfm)
 }
 
-# Private
+#' @export
 
-deserializeFeatureAllocations <- function(x,y=NULL) {
+deserializeFeatureAllocations <- function(x, y=NULL) {
   if ( length(x) == 0 ) return(list())
   nItems <- x[1]
   N <- x[2]
@@ -121,7 +144,7 @@ deserializeFeatureAllocations <- function(x,y=NULL) {
     }
     if ( doW ) {
       values <- if ( K*M > 0 ) y[ii:(ii+K*M-1)] else 0
-      attr(Z,"W") <- matrix(values,nrow=K,ncol=M,byrow=TRUE)
+      attr(Z,"parameters") <- matrix(values,nrow=K,ncol=M,byrow=TRUE)
       ii <- ii + K*M
     }
     Zs[[a]] <- Z
@@ -129,7 +152,7 @@ deserializeFeatureAllocations <- function(x,y=NULL) {
   Zs
 }
 
-# Private
+#' @export
 
 serializeFeatureAllocations <- function(featureAllocation, withParameters=TRUE) {
   if ( length(featureAllocation) == 0 ) return(list(integer(0),double(0)))
@@ -143,7 +166,7 @@ serializeFeatureAllocations <- function(featureAllocation, withParameters=TRUE) 
   ii <- 1
   for ( fa in featureAllocation ) {
     if ( withParameters ) {
-      W <- attr(fa,"W")
+      W <- attr(fa,"parameters")
       if ( ! sizeDeclared ) { 
         sizeDeclared <- TRUE
         data2[ii] <- ncol(W)
