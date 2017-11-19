@@ -4,43 +4,55 @@
 
 scalaConvert.featureAllocation <- function(x, withParameters=TRUE) {
   if ( is.scalaReference(x) ) {
-    if ( ! grepl("^Array\\[",x$type) ) x <- s$.Array$apply(x)
+    singleton <- ! grepl("^Array\\[",x$type)
+    if ( singleton ) {
+      xSingleton <- x
+      x <- s$.Array$apply(xSingleton)
+    }
     dataTuple <- if ( withParameters ) {
       tmp <- s$.FeatureAllocation$serializeWithParameters(x)
       list(tmp$"_1"(),tmp$"_2"())
     }
     else list(s$.FeatureAllocation$serialize(x),double())
-    x <- dataTuple[[1]]
-    y <- dataTuple[[2]]
-    if ( length(x) == 0 ) return(list())
-    nItems <- x[1]
-    N <- x[2]
+    xx <- dataTuple[[1]]
+    yy <- dataTuple[[2]]
+    if ( length(xx) == 0 ) return(NULL)
+    nItems <- xx[1]
+    N <- xx[2]
     i <- 3
-    doW <- ( ! is.null(y) ) && ( length(y) != 0 )
+    doW <- ( ! is.null(yy) ) && ( length(yy) != 0 )
     M <- if ( doW ) {
       ii <- 2
-      y[1]
+      yy[1]
     } else 0
     Zs <- vector("list",N)
     for ( a in seq_len(N) ) {
-      K <- x[i]
+      K <- xx[i]
       i <- i + 1
       Z <- matrix(0L,nrow=nItems,ncol=K)
       for ( k in seq_len(K) ) {
-        size <- x[i]
+        size <- xx[i]
         i <- i + 1
-        Z[x[i:(i+size-1)]+1,k] <- 1L
+        Z[xx[i:(i+size-1)]+1,k] <- 1L
         i <- i + size
       }
       if ( doW ) {
-        values <- if ( K*M > 0 ) y[ii:(ii+K*M-1)] else 0
+        values <- if ( K*M > 0 ) yy[ii:(ii+K*M-1)] else 0
         attr(Z,"parameters") <- matrix(values,nrow=K,ncol=M,byrow=TRUE)
         ii <- ii + K*M
       }
       Zs[[a]] <- Z
     }
-    Zs
+    if ( singleton ) {
+      Z <- Zs[[1]]
+      attr(Z,"scalaReference")  <- xSingleton
+      Z
+    } else {
+      attr(Zs,"scalaReference") <- x
+      Zs
+    }
   } else {
+    if ( ! is.null(attr(x,"scalaReference")) ) return(attr(x,"scalaReference"))
     singleton <- is.matrix(x)
     if ( singleton ) x <- list(x)
     dataTuple <- if ( length(x) == 0 ) list(integer(0),double(0))
