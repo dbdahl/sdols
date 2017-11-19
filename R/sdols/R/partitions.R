@@ -68,8 +68,10 @@ confidence <- function(clustering, pairwiseProbabilityMatrix) {
   xx
 '
 
-#' @export
+#' @importFrom grDevices heat.colors rainbow topo.colors
+#' @importFrom graphics abline axis box image pairs par points polygon segments text
 #' @import rscala
+#' @export
 
 plot.sdols.confidence <- function(x, clustering=NULL, data=NULL, show.labels=length(x$clustering)<=50, ...) {
   if ( ! is.null(data) ) {
