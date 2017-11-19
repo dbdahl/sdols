@@ -1,8 +1,31 @@
 library(sdols)
 
+Z <- matrix(as.integer(scan()),nrow=5,ncol=2,byrow=TRUE)
+    1 0
+    1 1
+    0 1
+    0 1
+    1 0
+
+attr(Z,"parameters") <- matrix(c(2,3),nrow=2,byrow=TRUE)
+
+ZZ <- Z
+e <- scalaConvert.featureAllocation(ZZ)
+f <- scalaConvert.featureAllocation(e)
+identical(ZZ,f)
+
+
+
+
+
 f1 <- feature(NULL,c(2,3,4,1))
-f2 <- feature(NULL,integer())
-fa1 <- featureAllocation(10,f1,f2)
+
+f2 <- feature(c(2,1,4),integer())
+f2 <- feature(II(list()),integer())
+
+fa1 <- featureAllocation(10,f1,f2,f1,f2,f1,f1,f1)
+fa1
+
 
 scalaConvert.featureAllocation(
   featureAllocation(10,feature(NULL,c(2,3)))

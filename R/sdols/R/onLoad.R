@@ -7,7 +7,7 @@
     import org.apache.commons.math3.random.{ RandomDataGenerator => RDG }
   '
   ## Tell users they may want to set heap.maximum using options(rscala.heap.maximum="4G")
-  .rscalaPackage(pkgname,classpath.packages=c("commonsMath"),snippet=snippet)
+  .rscalaPackage(pkgname,classpath.packages="commonsMath",snippet=snippet)
 }
 
 .onUnload <- function(libpath) {
