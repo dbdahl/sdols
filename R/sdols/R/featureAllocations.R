@@ -55,45 +55,48 @@ scalaConvert.featureAllocation <- function(x, withParameters=TRUE) {
     if ( ! is.null(attr(x,"scalaReference")) ) return(attr(x,"scalaReference"))
     singleton <- is.matrix(x)
     if ( singleton ) x <- list(x)
-    dataTuple <- if ( length(x) == 0 ) list(integer(0),double(0))
-    else {
-      data <- integer(0)
-      data2 <- double(0)
-      sizeDeclared <- FALSE
-      size <- -1L
-      data[1] <- nrow(x[[1]])
-      data[2] <- length(x)
-      i <- 3
-      ii <- 1
-      for ( fa in x ) {
-        if ( withParameters ) {
-          W <- attr(fa,"parameters")
-          if ( ! is.null(W) ) {
-            if ( ! sizeDeclared ) {
-              sizeDeclared <- TRUE
-              data2[ii] <- ncol(W)
-              ii <- ii + 1
-            }
-            data2[ii:(ii+length(W)-1)] <- t(W)
-            ii <- ii + length(W)
+    if ( ! is.list(x) ) stop("'x' should be a list of feature allocations.")
+    if ( length(x) == 0 ) stop("'x' should not be empty.")
+    for ( i in 1:length(x) ) {
+      Z <- x[[i]]
+      if ( ! is.matrix(Z) ) stop(paste0("Element ",i," of 'x' is not a matrix."))
+      if ( ! all(unique(as.vector(Z)) %in% c(0,1)) ) stop(paste0("Element ",i," of 'x' is not a binary feature matrix."))
+    }
+    data <- integer(0)
+    data2 <- double(0)
+    sizeDeclared <- FALSE
+    size <- -1L
+    data[1] <- nrow(x[[1]])
+    data[2] <- length(x)
+    i <- 3
+    ii <- 1
+    for ( fa in x ) {
+      if ( withParameters ) {
+        W <- attr(fa,"parameters")
+        if ( ! is.null(W) ) {
+          if ( ! sizeDeclared ) {
+            sizeDeclared <- TRUE
+            data2[ii] <- ncol(W)
+            ii <- ii + 1
           }
-        }
-        data[i] <- ncol(fa)
-        i <- i + 1
-        for ( k in 1:ncol(fa) ) {
-          what <- which(fa[,k]==1)-1L
-          data[i] <- length(what)
-          i <- i + 1
-          data[i:(i+length(what)-1)] <- what
-          i <- i + length(what)
+          data2[ii:(ii+length(W)-1)] <- t(W)
+          ii <- ii + length(W)
         }
       }
-      list(data,data2)
+      data[i] <- ncol(fa)
+      i <- i + 1
+      for ( k in 1:ncol(fa) ) {
+        what <- which(fa[,k]==1)-1L
+        data[i] <- length(what)
+        i <- i + 1
+        data[i:(i+length(what)-1)] <- what
+        i <- i + length(what)
+      }
     }
-    result <- if ( length(dataTuple[[2]]) > 0 ) {
-      s$.FeatureAllocation$deserializeWithParameters(dataTuple[[1]],dataTuple[[2]])
+    result <- if ( length(data2) > 0 ) {
+      s$.FeatureAllocation$deserializeWithParameters(data1,data2)
     } else {
-      s$.FeatureAllocation$deserialize(dataTuple[[1]])
+      s$.FeatureAllocation$deserialize(data1)
     }
     if ( singleton ) result$head()
     else result
@@ -102,16 +105,41 @@ scalaConvert.featureAllocation <- function(x, withParameters=TRUE) {
 
 #' @export
 
-leastSquaresFA <- function(x, sfm=sharedFeaturesMatrix(x)) {
-  if ( ! inherits(x,"aibdFeatureAllocationVector") ) stop("'x' is not of the right type.")
-  obj <- s$.LeastSquaresFeatureAllocation$apply(x$obj,s$.Some$apply(sfm))
-  type <- x$type
-  structure(list(obj=obj, type=type), class="aibdFeatureAllocation")
+leastSquaresFA <- function(x, expectedPairwiseAllocationMatrix=NULL) {
+  reference <- scalaConvert.featureAllocation(if ( is.matrix(x) ) list(x) else x)
+  epamOption <- if ( is.null(expectedPairwiseAllocationMatrix) ) s$.None else s$.Some$apply(expectedPairwiseAllocationMatrix)
+  fa <- s$.FeatureAllocationSummary$leastSquares(reference,epamOption)
+  scalaConvert.featureAllocation(fa)
 }
 
 #' @export
 
-sumOfSquaresFA <- function(fa, sfm) {
-  s$.LeastSquaresFeatureAllocation$sumOfSquares(fa$obj,sfm)
+sumOfSquaresFA <- function(featureAllocation, expectedPairwiseAllocationMatrix) {
+  if ( ! is.matrix(featureAllocation) ) stop("'featureAllocation' should be a binary feature allocation matrix.")
+  fa <- scalaConvert.featureAllocation(featureAllocation)
+  if ( ! is.matrix(expectedPairwiseAllocationMatrix) || ! isSymmetric(expectedPairwiseAllocationMatrix) ) stop("'expectedPairwiseAllocationMatrix' is not a symmetric matrix.")
+  s$.FeatureAllocationSummary$sumOfSquares(fa,expectedPairwiseAllocationMatrix)
+}
+
+#' Estimate the Expected Pairwise Allocation Matrix
+#'
+#' A pairwise sharing matrix in a \code{n}-by-\code{n} giving the expected number of features shared among \code{n}
+#' items in a feature allocation distribution.
+#'
+#' @param x A list of feature allocation matrices obtained by random sampling, where each element \code{Z} is a binary
+#'          matrix of \code{n} rows and an arbirary number of columns.  For a given \code{Z}, items \code{i} and
+#'          \code{j} share of feature \code{k} if \code{Z[i,k] == Z[j,k] == 1}.
+#'
+#' @return a symmetric square matrix whose elements give the expected number of features that pairs of items share.
+#'
+#' @examples
+#' data(lgmSamples}
+#' expectedPairwiseAllocationMatrix(lgmSamples)
+#'
+#' @export
+
+expectedPairwiseAllocationMatrix <- function(x) {
+  reference <- scalaConvert.featureAllocation(if ( is.matrix(x) ) list(x) else x)
+  s$.FeatureAllocationSummary$expectedPairwiseAllocationMatrix(reference)
 }
 

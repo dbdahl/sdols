@@ -3,6 +3,7 @@
 S3method(plot,sdols.confidence)
 export(II)
 export(confidence)
+export(expectedPairwiseAllocationMatrix)
 export(leastSquaresFA)
 export(minbinder1)
 export(minbinder2)
