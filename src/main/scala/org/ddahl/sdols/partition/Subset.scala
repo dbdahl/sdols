@@ -104,7 +104,7 @@ object Subset {
 
   def apply[A](parameter: A, i: Int*): Subset[A] = apply(parameter, i)
 
-  def apply[A](sampler: () => A, objInputStream: java.io.ObjectInputStream): Subset[A] = {
+  def apply[A](objInputStream: java.io.ObjectInputStream): Subset[A] = {
     val nItems = objInputStream.readInt()
     val seq = Seq.fill(nItems) { objInputStream.readInt() }
     val parameter = objInputStream.readObject().asInstanceOf[A]
