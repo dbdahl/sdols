@@ -1,4 +1,5 @@
-package org.ddahl.sdols.featureallocation
+package org.ddahl.sdols
+package featureallocation
 
 import org.ddahl.commonsmath._
 

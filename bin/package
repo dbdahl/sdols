@@ -78,7 +78,7 @@ if [[ -n "$TASK_SCALA" ]]
 then
   sbt +package
   JARDEST=$PWD/R/$PKG_NAME/inst/java
-  for v in 2.12 2.11 2.10
+  for v in 2.12 2.11
   do
     JARDESTSPECIFIC=$JARDEST/scala-${v}
     rm -rf "$JARDESTSPECIFIC"

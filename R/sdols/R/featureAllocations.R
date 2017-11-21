@@ -52,7 +52,10 @@ scalaConvert.featureAllocation <- function(x, withParameters=TRUE) {
       Zs
     }
   } else {
-    if ( ! is.null(attr(x,"scalaReference")) ) return(attr(x,"scalaReference"))
+    if ( ! is.null(attr(x,"scalaReference")) ) {
+      xx <- attr(x,"scalaReference")
+      if ( xx$true ) return(xx)
+    }
     singleton <- is.matrix(x)
     if ( singleton ) x <- list(x)
     if ( ! is.list(x) ) stop("'x' should be a list of feature allocations.")

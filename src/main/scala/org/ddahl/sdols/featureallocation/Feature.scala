@@ -1,4 +1,5 @@
-package org.ddahl.sdols.featureallocation
+package org.ddahl.sdols
+package featureallocation
 
 case class Feature[A] private (parameter: A, set: Set[Int], size: Int) extends Ordered[Feature[A]] {
 
