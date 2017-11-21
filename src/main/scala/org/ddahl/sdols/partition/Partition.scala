@@ -177,9 +177,9 @@ object Partition {
 
   def apply[A](sampler: () => A, nItems: Int, allTogether: Boolean): Partition[A] = {
     if (allTogether) {
-      Partition(Subset(sampler, Range(0, nItems)))
+      Partition(Subset(sampler(), Range(0, nItems)))
     } else {
-      Partition(Range(0, nItems).map(i => Subset(sampler, i)): _*)
+      Partition(Range(0, nItems).map(i => Subset(sampler(), i)): _*)
     }
   }
 
@@ -188,7 +188,7 @@ object Partition {
   @tailrec private def makePartition[A](sampler: () => A, labelsWithIndex: Iterable[(Int, Int)], list: List[Subset[A]]): List[Subset[A]] = {
     val label = labelsWithIndex.head._1
     val (left, right) = labelsWithIndex.partition(_._1 == label)
-    val longerList = Subset(sampler, left.map(_._2)) +: list
+    val longerList = Subset(sampler(), left.map(_._2)) +: list
     if (right.isEmpty) longerList
     else makePartition(sampler, right, longerList)
   }
@@ -220,7 +220,7 @@ object Partition {
         partition.foreach(subset => {
           engine(partition.add(nextItem, subset), nextItem + 1, nItems)
         })
-        engine(partition.add(nextItem, Subset.empty(sampler)), nextItem + 1, nItems)
+        engine(partition.add(nextItem, Subset.empty(sampler())), nextItem + 1, nItems)
       }
     }
     engine(empty[A](), 0, nItems)
