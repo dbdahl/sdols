@@ -205,7 +205,7 @@ object Partition {
     new SetPartition(nItems, i.size, i.toSet)
   }
 
-  def apply[A](sampler: () => A, objInputStream: java.io.ObjectInputStream): Partition[A] = {
+  def apply[A](objInputStream: java.io.ObjectInputStream): Partition[A] = {
     val nSubsets = objInputStream.readInt()
     val seq = Seq.fill(nSubsets) { Subset[A](objInputStream) }
     apply(seq)
