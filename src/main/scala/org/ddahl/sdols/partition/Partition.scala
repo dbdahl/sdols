@@ -38,7 +38,7 @@ trait Partition[A] extends Iterable[Subset[A]] {
   def toStringTerse = "{" + map(_.toStringTerse).toList.sortWith(_ < _).mkString(",") + "}"
 
   def entropy: Double = {
-    val rates = map(_.nItems.asInstanceOf[Double] / nItems).toList.sortWith(_ > _)
+    val rates = map(_.size.asInstanceOf[Double] / nItems).toList.sortWith(_ > _)
     rates.foldLeft(0.0)((s, p) => { s - (if (p > 0.0) p * math.log(p) else 0.0) })
   }
 
@@ -77,15 +77,15 @@ final class SetPartition[A](val nItems: Int, val nSubsets: Int, protected val x:
 
   if (checks) {
     if (nSubsets != x.size) throw new RuntimeException("Internal error")
-    if (x.foldLeft(0)((sum, subset) => sum + subset.nItems) != nItems) throw new RuntimeException("Internal error")
+    if (x.foldLeft(0)((sum, subset) => sum + subset.size) != nItems) throw new RuntimeException("Internal error")
   }
 
   def add(subset: Subset[A]) = {
     if (checks) {
-      if (subset.nItems == 0) throw new IllegalArgumentException("Subset is empty.")
+      if (subset.size == 0) throw new IllegalArgumentException("Subset is empty.")
       if (contains(subset)) throw new IllegalArgumentException("Partition already contains this subset.")
     }
-    new SetPartition(nItems + subset.nItems, nSubsets + 1, x + subset)
+    new SetPartition(nItems + subset.size, nSubsets + 1, x + subset)
   }
 
   def add(i: Int, subset: Subset[A]) = {
@@ -101,14 +101,14 @@ final class SetPartition[A](val nItems: Int, val nSubsets: Int, protected val x:
     if (checks) {
       if (!contains(subset)) throw new IllegalArgumentException("Partition does not contain this subset.")
     }
-    new SetPartition(nItems - subset.nItems, nSubsets - 1, x - subset)
+    new SetPartition(nItems - subset.size, nSubsets - 1, x - subset)
   }
 
   def remove(i: Int, subset: Subset[A]) = {
     if (checks) {
       if (!subset.contains(i)) throw new IllegalArgumentException("Subset does not contain " + i + ".")
     }
-    if (subset.nItems == 1) new SetPartition(nItems - 1, nSubsets - 1, x - subset)
+    if (subset.size == 1) new SetPartition(nItems - 1, nSubsets - 1, x - subset)
     else new SetPartition(nItems - 1, nSubsets, x - subset + subset.remove(i))
   }
 
@@ -128,7 +128,7 @@ final class SetPartition[A](val nItems: Int, val nSubsets: Int, protected val x:
     }
     val subset = s.get
     val subsetWithoutI = subset.remove(i)
-    if (subset.nItems == 1) {
+    if (subset.size == 1) {
       (new SetPartition(nItems - 1, nSubsets - 1, x - subset), subsetWithoutI)
     } else {
       (new SetPartition(nItems - 1, nSubsets, x - subset + subsetWithoutI), subsetWithoutI)
@@ -202,7 +202,7 @@ object Partition {
   def apply[A](i: Subset[A]*): Partition[A] = apply(i)
 
   def apply[A](i: Iterable[Subset[A]]): Partition[A] = {
-    val nItems = i.foldLeft(0)((sum, subset) => sum + subset.nItems)
+    val nItems = i.foldLeft(0)((sum, subset) => sum + subset.size)
     new SetPartition(nItems, i.size, i.toSet)
   }
 

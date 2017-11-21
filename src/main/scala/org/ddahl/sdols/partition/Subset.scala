@@ -5,8 +5,6 @@ trait Subset[A] extends Iterable[Int] {
 
   val parameter: A
 
-  val nItems: Int
-
   protected[partition] def add(i: Int): Subset[A]
 
   protected[partition] def add(subset: Int*): Subset[A]
@@ -28,53 +26,53 @@ trait Subset[A] extends Iterable[Int] {
   def toStringTerse = {
     "{" + toList.sortWith(_ < _).mkString(",") + "}"
   }
-  
+
   def write(objOutputStream: java.io.ObjectOutputStream) = {
-    objOutputStream.writeInt(nItems)
+    objOutputStream.writeInt(size)
     iterator.foreach(objOutputStream.writeInt)
     objOutputStream.writeObject(parameter)
   }
 
 }
 
-final class SetSubset[A] private[partition] (val nItems: Int, val x: Set[Int], val parameter: A, sampler: () => A) extends Subset[A] {
+final class SetSubset[A] private[partition] (override val size: Int, val x: Set[Int], val parameter: A, sampler: () => A) extends Subset[A] {
 
   private val checks = false
 
   if (checks) {
-    if (nItems != x.size) throw new RuntimeException("Internal error")
+    if (size != x.size) throw new RuntimeException("Internal error")
   }
 
   protected[partition] def add(i: Int) = {
     if (checks) {
       if (contains(i)) throw new IllegalArgumentException("Subset already contains " + i + ".")
     }
-    new SetSubset(nItems + 1, x + i, parameter, sampler)
+    new SetSubset(size + 1, x + i, parameter, sampler)
   }
 
   protected[partition] def add(subset: Int*) = {
     if (checks) {
       if (subset.exists(x.contains)) throw new IllegalArgumentException("Subset already contains at least one of these items.")
     }
-    new SetSubset(nItems + subset.size, x ++ subset, parameter, sampler)
+    new SetSubset(size + subset.size, x ++ subset, parameter, sampler)
   }
 
   protected[partition] def remove(i: Int) = {
     if (checks) {
       if (!contains(i)) throw new IllegalArgumentException("Subset does not contain " + i + ".")
     }
-    new SetSubset(nItems - 1, x - i, parameter, sampler)
+    new SetSubset(size - 1, x - i, parameter, sampler)
   }
 
   protected[partition] def remove(subset: Int*) = {
     if (checks) {
       if (!subset.forall(x.contains)) throw new IllegalArgumentException("Subset does not contain all of these items.")
     }
-    new SetSubset(nItems - subset.size, x -- subset, parameter, sampler)
+    new SetSubset(size - subset.size, x -- subset, parameter, sampler)
   }
 
   protected[partition] def replaceParameter(newParameter: A) = {
-    new SetSubset(nItems, x, newParameter, sampler)
+    new SetSubset(size, x, newParameter, sampler)
   }
 
   def contains(i: Int) = x.contains(i)
@@ -83,7 +81,7 @@ final class SetSubset[A] private[partition] (val nItems: Int, val x: Set[Int], v
 
   override def equals(other: Any) = other match {
     case that: SetSubset[A] =>
-      if (that.nItems != nItems) false
+      if (that.size != size) false
       else that.x == x
     case _ => false
   }
