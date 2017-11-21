@@ -21,7 +21,7 @@ trait Partition[A] extends Iterable[Subset[A]] {
 
   def removeWithSubset(i: Int): (Partition[A], Subset[A])
 
-  def replaceParameters(func: (Subset[A]) => A): Partition[A]
+  def replace(func: (Subset[A]) => A): Partition[A]
 
   def contains(subset: Subset[A]): Boolean
 
@@ -135,10 +135,9 @@ final class SetPartition[A](val nItems: Int, val nSubsets: Int, protected val x:
     }
   }
 
-  def replaceParameters(func: (Subset[A]) => A) = {
+  def replace(func: (Subset[A]) => A) = {
     Partition(map(subset => {
-      val newParameter = func(subset)
-      subset.replaceParameter(newParameter)
+      subset.replace(func(subset))
     }))
   }
 

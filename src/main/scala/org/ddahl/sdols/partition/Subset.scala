@@ -13,7 +13,7 @@ trait Subset[A] extends Iterable[Int] {
 
   protected[partition] def remove(subset: Int*): Subset[A]
 
-  protected[partition] def replaceParameter(newParameter: A): Subset[A]
+  protected[partition] def replace(parameter: A): Subset[A]
 
   def contains(i: Int): Boolean
 
@@ -71,8 +71,8 @@ final class SetSubset[A] private[partition] (override val size: Int, val x: Set[
     new SetSubset(size - subset.size, x -- subset, parameter, sampler)
   }
 
-  protected[partition] def replaceParameter(newParameter: A) = {
-    new SetSubset(size, x, newParameter, sampler)
+  protected[partition] def replace(parameter: A) = {
+    new SetSubset(size, x, parameter, sampler)
   }
 
   def contains(i: Int) = x.contains(i)
