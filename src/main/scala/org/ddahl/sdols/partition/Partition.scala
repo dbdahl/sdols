@@ -176,27 +176,27 @@ object Partition {
 
   def empty[A](): Partition[A] = new SetPartition(0, 0, Set[Subset[A]]())
 
-  def apply[A](samplingModel: SamplingModel2[A], nItems: Int, allTogether: Boolean): Partition[A] = {
+  def apply[A](sampler: () => A, nItems: Int, allTogether: Boolean): Partition[A] = {
     if (allTogether) {
-      Partition(Subset(samplingModel, Range(0, nItems): _*))
+      Partition(Subset(sampler, Range(0, nItems)))
     } else {
-      Partition(Range(0, nItems).map(i => Subset(samplingModel, i)): _*)
+      Partition(Range(0, nItems).map(i => Subset(sampler, i)): _*)
     }
   }
 
   import scala.annotation.tailrec
 
-  @tailrec private def makePartition[A](samplingModel: SamplingModel2[A], labelsWithIndex: Iterable[(Int, Int)], list: List[Subset[A]]): List[Subset[A]] = {
+  @tailrec private def makePartition[A](sampler: () => A, labelsWithIndex: Iterable[(Int, Int)], list: List[Subset[A]]): List[Subset[A]] = {
     val label = labelsWithIndex.head._1
     val (left, right) = labelsWithIndex.partition(_._1 == label)
-    val longerList = Subset(samplingModel, left.map(_._2)) +: list
+    val longerList = Subset(sampler, left.map(_._2)) +: list
     if (right.isEmpty) longerList
-    else makePartition(samplingModel, right, longerList)
+    else makePartition(sampler, right, longerList)
   }
 
-  def apply[A](samplingModel: SamplingModel2[A], labels: Iterable[Int]): Partition[A] = {
+  def apply[A](sampler: () => A, labels: Iterable[Int]): Partition[A] = {
     if (labels.isEmpty) throw new IllegalArgumentException("Labels may not by empty.")
-    apply(makePartition(samplingModel, labels.zipWithIndex, List[Subset[A]]()))
+    apply(makePartition(sampler, labels.zipWithIndex, List[Subset[A]]()))
   }
 
   def apply[A](i: Subset[A]*): Partition[A] = apply(i)
@@ -206,13 +206,13 @@ object Partition {
     new SetPartition(nItems, i.size, i.toSet)
   }
 
-  def apply[A](samplingModel: SamplingModel2[A], objInputStream: java.io.ObjectInputStream): Partition[A] = {
+  def apply[A](sampler: () => A, objInputStream: java.io.ObjectInputStream): Partition[A] = {
     val nSubsets = objInputStream.readInt()
-    val seq = Seq.fill(nSubsets) { Subset.apply(samplingModel,objInputStream) }
+    val seq = Seq.fill(nSubsets) { Subset(sampler,objInputStream) }
     apply(seq)
   }
 
-  def enumerate[A](samplingModel: SamplingModel2[A], nItems: Int): List[Partition[A]] = {
+  def enumerate[A](sampler: () => A, nItems: Int): List[Partition[A]] = {
     var cache = List[Partition[A]]()
     def engine(partition: Partition[A], nextItem: Int, nItems: Int): Unit = {
       if (nextItem == nItems) {
@@ -221,7 +221,7 @@ object Partition {
         partition.foreach(subset => {
           engine(partition.add(nextItem, subset), nextItem + 1, nItems)
         })
-        engine(partition.add(nextItem, Subset.empty(samplingModel)), nextItem + 1, nItems)
+        engine(partition.add(nextItem, Subset.empty(sampler)), nextItem + 1, nItems)
       }
     }
     engine(empty[A](), 0, nItems)
