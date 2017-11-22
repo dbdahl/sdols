@@ -136,7 +136,7 @@ sumOfSquaresFA <- function(featureAllocation, expectedPairwiseAllocationMatrix) 
 #' @return a symmetric square matrix whose elements give the expected number of features that pairs of items share.
 #'
 #' @examples
-#' data(lgmSamples}
+#' data(lgmSamples)
 #' expectedPairwiseAllocationMatrix(lgmSamples)
 #'
 #' @export

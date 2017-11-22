@@ -3,7 +3,7 @@ package org.ddahl.sdols
 package object partition {
 
   // Assumes that 'clusterings' is a non-zero-length array of arrays of equal lengths.
-  def pairwiseProbabilityMatrix(clusterings: Array[Array[Int]]): Array[Array[Double]] = {
+  def expectedPairwiseClusteringMatrix(clusterings: Array[Array[Int]]): Array[Array[Double]] = {
     val n = clusterings(0).length
     val x = Array.ofDim[Int](n,n)
     var k = 0

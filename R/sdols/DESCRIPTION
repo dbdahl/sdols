@@ -9,6 +9,7 @@ BugReports: https://dahl.byu.edu
 Description: Provides summaries of distribution on networks, partitions, feature allocations, and variable selection.
 Imports: rscala (>= 2.4.1-610), commonsMath (>= 1.1-20171116-1046), stats
 Depends: mcclust
+LazyData: TRUE
 License: Apache License 2.0 | file LICENSE
 Encoding: UTF-8
 RoxygenNote: 6.0.1
