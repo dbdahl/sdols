@@ -157,5 +157,27 @@ object PartitionSummary {
     ( pcm.map(_.map(x => x*x).sum).sum - pcm.length, pcm.map(_.map(x => 2-4*x)) )
   }
 
+  def forwardOptimization(permutation: List[Int], pcm: Array[Array[Double]]): Partition[Null] = {
+    var partition = Partition.empty[Null]()
+    for ( i <- permutation ) {
+      val candidates = partition.add(Subset(null,i)) :: partition.map { subset =>
+        partition.add(i,subset)
+      }.toList
+      partition = leastSquares(candidates,Some(pcm))
+    }
+    partition
+  }
+
+  def forwardOptimization(nCandidates: Int, pcm: Array[Array[Double]]): Partition[Null] = {
+    val rng = new scala.util.Random()
+    val nItems = pcm.length
+    val ints = List.tabulate(nItems) { identity }
+    val candidates = List.fill(nCandidates) {
+      val permutation = rng.shuffle(ints)
+      forwardOptimization(permutation,pcm)
+    }
+    leastSquares(candidates,Some(pcm))
+  }
+
 }
 

@@ -258,6 +258,8 @@ object Partition {
     apply(makePartition(sampler, labels.zipWithIndex, List[Subset[A]]()))
   }
 
+  def apply(labels: Array[Int]): Partition[Null] = apply(() => null, labels)
+
   def apply[A](i: Subset[A]*): Partition[A] = apply(i)
 
   def apply[A](i: Iterable[Subset[A]]): Partition[A] = {
