@@ -170,9 +170,9 @@ object PartitionSummary {
     val nItems = pcm.length
     val ints = List.tabulate(nItems) { identity }
     val pcmTransform = pcm.map(_.map(x => 0.5-x))
-    val candidates = List.fill(nCandidates) {
+    val candidates = Range(0,nCandidates).par.map { i =>
       val permutation = rng.shuffle(ints)
-      forwardOptimization(permutation,pcmTransform)
+      forwardOptimization(permutation, pcmTransform)
     }
     candidates.minBy(sumOfSquaresEngine(_,pcmTransform))
   }
