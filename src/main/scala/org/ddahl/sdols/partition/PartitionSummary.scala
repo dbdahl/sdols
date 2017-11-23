@@ -124,17 +124,18 @@ object PartitionSummary {
   */
 
   def sumOfSquares[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
-    sumOfSquares(partition,ssCache(pcm))
+    val offset = pcm.map(_.map(x => x*x).sum).sum - pcm.length
+    val pcmTransform = pcm.map(_.map(x => 2-4*x))
+    offset + sumOfSquaresEngine(partition,pcmTransform)
   }
 
-  private def sumOfSquares[A](partition: Partition[A], ssCache: (Double, Array[Array[Double]])): Double = {
-    var sum = ssCache._1
-    val x = ssCache._2
+  private def sumOfSquaresEngine[A](partition: Partition[A], pcmTransform: Array[Array[Double]]): Double = {
+    var sum = 0.0
     partition.foreach { subset =>
       val y = subset.toArray
       var i = 0
       while ( i < y.length ) {
-        val xx = x(y(i))
+        val xx = pcmTransform(y(i))
         var j = i+1
         while ( j < y.length ) {
           sum += xx(y(j))
@@ -149,21 +150,17 @@ object PartitionSummary {
   def leastSquares[A](candidates: Seq[Partition[A]], pcmOption: Option[Array[Array[Double]]] = None): Partition[A] = {
     if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
     val pcm = pcmOption.getOrElse(expectedPairwiseClusteringMatrix(candidates))
-    val cache = ssCache(pcm)
-    candidates.par.minBy(sumOfSquares(_, cache))
+    val pcmTransform = pcm.map(_.map(x => 0.5-x))
+    candidates.par.minBy(sumOfSquaresEngine(_, pcmTransform))
   }
 
-  private def ssCache(pcm: Array[Array[Double]]) = {
-    ( pcm.map(_.map(x => x*x).sum).sum - pcm.length, pcm.map(_.map(x => 2-4*x)) )
-  }
-
-  def forwardOptimization(permutation: List[Int], pcm: Array[Array[Double]]): Partition[Null] = {
+  private def forwardOptimization(permutation: List[Int], pcmTransform: Array[Array[Double]]): Partition[Null] = {
     var partition = Partition.empty[Null]()
     for ( i <- permutation ) {
       val candidates = partition.add(Subset(null,i)) :: partition.map { subset =>
         partition.add(i,subset)
       }.toList
-      partition = leastSquares(candidates,Some(pcm))
+      partition = candidates.minBy(sumOfSquaresEngine(_,pcmTransform))
     }
     partition
   }
@@ -172,11 +169,12 @@ object PartitionSummary {
     val rng = new scala.util.Random()
     val nItems = pcm.length
     val ints = List.tabulate(nItems) { identity }
+    val pcmTransform = pcm.map(_.map(x => 0.5-x))
     val candidates = List.fill(nCandidates) {
       val permutation = rng.shuffle(ints)
-      forwardOptimization(permutation,pcm)
+      forwardOptimization(permutation,pcmTransform)
     }
-    leastSquares(candidates,Some(pcm))
+    candidates.minBy(sumOfSquaresEngine(_,pcmTransform))
   }
 
 }
