@@ -26,7 +26,7 @@
 confidence <- function(clustering, expectedPairwiseClusteringMatrix) {
   clustering <- as.clustering(clustering)
   expectedPairwiseClusteringMatrix <- as.expectedPairwiseClusteringMatrix(expectedPairwiseClusteringMatrix)
-  tmpObj <- s$.partition$confidenceComputations(clustering,expectedPairwiseClusteringMatrix)
+  tmpObj <- s$.PartitionSummary$confidenceComputations(clustering,expectedPairwiseClusteringMatrix)
   partition <- tmpObj$"_1"() + 1
   names(partition) <- colnames(expectedPairwiseClusteringMatrix)
   confidence <- tmpObj$"_2"()

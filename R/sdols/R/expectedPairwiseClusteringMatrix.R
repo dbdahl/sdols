@@ -31,7 +31,7 @@ expectedPairwiseClusteringMatrix <- function(clusterings) {
       as.integer(as.factor(p))
     }))
   } else storage.mode(clusterings) <- "integer"
-  r <- s$.partition$expectedPairwiseClusteringMatrix(clusterings)
+  r <- s$.PartitionSummary$expectedPairwiseClusteringMatrix(clusterings)
   dimnames(r) <- list(colnames(clusterings),colnames(clusterings))
   r
 }

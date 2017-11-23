@@ -1,6 +1,35 @@
 package org.ddahl.sdols
+package partition
 
-package object partition {
+import org.ddahl.commonsmath._
+
+object PartitionSummary {
+
+  // Assumes that 'clusterings' is a non-empty sequence of partitions.
+  def expectedPairwiseClusteringMatrix[A](clusterings: Seq[Partition[A]]): Array[Array[Double]] = {
+    val nItems = clusterings(0).nItems
+    val x = Array.ofDim[Int](nItems,nItems)
+    clusterings.foreach { partition =>
+      partition.foreach { subset =>
+        val y = subset.toArray
+        var i = 0
+        while ( i < y.length ) {
+          val ii = y(i)
+          var j = i+1
+          while ( j < y.length ) {
+            val jj = y(j)
+            x(ii)(jj) += 1
+            x(jj)(ii) += 1
+            j += 1
+          }
+          x(ii)(ii) += 1
+          i += 1
+        }
+      }
+    }
+    val cl: Double = clusterings.length
+    x.map(_.map(_/cl))
+  }
 
   // Assumes that 'clusterings' is a non-zero-length array of arrays of equal lengths.
   def expectedPairwiseClusteringMatrix(clusterings: Array[Array[Int]]): Array[Array[Double]] = {
@@ -26,14 +55,14 @@ package object partition {
     x.map(_.map(_/cl))
   }
 
-  def confidenceComputations[A](clustering: Array[Int], ppm: Array[Array[Double]]): (Array[Int], Array[Double], Array[Array[Double]], Array[Int], Array[Int]) = {
-    val nItems = ppm.length
+  def confidenceComputations[A](clustering: Array[Int], pcm: Array[Array[Double]]): (Array[Int], Array[Double], Array[Array[Double]], Array[Int], Array[Int]) = {
+    val nItems = pcm.length
     assert(clustering.length == nItems)
     def overlap(subset1: Set[Int], subset2: Set[Int]): Double = {
       subset1.map(i => {
-        val ppmi = ppm(i)
+        val pcmi = pcm(i)
         subset2.map(j => {
-          ppmi(j)
+          pcmi(j)
         }).sum
       }).sum / (subset1.size * subset2.size)
     }
@@ -47,13 +76,13 @@ package object partition {
     partition.foreach(c1 => partition.foreach(c2 => matrixOutSmall(map(c1))(map(c2)) = matrix((c1, c2))))
     val confidence = new Array[Double](nItems)
     for (i <- 0 until nItems) {
-      val ppmi = ppm(i)
+      val ppmi = pcm(i)
       val subset = partition.find(_.contains(i)).get
       confidence(i) = subset.map(j => ppmi(j)).sum / subset.size
     }
     val UNINITIALIZED = -1
     val exemplar = Array.fill(map.size) { UNINITIALIZED }
-    val order = Array.range(0, nItems).sortWith((i, j) => {
+    val order = Array.range(0, nItems).sortWith{ (i, j) =>
       val io = map(partition.find(_.contains(i)).get)
       val jo = map(partition.find(_.contains(j)).get)
       if (io < jo) {
@@ -69,7 +98,7 @@ package object partition {
         }
         iBigger
       }
-    })
+    }
     val labels = Array.range(0, nItems).map(i => map(partition.find(_.contains(i)).get))
     (labels, confidence, matrixOutSmall, order, exemplar)
   }
@@ -86,6 +115,46 @@ package object partition {
   private def makePartition(clustering: Array[Int]): List[Set[Int]] = {
     if (clustering.isEmpty) throw new IllegalArgumentException("Labels may not by empty.")
     makePartition(clustering.zipWithIndex, List[Set[Int]]())
+  }
+
+  /*
+  def sumOfSquaresSlow[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
+    (MatrixFactory(partition.pairwiseClusteringMatrix) - pcm).map(x => x*x).sum
+  }
+  */
+
+  def sumOfSquares[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
+    sumOfSquares(partition,ssCache(pcm))
+  }
+
+  private def sumOfSquares[A](partition: Partition[A], ssCache: (Double, Array[Array[Double]])): Double = {
+    var sum = ssCache._1
+    val x = ssCache._2
+    partition.foreach { subset =>
+      val y = subset.toArray
+      var i = 0
+      while ( i < y.length ) {
+        val xx = x(y(i))
+        var j = i+1
+        while ( j < y.length ) {
+          sum += xx(y(j))
+          j += 1
+        }
+        i += 1
+      }
+    }
+    sum
+  }
+
+  def leastSquares[A](candidates: Seq[Partition[A]], pcmOption: Option[Array[Array[Double]]] = None): Partition[A] = {
+    if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
+    val pcm = pcmOption.getOrElse(expectedPairwiseClusteringMatrix(candidates))
+    val cache = ssCache(pcm)
+    candidates.par.minBy(sumOfSquares(_, cache))
+  }
+
+  private def ssCache(pcm: Array[Array[Double]]) = {
+    ( pcm.map(_.map(x => x*x).sum).sum - pcm.length, pcm.map(_.map(x => 2-4*x)) )
   }
 
 }
