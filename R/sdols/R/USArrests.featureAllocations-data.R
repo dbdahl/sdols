@@ -6,4 +6,4 @@
 #'
 #' @seealso \code{\link[datasets]{USArrests}}
 
-"Arrests.featureAllocations"
+"USArrests.featureAllocations"
