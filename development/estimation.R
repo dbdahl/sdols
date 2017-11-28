@@ -16,24 +16,42 @@ a
 
 
 
-b <- s$.PartitionSummary$sequentiallyAllocatedLatentStructureOptimization(1000L,ppm,0L)
-s$.PartitionSummary$sumOfSquares(b,ppm)
-s$.PartitionSummary$sumOfAbsolutes(b,ppm)
+b <- s$.PartitionSummary$sequentiallyAllocatedLatentStructureOptimization(1000L,ppm,0L,"binder")
+s$.PartitionSummary$binderSumOfSquares(b,ppm)
+s$.PartitionSummary$binderSumOfAbsolutes(b,ppm)
+s$.PartitionSummary$lowerBoundVariationOfInformation(b,ppm)
 b
 
 library(mcclust.ext)
-system.time(b.wade <- minbinder.ext(ppm,method="greedy"))
-bb.wade <- s$.Partition$apply(as.integer(b.wade$cl))
-s$.PartitionSummary$sumOfSquares(bb.wade,ppm)
-s$.PartitionSummary$sumOfAbsolutes(bb.wade,ppm)
+system.time(b.wadeBinder <- minbinder.ext(ppm,method="greedy"))
+bb.wadeBinder <- s$.Partition$apply(as.integer(b.wadeBinder$cl))
+s$.PartitionSummary$sumOfSquares(bb.wadeBinder,ppm)
+s$.PartitionSummary$sumOfAbsolutes(bb.wadeBinder,ppm)
 
-minVI(ppm,method="draws",cls.draw=iris.clusterings)
-minVI(ppm,method="avg")
-minVI(ppm,method="comp")
+
+b <- s$.PartitionSummary$sequentiallyAllocatedLatentStructureOptimization(100L,ppm,0L,"vi")
+s$.PartitionSummary$lowerBoundVariationOfInformation(b,ppm)
+b$toLabels()
+
+system.time(b.wadeVI <- minVI(ppm,cls.draw=iris.clusterings,method="all",include.greedy=TRUE))
+b.wadeVI$value
+identical(b$toLabels()+1L,b.wadeVI$cl["greedy",])
+
+library(mcclust)
+system.time(b.all <- minbinder(ppm,cls.draw=iris.clusterings,method="all",include.greedy=FALSE))
 
 
 library(mcclust)
-system.time(b.all <- minbinder(ppm,cls.draw=iris.clusterings,method="all",include.lg=FALSE))
+data(cls.draw1.5)
+ppm <- expectedPairwiseAllocationMatrix(cls.draw1.5)
+b <- s$.PartitionSummary$sequentiallyAllocatedLatentStructureOptimization(10L,ppm,0L,"vi")
+s$.PartitionSummary$lowerBoundVariationOfInformation(b,ppm)
+b$toLabels()
+
+system.time(b.wadeVI <- minVI(ppm,cls.draw=cls.draw1.5,method="all",include.greedy=TRUE))
+b.wadeVI$value
+identical(b$toLabels()+1L,b.wadeVI$cl["greedy",])
+
 
 
 bb.wade <- s$.Partition$apply(as.integer(b.wade$cl))
