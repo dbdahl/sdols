@@ -6,9 +6,10 @@ library(rscala)
 s <- sdols:::s
 
 a <- s$.PartitionSummary$minBinderAmongDraws(iris.clusterings)
-sum((a$pairwiseAllocationMatrix() - ppm)^2)/2
+sum((a$pairwiseAllocationMatrix() - ppm)^2)
 s$.PartitionSummary$binderSumOfSquares(a,ppm)
 s$.PartitionSummary$binderSumOfSquaresSlow(a,ppm)
+sum(abs(a$pairwiseAllocationMatrix() - ppm))
 s$.PartitionSummary$binderSumOfAbsolutes(a,ppm)
 s$.PartitionSummary$binderSumOfAbsolutesSlow(a,ppm)
 s$.PartitionSummary$lowerBoundVariationOfInformation(a,ppm)
@@ -38,7 +39,7 @@ b.wadeVI$value
 identical(b$toLabels()+1L,b.wadeVI$cl["greedy",])
 
 library(mcclust)
-system.time(b.all <- minbinder(ppm,cls.draw=iris.clusterings,method="all",include.greedy=FALSE))
+system.time(b.all <- minbinder(ppm,cls.draw=iris.clusterings,method="draws"))
 
 
 library(mcclust)
@@ -61,4 +62,27 @@ source("/home/dahl/docs/devel/student-carterj4/partitions/minbinder/minbinder.R"
 c1 <- minbinder(ppm,method="core")
 c1a <- s$.Partition$apply(as.integer(c1$cl))
 s$.PartitionSummary$sumOfSquares(c1a,ppm)
+
+
+
+
+library(sdols)
+
+pam <- expectedPairwiseAllocationMatrix(USArrests.featureAllocations)
+
+library(rscala)
+s <- sdols:::s
+
+fas <- scalaConvert.featureAllocation(USArrests.featureAllocations)
+
+b <- s$.FeatureAllocationSummary$sequentiallyAllocatedLatentStructureOptimization(1000L,pam,0L,"binder")
+c <- s$.FeatureAllocationSummary$minBinderAmongDraws(fas)
+
+s$.FeatureAllocationSummary$binderSumOfSquares(c,pam)
+s$.FeatureAllocationSummary$binderSumOfSquares(b,pam)
+
+
+sum((b$pairwiseAllocationMatrix() - pam)^2)
+
+
 

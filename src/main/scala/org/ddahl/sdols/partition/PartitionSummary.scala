@@ -56,14 +56,14 @@ object PartitionSummary {
     x.map(_.map(_/cl))
   }
 
-  def confidenceComputations[A](clustering: Array[Int], pcm: Array[Array[Double]]): (Array[Int], Array[Double], Array[Array[Double]], Array[Int], Array[Int]) = {
-    val nItems = pcm.length
+  def confidenceComputations[A](clustering: Array[Int], pam: Array[Array[Double]]): (Array[Int], Array[Double], Array[Array[Double]], Array[Int], Array[Int]) = {
+    val nItems = pam.length
     assert(clustering.length == nItems)
     def overlap(subset1: Set[Int], subset2: Set[Int]): Double = {
       subset1.map(i => {
-        val pcmi = pcm(i)
+        val pami = pam(i)
         subset2.map(j => {
-          pcmi(j)
+          pami(j)
         }).sum
       }).sum / (subset1.size * subset2.size)
     }
@@ -77,7 +77,7 @@ object PartitionSummary {
     partition.foreach(c1 => partition.foreach(c2 => matrixOutSmall(map(c1))(map(c2)) = matrix((c1, c2))))
     val confidence = new Array[Double](nItems)
     for (i <- 0 until nItems) {
-      val ppmi = pcm(i)
+      val ppmi = pam(i)
       val subset = partition.find(_.contains(i)).get
       confidence(i) = subset.map(j => ppmi(j)).sum / subset.size
     }
@@ -118,7 +118,7 @@ object PartitionSummary {
     makePartition(clustering.zipWithIndex, List[Set[Int]]())
   }
 
-  def lowerBoundVariationOfInformation[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
+  def lowerBoundVariationOfInformation[A](partition: Partition[A], pam: Array[Array[Double]]): Double = {
     val nItems = partition.nItems
     var sum1 = 0.0
     var i = 0
@@ -129,8 +129,8 @@ object PartitionSummary {
       var j = 0
       while ( j < nItems ) {
         sum2 += (if (partition.paired(i, j)) 1 else 0)
-        sum3 += pcm(i)(j)
-        sum4 += (if (partition.paired(i, j)) pcm(i)(j) else 0.0)
+        sum3 += pam(i)(j)
+        sum4 += (if (partition.paired(i, j)) pam(i)(j) else 0.0)
         j += 1
       }
       sum1 += log(2, sum2) + log(2, sum3) - 2*log(2, sum4)
@@ -139,7 +139,7 @@ object PartitionSummary {
     sum1/nItems
   }
 
-  private def lowerBoundVariationOfInformationEngine[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
+  private def lowerBoundVariationOfInformationEngine[A](partition: Partition[A], pam: Array[Array[Double]]): Double = {
     var sum = 0.0
     val subsets = partition.toArray
     var k = 0
@@ -150,10 +150,10 @@ object PartitionSummary {
       var ii = 0
       while ( ii < subset.length ) {
         var sum3 = 0.0
-        val pcmii = pcm(subset(ii))
+        val pamii = pam(subset(ii))
         var jj = 0
         while ( jj < subset.length ) {
-          sum3 += pcmii(subset(jj))
+          sum3 += pamii(subset(jj))
           jj += 1
         }
         sum2 += log(2,sum3)
@@ -165,19 +165,19 @@ object PartitionSummary {
     sum
   }
 
-  def binderSumOfAbsolutesSlow[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
-    (MatrixFactory(partition.pairwiseAllocationMatrix) - pcm).map(_.abs).sum / 2
+  def binderSumOfAbsolutesSlow[A](partition: Partition[A], pam: Array[Array[Double]]): Double = {
+    (MatrixFactory(partition.pairwiseAllocationMatrix) - pam).map(_.abs).sum
   }
 
-  def binderSumOfSquaresSlow[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
-    (MatrixFactory(partition.pairwiseAllocationMatrix) - pcm).map(x => x*x).sum / 2
+  def binderSumOfSquaresSlow[A](partition: Partition[A], pam: Array[Array[Double]]): Double = {
+    (MatrixFactory(partition.pairwiseAllocationMatrix) - pam).map(x => x*x).sum
   }
 
-  private def binderOffset[A](pcm: Array[Array[Double]], f: Double => Double) = {
+  private def binderOffset[A](pam: Array[Array[Double]], f: Double => Double) = {
     var offset = 0.0
     var i = 1
-    while ( i < pcm.length ) {
-      val pi = pcm(i)
+    while ( i < pam.length ) {
+      val pi = pam(i)
       var j = 0
       while ( j < i ) {
         offset += f(pi(j))
@@ -185,26 +185,26 @@ object PartitionSummary {
       }
       i += 1
     }
-    offset
+    2*offset
   }
 
-  def binderSumOfAbsolutes[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
-    val pcmTransform = pcm.map(_.map(x => 1-2*x))
-    binderOffset(pcm,(x: Double) => x.abs) + binderEngine(partition,pcmTransform)
+  def binderSumOfAbsolutes[A](partition: Partition[A], pam: Array[Array[Double]]): Double = {
+    val pamTransform = pam.map(_.map(x => 2-4*x))
+    binderOffset(pam,(x: Double) => x.abs) + binderEngine(partition,pamTransform)
   }
 
-  def binderSumOfSquares[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
-    val pcmTransform = pcm.map(_.map(x => 1-2*x))
-    binderOffset(pcm,(x: Double) => x*x) + binderEngine(partition,pcmTransform)
+  def binderSumOfSquares[A](partition: Partition[A], pam: Array[Array[Double]]): Double = {
+    val pamTransform = pam.map(_.map(x => 2-4*x))
+    binderOffset(pam,(x: Double) => x*x) + binderEngine(partition,pamTransform)
   }
 
-  private def binderEngine[A](partition: Partition[A], pcmTransform: Array[Array[Double]]): Double = {
+  private def binderEngine[A](partition: Partition[A], pamTransform: Array[Array[Double]]): Double = {
     var sum = 0.0
     partition.foreach { subset =>
       val y = subset.toArray
       var i = 0
       while ( i < y.length ) {
-        val xx = pcmTransform(y(i))
+        val xx = pamTransform(y(i))
         var j = i+1
         while ( j < y.length ) {
           sum += xx(y(j))
@@ -216,43 +216,43 @@ object PartitionSummary {
     sum
   }
 
-  def minBinderAmongDraws(candidates: Array[Array[Int]], pcmOption: Option[Array[Array[Double]]] = None): Partition[Null] = {
-    minBinderAmongDraws(candidates.map(Partition.apply),pcmOption)
+  def minBinderAmongDraws(candidates: Array[Array[Int]], pamOption: Option[Array[Array[Double]]] = None): Partition[Null] = {
+    minBinderAmongDraws(candidates.map(Partition.apply),pamOption)
   }
 
-  def minBinderAmongDraws[A](candidates: Seq[Partition[A]], pcmOption: Option[Array[Array[Double]]]): Partition[A] = {
+  def minBinderAmongDraws[A](candidates: Seq[Partition[A]], pamOption: Option[Array[Array[Double]]]): Partition[A] = {
     if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
-    val pcm = pcmOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
-    val pcmTransform = pcm.map(_.map(x => 0.5-x))
-    candidates.par.minBy(binderEngine(_, pcmTransform))
+    val pam = pamOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
+    val pamTransform = pam.map(_.map(x => 0.5-x))
+    candidates.par.minBy(binderEngine(_, pamTransform))
   }
 
-  private def sequentiallyAllocatedLatentStructureOptimization(initial: Partition[Null], maxSize: Int, permutation: List[Int], pcmTransform: Array[Array[Double]], lossEngine: (Partition[Null],Array[Array[Double]]) => Double): Partition[Null] = {
+  private def sequentiallyAllocatedLatentStructureOptimization(initial: Partition[Null], maxSize: Int, permutation: List[Int], pamTransform: Array[Array[Double]], lossEngine: (Partition[Null],Array[Array[Double]]) => Double): Partition[Null] = {
     var partition = initial
     for ( i <- permutation ) {
       val candidates = partition.map(subset => partition.add(i,subset)).toList
       val candidates2 = if ( ( maxSize <= 0 ) || ( partition.size < maxSize ) ) {
         partition.add(Subset(null,i)) :: candidates
       } else candidates
-      partition = candidates2.minBy(lossEngine(_,pcmTransform))
+      partition = candidates2.minBy(lossEngine(_,pamTransform))
     }
     partition
   }
 
-  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, pcm: Array[Array[Double]], maxSize: Int, loss: String): Partition[Null] = {
-    val (lossEngine, pcmTransform) = loss match {
-      case "binder" => (binderEngine[Null] _, pcm.map(_.map(x => 0.5-x)))
-      case "vi" => (lowerBoundVariationOfInformationEngine[Null] _, pcm)
+  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, pam: Array[Array[Double]], maxSize: Int, loss: String): Partition[Null] = {
+    val (lossEngine, pamTransform) = loss match {
+      case "binder" => (binderEngine[Null] _, pam.map(_.map(x => 0.5-x)))
+      case "vi" => (lowerBoundVariationOfInformationEngine[Null] _, pam)
     }
     val rng = new scala.util.Random()
-    val nItems = pcm.length
+    val nItems = pam.length
     val ints = List.tabulate(nItems) { identity }
     val empty = Partition.empty[Null]()
     val candidates = Range(0,nCandidates).par.map { i =>
       val permutation = rng.shuffle(ints)
-      sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pcmTransform,lossEngine)
+      sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pamTransform,lossEngine)
     }
-    candidates.minBy(lossEngine(_,pcmTransform))
+    candidates.minBy(lossEngine(_,pamTransform))
   }
 
 }
