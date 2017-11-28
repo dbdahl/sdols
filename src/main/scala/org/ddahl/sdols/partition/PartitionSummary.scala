@@ -139,20 +139,7 @@ object PartitionSummary {
     sum1/nItems
   }
 
-  def lowerBoundVariationOfInformationEngine[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
-    val sum1 = partition.foldLeft(0.0) { (sum,subset) =>
-      sum + subset.size * log(2, subset.size)
-    }
-    val sum2 = partition.foldLeft(0.0) { (sum,subset) =>
-      sum + subset.foldLeft(0.0) { (s1,i) =>
-        val pcmi = pcm(i)
-        s1 + log(2, subset.foldLeft(0.0) { (s2,j) => s2 + pcmi(j) } )
-      }
-    }
-    sum1 - 2*sum2
-  }
-
-  def lowerBoundVariationOfInformationEngine2[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
+  private def lowerBoundVariationOfInformationEngine[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
     var sum = 0.0
     val subsets = partition.toArray
     var k = 0
@@ -256,7 +243,6 @@ object PartitionSummary {
     val (lossEngine, pcmTransform) = loss match {
       case "binder" => (binderEngine[Null] _, pcm.map(_.map(x => 0.5-x)))
       case "vi" => (lowerBoundVariationOfInformationEngine[Null] _, pcm)
-      case "viF" => (lowerBoundVariationOfInformationEngine2[Null] _, pcm)
     }
     val rng = new scala.util.Random()
     val nItems = pcm.length

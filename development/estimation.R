@@ -29,7 +29,7 @@ s$.PartitionSummary$sumOfSquares(bb.wadeBinder,ppm)
 s$.PartitionSummary$sumOfAbsolutes(bb.wadeBinder,ppm)
 
 
-system.time(b <- s$.PartitionSummary$sequentiallyAllocatedLatentStructureOptimization(1000L,ppm,0L,"viF"))
+system.time(b <- s$.PartitionSummary$sequentiallyAllocatedLatentStructureOptimization(1000L,ppm,0L,"vi"))
 s$.PartitionSummary$lowerBoundVariationOfInformation(b,ppm)
 b$toLabels()
 
