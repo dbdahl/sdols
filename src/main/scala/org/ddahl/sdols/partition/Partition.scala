@@ -3,72 +3,6 @@ package partition
 
 import scala.reflect.ClassTag
 
-/*
-trait Partition[A] extends Iterable[Subset[A]] {
-
-  def add(subset: Subset[A]): Partition[A]
-
-  def add(i: Int, subset: Subset[A]): Partition[A]
-
-  def remove(subset: Subset[A]): Partition[A]
-
-  def remove(i: Int, subset: Subset[A]): Partition[A]
-
-  def remove(i: Int): Partition[A]
-
-  def removeWithSubset(i: Int): (Partition[A], Subset[A])
-
-  def replace(func: (Subset[A]) => A): Partition[A]
-
-  def contains(subset: Subset[A]): Boolean
-
-  def contains(i: Int): Boolean
-
-  def paired(i: Int, k: Int): Boolean
-
-  def subsetFor(i: Int): Subset[A]
-
-  def parameterFor(i: Int): A
-
-  override def toString = "{" + map(_.toString).toList.sortWith(_ < _).mkString(",") + "}"
-
-  def toStringTerse = "{" + map(_.toStringTerse).toList.sortWith(_ < _).mkString(",") + "}"
-
-  def entropy: Double = {
-    val rates = map(_.size.asInstanceOf[Double] / nItems).toList.sortWith(_ > _)
-    rates.foldLeft(0.0)((s, p) => { s - (if (p > 0.0) p * math.log(p) else 0.0) })
-  }
-
-  def toLabels: Array[Int] = {
-    val result = new Array[Int](nItems)
-    var label = 0
-    toList.sortWith(_.min < _.min).foreach(subset => {
-      subset.foreach(i => result(i) = label)
-      label += 1
-    })
-    result
-  }
-
-  def toLabelsWithParameters(implicit m: ClassTag[A]): (Array[Int], Array[A]) = {
-    val result = new Array[Int](nItems)
-    val resultParameters = new Array[A](nSubsets)
-    var label = 0
-    toList.sortWith(_.min < _.min).foreach(subset => {
-      subset.foreach(i => result(i) = label)
-      resultParameters(label) = subset.parameter
-      label += 1
-    })
-    (result, resultParameters)
-  }
-
-  def write(objOutputStream: java.io.ObjectOutputStream) = {
-    objOutputStream.writeInt(nSubsets)
-    iterator.foreach(_.write(objOutputStream))
-  }
-
-}
-*/
-
 final class Partition[A](val nItems: Int, val nSubsets: Int, protected val x: Set[Subset[A]]) extends Iterable[Subset[A]] {
 
   private val checks = false
@@ -156,7 +90,7 @@ final class Partition[A](val nItems: Int, val nSubsets: Int, protected val x: Se
     subsetFor(i).parameter
   }
 
-  def pairwiseClusteringMatrix: Array[Array[Int]] = {
+  def pairwiseAllocationMatrix: Array[Array[Int]] = {
     val r = Array.ofDim[Int](nItems, nItems)
     x.foreach(s => {
       val indices = s.toList.filter(_ < nItems).sortWith(_ > _)

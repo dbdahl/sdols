@@ -2,7 +2,7 @@
 #' @export II
 #' @export
 
-scalaConvert.featureAllocation <- function(x, withParameters=TRUE) {
+scalaConvert.featureAllocation <- function(x, names=NULL, withParameters=TRUE) {
   if ( is.scalaReference(x) ) {
     singleton <- ! grepl("^Array\\[",x$type)
     if ( singleton ) {
@@ -41,6 +41,7 @@ scalaConvert.featureAllocation <- function(x, withParameters=TRUE) {
         attr(Z,"parameters") <- matrix(values,nrow=K,ncol=M,byrow=TRUE)
         ii <- ii + K*M
       }
+      rownames(Z) <- names
       Zs[[a]] <- Z
     }
     if ( singleton ) {
@@ -97,9 +98,9 @@ scalaConvert.featureAllocation <- function(x, withParameters=TRUE) {
       }
     }
     result <- if ( length(data2) > 0 ) {
-      s$.FeatureAllocation$deserializeWithParameters(data1,data2)
+      s$.FeatureAllocation$deserializeWithParameters(data,data2)
     } else {
-      s$.FeatureAllocation$deserialize(data1)
+      s$.FeatureAllocation$deserialize(data)
     }
     if ( singleton ) result$head()
     else result
@@ -122,27 +123,5 @@ sumOfSquaresFA <- function(featureAllocation, expectedPairwiseAllocationMatrix) 
   fa <- scalaConvert.featureAllocation(featureAllocation)
   if ( ! is.matrix(expectedPairwiseAllocationMatrix) || ! isSymmetric(expectedPairwiseAllocationMatrix) ) stop("'expectedPairwiseAllocationMatrix' is not a symmetric matrix.")
   s$.FeatureAllocationSummary$sumOfSquares(fa,expectedPairwiseAllocationMatrix)
-}
-
-#' Estimate the Expected Pairwise Allocation Matrix
-#'
-#' A pairwise sharing matrix in a \code{n}-by-\code{n} giving the expected number of features shared among \code{n}
-#' items in a feature allocation distribution.
-#'
-#' @param x A list of feature allocation matrices obtained by random sampling, where each element \code{Z} is a binary
-#'          matrix of \code{n} rows and an arbirary number of columns.  For a given \code{Z}, items \code{i} and
-#'          \code{j} share of feature \code{k} if \code{Z[i,k] == Z[j,k] == 1}.
-#'
-#' @return a symmetric square matrix whose elements give the expected number of features that pairs of items share.
-#'
-#' @examples
-#' data(lgmSamples)
-#' expectedPairwiseAllocationMatrix(lgmSamples)
-#'
-#' @export
-
-expectedPairwiseAllocationMatrix <- function(x) {
-  reference <- scalaConvert.featureAllocation(if ( is.matrix(x) ) list(x) else x)
-  s$.FeatureAllocationSummary$expectedPairwiseAllocationMatrix(reference)
 }
 

@@ -1,12 +1,10 @@
 package org.ddahl.sdols
 package partition
 
-import org.ddahl.commonsmath._
-
 object PartitionSummary {
 
   // Assumes that 'clusterings' is a non-empty sequence of partitions.
-  def expectedPairwiseClusteringMatrix[A](clusterings: Seq[Partition[A]]): Array[Array[Double]] = {
+  def expectedPairwiseAllocationMatrix[A](clusterings: Seq[Partition[A]]): Array[Array[Double]] = {
     val nItems = clusterings(0).nItems
     val x = Array.ofDim[Int](nItems,nItems)
     clusterings.foreach { partition =>
@@ -32,7 +30,7 @@ object PartitionSummary {
   }
 
   // Assumes that 'clusterings' is a non-zero-length array of arrays of equal lengths.
-  def expectedPairwiseClusteringMatrix(clusterings: Array[Array[Int]]): Array[Array[Double]] = {
+  def expectedPairwiseAllocationMatrix(clusterings: Array[Array[Int]]): Array[Array[Double]] = {
     val n = clusterings(0).length
     val x = Array.ofDim[Int](n,n)
     var k = 0
@@ -149,30 +147,32 @@ object PartitionSummary {
 
   def leastSquares[A](candidates: Seq[Partition[A]], pcmOption: Option[Array[Array[Double]]] = None): Partition[A] = {
     if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
-    val pcm = pcmOption.getOrElse(expectedPairwiseClusteringMatrix(candidates))
+    val pcm = pcmOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
     val pcmTransform = pcm.map(_.map(x => 0.5-x))
     candidates.par.minBy(sumOfSquaresEngine(_, pcmTransform))
   }
 
-  private def forwardOptimization(permutation: List[Int], pcmTransform: Array[Array[Double]]): Partition[Null] = {
-    var partition = Partition.empty[Null]()
+  private def sequentiallyAllocatedLatentStructureOptimization(initial: Partition[Null], maxSize: Int, permutation: List[Int], pcmTransform: Array[Array[Double]]): Partition[Null] = {
+    var partition = initial
     for ( i <- permutation ) {
-      val candidates = partition.add(Subset(null,i)) :: partition.map { subset =>
-        partition.add(i,subset)
-      }.toList
-      partition = candidates.minBy(sumOfSquaresEngine(_,pcmTransform))
+      val candidates = partition.map(subset => partition.add(i,subset)).toList
+      val candidates2 = if ( ( maxSize <= 0 ) || ( partition.size < maxSize ) ) {
+        partition.add(Subset(null,i)) :: candidates
+      } else candidates
+      partition = candidates2.minBy(sumOfSquaresEngine(_,pcmTransform))
     }
     partition
   }
 
-  def forwardOptimization(nCandidates: Int, pcm: Array[Array[Double]]): Partition[Null] = {
+  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, pcm: Array[Array[Double]], maxSize: Int): Partition[Null] = {
     val rng = new scala.util.Random()
     val nItems = pcm.length
     val ints = List.tabulate(nItems) { identity }
+    val empty = Partition.empty[Null]()
     val pcmTransform = pcm.map(_.map(x => 0.5-x))
     val candidates = Range(0,nCandidates).par.map { i =>
       val permutation = rng.shuffle(ints)
-      forwardOptimization(permutation, pcmTransform)
+      sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pcmTransform)
     }
     candidates.minBy(sumOfSquaresEngine(_,pcmTransform))
   }
