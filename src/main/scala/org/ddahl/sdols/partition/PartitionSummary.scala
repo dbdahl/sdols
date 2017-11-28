@@ -152,6 +152,32 @@ object PartitionSummary {
     sum1 - 2*sum2
   }
 
+  def lowerBoundVariationOfInformationEngine2[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
+    var sum = 0.0
+    val subsets = partition.toArray
+    var k = 0
+    while ( k < subsets.length ) {
+      val subset = subsets(k).toArray
+      sum += subset.length * log(2, subset.length)
+      var sum2 = 0.0
+      var ii = 0
+      while ( ii < subset.length ) {
+        var sum3 = 0.0
+        val pcmii = pcm(subset(ii))
+        var jj = 0
+        while ( jj < subset.length ) {
+          sum3 += pcmii(subset(jj))
+          jj += 1
+        }
+        sum2 += log(2,sum3)
+        ii += 1
+      }
+      sum -= 2*sum2
+      k += 1
+    }
+    sum
+  }
+
   def binderSumOfAbsolutesSlow[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
     (MatrixFactory(partition.pairwiseAllocationMatrix) - pcm).map(_.abs).sum / 2
   }
@@ -230,6 +256,7 @@ object PartitionSummary {
     val (lossEngine, pcmTransform) = loss match {
       case "binder" => (binderEngine[Null] _, pcm.map(_.map(x => 0.5-x)))
       case "vi" => (lowerBoundVariationOfInformationEngine[Null] _, pcm)
+      case "viF" => (lowerBoundVariationOfInformationEngine2[Null] _, pcm)
     }
     val rng = new scala.util.Random()
     val nItems = pcm.length
