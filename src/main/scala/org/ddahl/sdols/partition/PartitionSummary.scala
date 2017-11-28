@@ -1,6 +1,9 @@
 package org.ddahl.sdols
 package partition
 
+import org.ddahl.commonsmath._
+import org.apache.commons.math3.util.FastMath.log
+
 object PartitionSummary {
 
   // Assumes that 'clusterings' is a non-empty sequence of partitions.
@@ -115,16 +118,58 @@ object PartitionSummary {
     makePartition(clustering.zipWithIndex, List[Set[Int]]())
   }
 
-  /*
-  def sumOfSquaresSlow[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
-    (MatrixFactory(partition.pairwiseClusteringMatrix) - pcm).map(x => x*x).sum
+  def lowerBoundVariationOfInformation[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
+    val nItems = partition.nItems
+    var sum1 = 0.0
+    var i = 0
+    while ( i < nItems ) {
+      var sum2 = 0
+      var sum3 = 0.0
+      var sum4 = 0.0
+      var j = 0
+      while ( j < nItems ) {
+        sum2 += (if (partition.paired(i, j)) 1 else 0)
+        sum3 += pcm(i)(j)
+        sum4 += (if (partition.paired(i, j)) pcm(i)(j) else 0.0)
+        j += 1
+      }
+      sum1 += log(2, sum2) + log(2, sum3) - 2*log(2, sum4)
+      i += 1
+    }
+    sum1/nItems
   }
-  */
 
-  def sumOfSquares[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
-    val offset = pcm.map(_.map(x => x*x).sum).sum - pcm.length
-    val pcmTransform = pcm.map(_.map(x => 2-4*x))
-    offset + sumOfSquaresEngine(partition,pcmTransform)
+  def binderSumOfAbsolutesSlow[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
+    (MatrixFactory(partition.pairwiseAllocationMatrix) - pcm).map(_.abs).sum / 2
+  }
+
+  def binderSumOfSquaresSlow[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
+    (MatrixFactory(partition.pairwiseAllocationMatrix) - pcm).map(x => x*x).sum / 2
+  }
+
+  private def offset[A](pcm: Array[Array[Double]], f: Double => Double) = {
+    var offset = 0.0
+    var i = 1
+    while ( i < pcm.length ) {
+      val pi = pcm(i)
+      var j = 0
+      while ( j < i ) {
+        offset += f(pi(j))
+        j += 1
+      }
+      i += 1
+    }
+    offset
+  }
+
+  def binderSumOfAbsolutes[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
+    val pcmTransform = pcm.map(_.map(x => 1-2*x))
+    offset(pcm,(x: Double) => x.abs) + sumOfSquaresEngine(partition,pcmTransform)
+  }
+
+  def binderSumOfSquares[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
+    val pcmTransform = pcm.map(_.map(x => 1-2*x))
+    offset(pcm,(x: Double) => x*x) + sumOfSquaresEngine(partition,pcmTransform)
   }
 
   private def sumOfSquaresEngine[A](partition: Partition[A], pcmTransform: Array[Array[Double]]): Double = {
@@ -145,7 +190,11 @@ object PartitionSummary {
     sum
   }
 
-  def leastSquares[A](candidates: Seq[Partition[A]], pcmOption: Option[Array[Array[Double]]] = None): Partition[A] = {
+  def minBinderAmongDraws(candidates: Array[Array[Int]], pcmOption: Option[Array[Array[Double]]] = None): Partition[Null] = {
+    minBinderAmongDraws(candidates.map(Partition.apply),pcmOption)
+  }
+
+  def minBinderAmongDraws[A](candidates: Seq[Partition[A]], pcmOption: Option[Array[Array[Double]]]): Partition[A] = {
     if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
     val pcm = pcmOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
     val pcmTransform = pcm.map(_.map(x => 0.5-x))
