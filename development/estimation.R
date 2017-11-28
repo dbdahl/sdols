@@ -11,7 +11,7 @@ s$.PartitionSummary$binderSumOfSquares(a,ppm)
 s$.PartitionSummary$binderSumOfSquaresSlow(a,ppm)
 s$.PartitionSummary$binderSumOfAbsolutes(a,ppm)
 s$.PartitionSummary$binderSumOfAbsolutesSlow(a,ppm)
-s$.PartitionSummary$lowerBoundVariationOfInformationSlow(a,ppm)
+s$.PartitionSummary$lowerBoundVariationOfInformation(a,ppm)
 a
 
 

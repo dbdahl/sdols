@@ -164,15 +164,15 @@ object PartitionSummary {
 
   def binderSumOfAbsolutes[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
     val pcmTransform = pcm.map(_.map(x => 1-2*x))
-    offset(pcm,(x: Double) => x.abs) + sumOfSquaresEngine(partition,pcmTransform)
+    offset(pcm,(x: Double) => x.abs) + binderEngine(partition,pcmTransform)
   }
 
   def binderSumOfSquares[A](partition: Partition[A], pcm: Array[Array[Double]]): Double = {
     val pcmTransform = pcm.map(_.map(x => 1-2*x))
-    offset(pcm,(x: Double) => x*x) + sumOfSquaresEngine(partition,pcmTransform)
+    offset(pcm,(x: Double) => x*x) + binderEngine(partition,pcmTransform)
   }
 
-  private def sumOfSquaresEngine[A](partition: Partition[A], pcmTransform: Array[Array[Double]]): Double = {
+  private def binderEngine[A](partition: Partition[A], pcmTransform: Array[Array[Double]]): Double = {
     var sum = 0.0
     partition.foreach { subset =>
       val y = subset.toArray
@@ -198,7 +198,7 @@ object PartitionSummary {
     if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
     val pcm = pcmOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
     val pcmTransform = pcm.map(_.map(x => 0.5-x))
-    candidates.par.minBy(sumOfSquaresEngine(_, pcmTransform))
+    candidates.par.minBy(binderEngine(_, pcmTransform))
   }
 
   private def sequentiallyAllocatedLatentStructureOptimization(initial: Partition[Null], maxSize: Int, permutation: List[Int], pcmTransform: Array[Array[Double]]): Partition[Null] = {
@@ -208,7 +208,7 @@ object PartitionSummary {
       val candidates2 = if ( ( maxSize <= 0 ) || ( partition.size < maxSize ) ) {
         partition.add(Subset(null,i)) :: candidates
       } else candidates
-      partition = candidates2.minBy(sumOfSquaresEngine(_,pcmTransform))
+      partition = candidates2.minBy(binderEngine(_,pcmTransform))
     }
     partition
   }
@@ -223,7 +223,7 @@ object PartitionSummary {
       val permutation = rng.shuffle(ints)
       sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pcmTransform)
     }
-    candidates.minBy(sumOfSquaresEngine(_,pcmTransform))
+    candidates.minBy(binderEngine(_,pcmTransform))
   }
 
 }
