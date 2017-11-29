@@ -10,7 +10,7 @@
 #' @param x A collection of clusterings or feature allocations.  If \code{x} is a
 #' \code{B}-by-\code{n} matrix, each of the \code{B} rows represents a clustering of
 #' \code{n} items using cluster labels.  For clustering \code{b}, items \code{i} and
-#' \code{j} are in the same subset (i.e., cluster) if \code{x[b,i] == x[b,j]}.  If \code{x}
+#' \code{j} are in the same cluster if \code{x[b,i] == x[b,j]}.  If \code{x}
 #' is a list of length \code{B}, each element of list represents a feature allocation using
 #' a binary matrix of \code{n} rows and an arbitrary number of columns.  For feature
 #' allocation \code{b}, items \code{i} and \code{j} share \code{m} features if, for \code{k}

@@ -4,7 +4,7 @@
 #' based on the supplied clustering and the expected pairwise clustering
 #' matrix.
 #'
-#' @param clustering A vector of length \code{n}, where \code{i} and \code{j}
+#' @param estimate A vector of length \code{n}, where \code{i} and \code{j}
 #' are in the same subset (i.e., cluster) if \code{clustering[i] ==
 #' clustering[j]}.
 #' @param expectedPairwiseAllocationMatrix A \code{n}-by-\code{n} symmetric
@@ -23,8 +23,8 @@
 #' @export
 #' @import rscala
 
-confidence <- function(clustering, expectedPairwiseAllocationMatrix) {
-  clustering <- as.clustering(clustering)
+confidence <- function(estimate, expectedPairwiseAllocationMatrix) {
+  clustering <- as.clustering(estimate)
   expectedPairwiseAllocationMatrix <- as.expectedPairwiseAllocationMatrix(expectedPairwiseAllocationMatrix)
   tmpObj <- s$.PartitionSummary$confidenceComputations(clustering,expectedPairwiseAllocationMatrix)
   partition <- tmpObj$"_1"() + 1

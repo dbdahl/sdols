@@ -3,27 +3,37 @@ library(sdols)
 
 ppm <- expectedPairwiseAllocationMatrix(iris.clusterings)
 a <- salso(ppm,loss="squaredError")
-a <- salso(ppm,loss="absoluteError")
+a <- salso(ppm,loss="absoluteError",maxSize=3)
 a <- salso(ppm,loss="binder",maxSize=4)
 a <- salso(ppm,loss="vi")
 a
+table(a)
 
-conf <- confidence(a,ppm)
+conf <- confidence(rep(1:3,each=50),ppm)
 plot(conf)
 plot(conf,data=iris)
 
-binder(matrix(a,nrow=1),ppm)
+
+latentStructureFit(a,ppm)
+
+
+
 library(mcclust.ext)
+
+binder(matrix(a,nrow=1),ppm)
+latentStructureFit(a,ppm)$binder
+
 VI.lb(matrix(a,nrow=1),ppm)
+latentStructureFit(a,ppm)$lowerBoundVariationOfInformation
 
 
 
 pcm <- expectedPairwiseAllocationMatrix(USArrests.featureAllocations)
-a <- salso(pcm,structure="featureAllocation",loss="squaredError",nCandidates=3000)
+a <- salso(pcm,structure="featureAllocation",loss="squaredError",nCandidates=1000)
 b <- salso(pcm,structure="featureAllocation",loss="absoluteError",nCandidates=3000)
 all(a==b)
 
-
+latentStructureFit(a,pcm)
 
 
 
