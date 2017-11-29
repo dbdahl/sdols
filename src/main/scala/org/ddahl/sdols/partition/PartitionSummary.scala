@@ -241,7 +241,7 @@ object PartitionSummary {
 
   def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, pam: Array[Array[Double]], maxSize: Int, loss: String): Partition[Null] = {
     val (lossEngine, pamTransform) = loss match {
-      case "binder" => (binderEngine[Null] _, pam.map(_.map(x => 0.5-x)))
+      case "binder" | "squaredError" | "absoluteError" => (binderEngine[Null] _, pam.map(_.map(x => 0.5-x)))
       case "vi" => (lowerBoundVariationOfInformationEngine[Null] _, pam)
     }
     val rng = new scala.util.Random()

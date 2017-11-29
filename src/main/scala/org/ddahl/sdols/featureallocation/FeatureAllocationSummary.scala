@@ -16,6 +16,10 @@ object FeatureAllocationSummary {
     (MatrixFactory(fa.pairwiseAllocationMatrix) - pam).map(x => x*x).sum
   }
 
+  def binderSumOfAbsolutes[A](fa: FeatureAllocation[A], pam: Array[Array[Double]]): Double = {
+    (MatrixFactory(fa.pairwiseAllocationMatrix) - pam).map(_.abs).sum
+  }
+
   def minBinderAmongDraws[A](candidates: Seq[FeatureAllocation[A]], pamOption: Option[Array[Array[Double]]] = None): FeatureAllocation[A] = {
     if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
     val pam = pamOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
@@ -46,7 +50,8 @@ object FeatureAllocationSummary {
 
   def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, pam: Array[Array[Double]], maxSize: Int, loss: String): FeatureAllocation[Null] = {
     val (lossEngine, pamTransform) = loss match {
-      case "binder" => (binderSumOfSquares[Null] _, pam)
+      case "squaredError" => (binderSumOfSquares[Null] _, pam)
+      case "absoluteError" => (binderSumOfAbsolutes[Null] _, pam)
     }
     val rng = new scala.util.Random()
     val nItems = pam.length

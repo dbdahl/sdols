@@ -1,6 +1,14 @@
+options(rscala.heap.maximum="12G")
 library(sdols)
 
 ppm <- expectedPairwiseAllocationMatrix(iris.clusterings)
+salso(ppm,maxSize=3)
+
+pcm <- expectedPairwiseAllocationMatrix(USArrests.featureAllocations)
+salso(pcm,structure="featureAllocation")
+salso(pcm,structure="featureAllocation",loss="absoluteError")
+
+
 
 library(rscala)
 s <- sdols:::s
@@ -75,7 +83,7 @@ s <- sdols:::s
 
 fas <- scalaConvert.featureAllocation(USArrests.featureAllocations)
 
-b <- s$.FeatureAllocationSummary$sequentiallyAllocatedLatentStructureOptimization(1000L,pam,0L,"binder")
+b <- s$.FeatureAllocationSummary$sequentiallyAllocatedLatentStructureOptimization(100L,pam,0L,"squaredError")
 c <- s$.FeatureAllocationSummary$minBinderAmongDraws(fas)
 
 s$.FeatureAllocationSummary$binderSumOfSquares(c,pam)
