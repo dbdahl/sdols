@@ -5,7 +5,7 @@ ppm <- expectedPairwiseAllocationMatrix(iris.clusterings)
 a <- salso(ppm,loss="squaredError")
 a <- salso(ppm,loss="absoluteError",maxSize=3)
 a <- salso(ppm,loss="binder",maxSize=4)
-a <- salso(ppm,loss="vi")
+a <- salso(ppm,loss="lowerBoundVariationOfInformation")
 a
 table(a)
 

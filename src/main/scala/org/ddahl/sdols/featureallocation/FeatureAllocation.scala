@@ -1,7 +1,7 @@
 package org.ddahl.sdols
 package featureallocation
 
-// import org.ddahl.sdols.partition.{Subset, Partition}
+import org.ddahl.sdols.clustering.{Cluster, Clustering}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -28,7 +28,7 @@ class FeatureAllocation[A] private (val nItems: Int, val isLeftOrderedForm: Bool
   def toArray: Array[Feature[A]] = features.toArray
   override def size: Int = features.size
 
-  lazy val isPartition: Boolean = {
+  lazy val isClustering: Boolean = {
     def check: Boolean = {
       val union = features.foldLeft(Set[Int]())((union, f) => {
         if (f.set.isEmpty) return false
@@ -40,10 +40,10 @@ class FeatureAllocation[A] private (val nItems: Int, val isLeftOrderedForm: Bool
     check
   }
 
-//  def toPartition: Option[Partition[A]] = {
-//    if ( ! isPartition ) None
-//    else Some(Partition(features.map(f => Subset(f.parameter,f.set)).toSet))
-//  }
+  def toClustering: Option[Clustering[A]] = {
+    if ( ! isClustering ) None
+    else Some(Clustering(features.map(f => Cluster(f.parameter,f.set)).toSet))
+  }
 
   def add(feature: Feature[A]) = {
     if (feature.size > 0) new FeatureAllocation(nItems,false,feature +: features) else this

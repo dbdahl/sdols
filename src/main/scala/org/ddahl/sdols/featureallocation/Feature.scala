@@ -1,7 +1,7 @@
 package org.ddahl.sdols
 package featureallocation
 
-case class Feature[A] private (parameter: A, set: Set[Int], size: Int) extends Ordered[Feature[A]] {
+final case class Feature[A] private (parameter: A, set: Set[Int], size: Int) extends Ordered[Feature[A]] {
 
   def compare(that: Feature[A]): Int = {
     val thisMax = this.set.max

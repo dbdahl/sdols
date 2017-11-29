@@ -1,7 +1,7 @@
 #' Compute Expected Pairwise Allocation Matrix
 #'
 #' This function computes the \code{n}-by-\code{n} matrix whose \code{(i,j)} element gives
-#' the estimated expected number of times that \code{i} and \code{j} are in the same subset.
+#' the estimated expected number of times that \code{i} and \code{j} are in the same subset (i.e, cluster or feature).
 #' For clusterings, this is the estimated probability that items are clustered together.
 #' For feature allocations, this is the estimated expectation of the number of shared
 #' features.  These estimates are based on the frequencies from the supplied,
@@ -19,7 +19,7 @@
 #'
 #' @return A \code{n}-by-\code{n} symmetric matrix whose \code{(i,j)} elements gives the
 #' estimated expected number of times that items \code{i} and \code{j} are in the same
-#' subset based on the frequencies from the supplied clusterings or feature allocations.
+#' subset (i.e, cluster or feature) based on the frequencies from the supplied clusterings or feature allocations.
 #'
 #' @author David B. Dahl \email{dahl@stat.byu.edu}
 #'
@@ -42,7 +42,7 @@ expectedPairwiseAllocationMatrix <- function(x) {
         as.integer(as.factor(p))
       }))
     } else storage.mode(x) <- "integer"
-    r <- s$.PartitionSummary$expectedPairwiseAllocationMatrix(x)
+    r <- s$.ClusteringSummary$expectedPairwiseAllocationMatrix(x)
     names <- colnames(x)
   } else if ( is.list(x) ) {
     reference <- scalaConvert.featureAllocation(x)

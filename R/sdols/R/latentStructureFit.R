@@ -12,7 +12,7 @@
 #' \code{m} times.
 #' @param expectedPairwiseAllocationMatrix A \code{n}-by-\code{n} symmetric matrix
 #' whose \code{(i,j)} elements gives the estimated expected number of times that items
-#' \code{i} and \code{j} are in the same subset.  This can be computed by the
+#' \code{i} and \code{j} are in the same subset (i.e., cluster or feature).  This can be computed by the
 #' \code{\link{expectedPairwiseAllocationMatrix}} function.
 #'
 #' @author David B. Dahl \email{dahl@stat.byu.edu}
@@ -36,11 +36,11 @@ latentStructureFit <- function(estimate, expectedPairwiseAllocationMatrix) {
   doClustering <- ! is.matrix(estimate)
   epam <- as.expectedPairwiseAllocationMatrix(expectedPairwiseAllocationMatrix,doClustering)
   if ( doClustering ) {
-    ref <- s$.Partition$apply(as.integer(estimate))
-    ss <- s$.PartitionSummary$binderSumOfSquares(ref,epam)
-    sa <- s$.PartitionSummary$binderSumOfAbsolutes(ref,epam)
-    binder <- s$.PartitionSummary$binderSumOfAbsolutes(ref,epam) / 2
-    vi <- s$.PartitionSummary$lowerBoundVariationOfInformation(ref,epam)
+    ref <- s$.Clustering$apply(as.integer(estimate))
+    ss <- s$.ClusteringSummary$binderSumOfSquares(ref,epam)
+    sa <- s$.ClusteringSummary$binderSumOfAbsolutes(ref,epam)
+    binder <- s$.ClusteringSummary$binderSumOfAbsolutes(ref,epam) / 2
+    vi <- s$.ClusteringSummary$lowerBoundVariationOfInformation(ref,epam)
     list("squaredError"=ss,"absoluteError"=sa,"binder"=binder,"lowerBoundVariationOfInformation"=vi)
   } else {
     ref <- scalaConvert.featureAllocation(estimate,withParameters=FALSE)
