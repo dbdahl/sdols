@@ -11,7 +11,7 @@
 #' @author David B. Dahl \email{dahl@stat.byu.edu}
 #'
 #' @examples
-#' epcm <- expectedPairwiseClusteringMatrix(iris.clusterings)
+#' epcm <- expectedPairwiseAllocationMatrix(iris.clusterings)
 #' clustering <- rep(1:3,each=50)
 #' conf <- confidence(clustering,epcm)
 #' plot(conf)
@@ -41,7 +41,7 @@ plot.sdols.confidence <- function(x, clustering=NULL, data=NULL, show.labels=len
   } else {
     o <- order(clustering)
   }
-  pm <- .rotateForConfidencePlot(x$expectedPairwiseClusteringMatrix,o)
+  pm <- .rotateForConfidencePlot(x$expectedPairwiseAllocationMatrix,o)
   n <- nrow(pm)
   sizes <- rle(clustering[o])$lengths
   cuts <- cumsum(sizes)
@@ -86,12 +86,12 @@ plot.sdols.confidence <- function(x, clustering=NULL, data=NULL, show.labels=len
   invisible()
 }
 
-.rotateForConfidencePlot <- function(expectedPairwiseClusteringMatrix, order) s %!% '
-  val nItems = expectedPairwiseClusteringMatrix.length
+.rotateForConfidencePlot <- function(expectedPairwiseAllocationMatrix, order) s %!% '
+  val nItems = expectedPairwiseAllocationMatrix.length
   val xx = Array.ofDim[Double](nItems, nItems)
   for (i <- 0 until nItems) {
     for (j <- 0 until nItems) {
-      xx(i)(nItems - j - 1) = expectedPairwiseClusteringMatrix(order(i) - 1)(order(j) - 1)
+      xx(i)(nItems - j - 1) = expectedPairwiseAllocationMatrix(order(i) - 1)(order(j) - 1)
     }
   }
   xx

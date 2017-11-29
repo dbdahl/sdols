@@ -43,7 +43,7 @@ confidence <- function(clustering, expectedPairwiseAllocationMatrix) {
 }
 
 as.clustering <- function(clustering) {
-  if ( ! is.vector(clustering) ) stop("'clustering' must be a vector.")
+  if ( ! is.atomic(clustering) ) stop("'clustering' must be a vector.")
   as.integer(clustering)
 }
 

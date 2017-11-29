@@ -2,11 +2,28 @@ options(rscala.heap.maximum="12G")
 library(sdols)
 
 ppm <- expectedPairwiseAllocationMatrix(iris.clusterings)
-salso(ppm,maxSize=3)
+a <- salso(ppm,loss="squaredError")
+a <- salso(ppm,loss="absoluteError")
+a <- salso(ppm,loss="binder",maxSize=4)
+a <- salso(ppm,loss="vi")
+a
+
+conf <- confidence(a,ppm)
+plot(conf)
+plot(conf,data=iris)
+
+binder(matrix(a,nrow=1),ppm)
+library(mcclust.ext)
+VI.lb(matrix(a,nrow=1),ppm)
+
+
 
 pcm <- expectedPairwiseAllocationMatrix(USArrests.featureAllocations)
-salso(pcm,structure="featureAllocation")
-salso(pcm,structure="featureAllocation",loss="absoluteError")
+a <- salso(pcm,structure="featureAllocation",loss="squaredError",nCandidates=3000)
+b <- salso(pcm,structure="featureAllocation",loss="absoluteError",nCandidates=3000)
+all(a==b)
+
+
 
 
 
@@ -32,7 +49,11 @@ s$.PartitionSummary$lowerBoundVariationOfInformation(b,ppm)
 b
 
 library(mcclust.ext)
-system.time(b.wadeBinder <- minbinder.ext(ppm,method="greedy"))
+system.time(b.wadeBinder <- minbinder.ext(ppm,method="greedy",start.cl.greedy=a))
+all(b.wadeBinder$cl==a)
+
+
+
 bb.wadeBinder <- s$.Partition$apply(as.integer(b.wadeBinder$cl))
 s$.PartitionSummary$sumOfSquares(bb.wadeBinder,ppm)
 s$.PartitionSummary$sumOfAbsolutes(bb.wadeBinder,ppm)

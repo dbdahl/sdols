@@ -43,7 +43,7 @@ salso <- function(expectedPairwiseAllocationMatrix, structure=c("clustering","fe
   if ( identical(structure,"clustering") ) seekClustering <- TRUE
   else if ( identical(structure,"featureAllocation") ) seekClustering <- FALSE
   else stop("'structure' must be either 'clustering' or 'featureAllocation'.")
-  expectedPairwiseAllocationMatrix <- as.expectedPairwiseAllocationMatrix(expectedPairwiseAllocationMatrix,seekClustering)
+  epam <- as.expectedPairwiseAllocationMatrix(expectedPairwiseAllocationMatrix,seekClustering)
   loss <- as.character(loss[1])
   if ( seekClustering ) {
     if ( ! loss %in% c("squaredError","absoluteError","binder","vi") )
@@ -54,11 +54,22 @@ salso <- function(expectedPairwiseAllocationMatrix, structure=c("clustering","fe
   }
   nCandidates <- as.integer(nCandidates[1])
   maxSize <- as.integer(maxSize[1])
-  ref <- if ( seekClustering ) {
-    s$.PartitionSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,expectedPairwiseAllocationMatrix,maxSize,loss)
+  if ( seekClustering ) {
+    ref <- s$.PartitionSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,epam,maxSize,loss)
+    result <- ref$toLabels()+1L
+    attr(result,loss) <- if ( loss == "squaredError" ) s$.PartitionSummary$binderSumOfSquares(ref,epam)
+    else if ( loss %in% "absoluteError" ) s$.PartitionSummary$binderSumOfAbsolutes(ref,epam)
+    else if ( loss == "binder" ) s$.PartitionSummary$binderSumOfAbsolutes(ref,epam) / 2
+    else if ( loss == "vi" ) s$.PartitionSummary$lowerBoundVariationOfInformation(ref,epam)
+    else stop("match error")
   } else {
-    s$.FeatureAllocationSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,expectedPairwiseAllocationMatrix,maxSize,loss)
+    ref <- s$.FeatureAllocationSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,epam,maxSize,loss)
+    result <- scalaConvert.featureAllocation(ref,withParameters=FALSE)
+    attr(result,"scalaReference") <- NULL
+    attr(result,loss) <- if ( loss == "squaredError" ) s$.FeatureAllocationSummary$binderSumOfSquares(ref,epam)
+    else if ( loss == "absoluteError" )  s$.FeatureAllocationSummary$binderSumOfAbsolutes(ref,epam)
+    else stop("match error")
   }
-  ref
+  result
 }
 
