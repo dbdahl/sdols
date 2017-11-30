@@ -11,9 +11,9 @@
 #' @author David B. Dahl \email{dahl@stat.byu.edu}
 #'
 #' @examples
-#' epcm <- expectedPairwiseAllocationMatrix(iris.clusterings)
-#' clustering <- rep(1:3,each=50)
-#' conf <- confidence(clustering,epcm)
+#' probabilities <- expectedPairwiseAllocationMatrix(iris.clusterings)
+#' clustering <- salso(probabilities)
+#' conf <- confidence(clustering,probabilities)
 #' plot(conf)
 #' plot(conf,data=iris)
 #'

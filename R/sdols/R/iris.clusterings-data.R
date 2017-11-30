@@ -7,3 +7,4 @@
 #' @seealso \code{\link[datasets]{iris}}
 
 "iris.clusterings"
+

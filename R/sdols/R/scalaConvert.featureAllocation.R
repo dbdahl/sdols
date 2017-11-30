@@ -1,7 +1,3 @@
-#' @importFrom rscala II
-#' @export II
-#' @export
-
 scalaConvert.featureAllocation <- function(x, names=NULL, withParameters=TRUE) {
   if ( is.scalaReference(x) ) {
     singleton <- ! grepl("^Array\\[",x$type)
@@ -105,23 +101,5 @@ scalaConvert.featureAllocation <- function(x, names=NULL, withParameters=TRUE) {
     if ( singleton ) result$head()
     else result
   }
-}
-
-#' @export
-
-leastSquaresFA <- function(x, expectedPairwiseAllocationMatrix=NULL) {
-  reference <- scalaConvert.featureAllocation(if ( is.matrix(x) ) list(x) else x)
-  epamOption <- if ( is.null(expectedPairwiseAllocationMatrix) ) s$.None else s$.Some$apply(expectedPairwiseAllocationMatrix)
-  fa <- s$.FeatureAllocationSummary$leastSquares(reference,epamOption)
-  scalaConvert.featureAllocation(fa)
-}
-
-#' @export
-
-sumOfSquaresFA <- function(featureAllocation, expectedPairwiseAllocationMatrix) {
-  if ( ! is.matrix(featureAllocation) ) stop("'featureAllocation' should be a binary feature allocation matrix.")
-  fa <- scalaConvert.featureAllocation(featureAllocation)
-  if ( ! is.matrix(expectedPairwiseAllocationMatrix) || ! isSymmetric(expectedPairwiseAllocationMatrix) ) stop("'expectedPairwiseAllocationMatrix' is not a symmetric matrix.")
-  s$.FeatureAllocationSummary$sumOfSquares(fa,expectedPairwiseAllocationMatrix)
 }
 

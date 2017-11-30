@@ -57,3 +57,4 @@ cleanUpClusteringMatrix <- function(x) {
   } else storage.mode(x) <- "integer"
   x
 }
+

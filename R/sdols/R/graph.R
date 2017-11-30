@@ -1,3 +1,5 @@
+#' @importFrom stats integrate runif
+
 mkGraph <- function(adjacency, as.directed=FALSE) {
   if ( is.character(adjacency) && ( length(adjacency) == 1 ) ) {
     x <- scan(textConnection(adjacency),quiet=TRUE)

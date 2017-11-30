@@ -1,3 +1,5 @@
+#' @import commonsMath
+
 .onLoad <- function(libname, pkgname) {
   snippet <- '
     import org.ddahl.sdols._
