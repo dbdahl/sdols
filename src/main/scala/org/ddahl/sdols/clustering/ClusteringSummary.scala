@@ -165,11 +165,11 @@ object ClusteringSummary {
     sum
   }
 
-  def binderSumOfAbsolutesSlow[A](clustering: Clustering[A], pam: Array[Array[Double]]): Double = {
+  def sumOfAbsolutesSlow[A](clustering: Clustering[A], pam: Array[Array[Double]]): Double = {
     (MatrixFactory(clustering.pairwiseAllocationMatrix) - pam).map(_.abs).sum
   }
 
-  def binderSumOfSquaresSlow[A](clustering: Clustering[A], pam: Array[Array[Double]]): Double = {
+  def sumOfSquaresSlow[A](clustering: Clustering[A], pam: Array[Array[Double]]): Double = {
     (MatrixFactory(clustering.pairwiseAllocationMatrix) - pam).map(x => x*x).sum
   }
 
@@ -188,12 +188,12 @@ object ClusteringSummary {
     2*offset
   }
 
-  def binderSumOfAbsolutes[A](clustering: Clustering[A], pam: Array[Array[Double]]): Double = {
+  def sumOfAbsolutes[A](clustering: Clustering[A], pam: Array[Array[Double]]): Double = {
     val pamTransform = pam.map(_.map(x => 2-4*x))
     binderOffset(pam,(x: Double) => x.abs) + binderEngine(clustering,pamTransform)
   }
 
-  def binderSumOfSquares[A](clustering: Clustering[A], pam: Array[Array[Double]]): Double = {
+  def sumOfSquares[A](clustering: Clustering[A], pam: Array[Array[Double]]): Double = {
     val pamTransform = pam.map(_.map(x => 2-4*x))
     binderOffset(pam,(x: Double) => x*x) + binderEngine(clustering,pamTransform)
   }
@@ -216,15 +216,18 @@ object ClusteringSummary {
     sum
   }
 
-  def minBinderAmongDraws(candidates: Array[Array[Int]], pamOption: Option[Array[Array[Double]]] = None): Clustering[Null] = {
-    minBinderAmongDraws(candidates.map(Clustering.apply),pamOption)
+  def minAmongDraws(candidates: Array[Array[Int]], maxSize: Int, loss: String, pamOption: Option[Array[Array[Double]]] = None): Clustering[Null] = {
+    minAmongDraws(candidates.map(Clustering.apply),maxSize,loss,pamOption)
   }
 
-  def minBinderAmongDraws[A](candidates: Seq[Clustering[A]], pamOption: Option[Array[Array[Double]]]): Clustering[A] = {
+  def minAmongDraws[A](candidates: Seq[Clustering[A]], maxSize: Int, loss: String, pamOption: Option[Array[Array[Double]]]): Clustering[A] = {
     if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
     val pam = pamOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
-    val pamTransform = pam.map(_.map(x => 0.5-x))
-    candidates.par.minBy(binderEngine(_, pamTransform))
+    val (lossEngine, pamTransform) = getLoss[A](loss, pam)
+    candidates.par.minBy { clustering =>
+      if ( ( maxSize > 0 ) && ( clustering.size > maxSize ) ) Double.PositiveInfinity
+      else lossEngine(clustering, pamTransform)
+    }
   }
 
   private def sequentiallyAllocatedLatentStructureOptimization(initial: Clustering[Null], maxSize: Int, permutation: List[Int], pamTransform: Array[Array[Double]], lossEngine: (Clustering[Null],Array[Array[Double]]) => Double): Clustering[Null] = {
@@ -239,11 +242,15 @@ object ClusteringSummary {
     clustering
   }
 
-  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, pam: Array[Array[Double]], maxSize: Int, loss: String): Clustering[Null] = {
-    val (lossEngine, pamTransform) = loss match {
-      case "binder" | "squaredError" | "absoluteError" => (binderEngine[Null] _, pam.map(_.map(x => 0.5-x)))
-      case "lowerBoundVariationOfInformation" => (lowerBoundVariationOfInformationEngine[Null] _, pam)
+  private def getLoss[A](loss: String, pam: Array[Array[Double]]) = {
+    loss match {
+      case "binder" | "squaredError" | "absoluteError" => (binderEngine[A] _, pam.map(_.map(x => 0.5-x)))
+      case "lowerBoundVariationOfInformation" => (lowerBoundVariationOfInformationEngine[A] _, pam)
     }
+  }
+
+  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, pam: Array[Array[Double]], maxSize: Int, loss: String): Clustering[Null] = {
+    val (lossEngine, pamTransform) = getLoss[Null](loss, pam)
     val rng = new scala.util.Random()
     val nItems = pam.length
     val ints = List.tabulate(nItems) { identity }

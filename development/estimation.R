@@ -3,6 +3,15 @@ library(sdols)
 
 ppm <- expectedPairwiseAllocationMatrix(iris.clusterings)
 a <- salso(ppm,loss="squaredError")
+system.time(b <- dlso(iris.clusterings,loss="squaredError"))
+latentStructureFit(b,ppm)
+
+library(mcclust)
+system.time(c <- minbinder(cls.draw=iris.clusterings,ppm,method="draws")$cl)
+latentStructureFit(c,ppm)
+
+
+
 a <- salso(ppm,loss="absoluteError",maxSize=3)
 a <- salso(ppm,loss="binder",maxSize=4)
 a <- salso(ppm,loss="lowerBoundVariationOfInformation")
@@ -29,12 +38,18 @@ latentStructureFit(a,ppm)$lowerBoundVariationOfInformation
 
 
 pcm <- expectedPairwiseAllocationMatrix(USArrests.featureAllocations)
-a <- salso(pcm,structure="featureAllocation",loss="squaredError",nCandidates=1000)
-b <- salso(pcm,structure="featureAllocation",loss="absoluteError",nCandidates=3000)
+system.time(a <- salso(pcm,structure="featureAllocation",loss="squaredError",nCandidates=1000,maxSize=555))
+b <- dlso(USArrests.featureAllocations,structure="featureAllocation",loss="squaredError")
 all(a==b)
 
+latentStructureFit(b,pcm)
 latentStructureFit(a,pcm)
 
+aa <- scalaConvert.featureAllocation(a)
+
+sum((aa$pairwiseAllocationMatrix() - pcm)^2)
+s$.FeatureAllocationSummary$sumOfSquaresSlow(aa,pcm)
+s$.FeatureAllocationSummary$sumOfSquares(aa,pcm)
 
 
 library(rscala)

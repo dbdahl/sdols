@@ -3,6 +3,8 @@ package featureallocation
 
 import org.ddahl.commonsmath._
 
+import scala.collection.mutable.ListBuffer
+
 object FeatureAllocationSummary {
 
   def expectedPairwiseAllocationMatrix[A](fas: Seq[FeatureAllocation[A]]): Array[Array[Double]] = {
@@ -12,47 +14,102 @@ object FeatureAllocationSummary {
     (fas.par.aggregate(zero)((sum,x) => sum + x.pairwiseAllocationMatrix,_+_) :/ fas.size).getData
   }
 
-  def binderSumOfSquares[A](fa: FeatureAllocation[A], pam: Array[Array[Double]]): Double = {
+  def sumOfSquaresSlow[A](fa: FeatureAllocation[A], pam: Array[Array[Double]]): Double = {
     (MatrixFactory(fa.pairwiseAllocationMatrix) - pam).map(x => x*x).sum
   }
 
-  def binderSumOfAbsolutes[A](fa: FeatureAllocation[A], pam: Array[Array[Double]]): Double = {
+  def sumOfAbsolutesSlow[A](fa: FeatureAllocation[A], pam: Array[Array[Double]]): Double = {
     (MatrixFactory(fa.pairwiseAllocationMatrix) - pam).map(_.abs).sum
   }
 
-  def minBinderAmongDraws[A](candidates: Seq[FeatureAllocation[A]], pamOption: Option[Array[Array[Double]]] = None): FeatureAllocation[A] = {
-    if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
-    val pam = pamOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
-    candidates.par.minBy(binderSumOfSquares(_,pam))
+  private def engine[A](counts: Array[Array[Int]], pam: Array[Array[Double]], f: Double => Double): Double = {
+    val nItems = pam.length
+    var sum1 = 0.0
+    var sum2 = 0.0
+    var i = 0
+    while ( i < nItems ) {
+      val countsi = counts(i)
+      val pami = pam(i)
+      sum1 += f(countsi(i) - pami(i))
+      var j = 0
+      while ( j < i ) {
+        sum2 += f(countsi(j) - pami(j))
+        j += 1
+      }
+      i += 1
+    }
+    sum1 + 2*sum2
   }
 
-  private def expand(fa: FeatureAllocation[Null], availableFeatures: List[Feature[Null]], i: Int): Seq[FeatureAllocation[Null]] = {
-    if ( availableFeatures.isEmpty ) Seq()
+  def sumOfSquares[A](fa: FeatureAllocation[A], pam: Array[Array[Double]]): Double = {
+    engine(fa.pairwiseAllocationTriangle,pam,(x: Double) => x*x)
+  }
+
+  def sumOfAbsolutes[A](fa: FeatureAllocation[A], pam: Array[Array[Double]]): Double = {
+    engine(fa.pairwiseAllocationTriangle,pam,(x: Double) => x.abs)
+  }
+
+  def minAmongDraws[A](candidates: Seq[FeatureAllocation[A]], maxSize: Int, loss: String, pamOption: Option[Array[Array[Double]]]): FeatureAllocation[A] = {
+    if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
+    val pam = pamOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
+    val (lossEngine, pamTransform) = getLoss[A](loss, pam)
+    candidates.par.minBy { feature =>
+      if ( ( maxSize > 0 ) && ( feature.size > maxSize ) ) Double.PositiveInfinity
+      else lossEngine(feature, pamTransform)
+    }
+  }
+
+  private def expand(fa: FeatureAllocation[Null], availableFeatures: List[Feature[Null]], i: Int): ListBuffer[FeatureAllocation[Null]] = {
+    if ( availableFeatures.isEmpty ) ListBuffer()
     else {
       val faPlus = fa.add(i,availableFeatures.head)
       val tail = availableFeatures.tail
-      if ( tail.isEmpty ) Seq(fa,faPlus)
+      if ( tail.isEmpty ) ListBuffer(fa,faPlus)
       else expand(fa,tail,i) ++ expand(faPlus,tail,i)
     }
   }
 
+  private def padWithFeature(fa: FeatureAllocation[Null], f: Feature[Null], nTimes: Int) = {
+    fa.add(f)
+    /*
+    var fa2 = fa
+    var j = 0
+    while ( j < nTimes ) {
+      fa2 = fa2.add(f)
+      j += 1
+    }
+    fa2
+    */
+  }
+
   private def sequentiallyAllocatedLatentStructureOptimization(initial: FeatureAllocation[Null], maxSize: Int, permutation: List[Int], pamTransform: Array[Array[Double]], lossEngine: (FeatureAllocation[Null],Array[Array[Double]]) => Double): FeatureAllocation[Null] = {
+    val max = if ( maxSize <= 0 ) Int.MaxValue else maxSize
     var fa = initial
     for ( i <- permutation ) {
-      val candidates = expand(fa,fa.toList,i)
-      val candidates2 = if ( ( maxSize <= 0 ) || ( fa.size < maxSize ) ) {
-        fa.add(i,null) +: candidates   // DBD: Maybe add more.
-      } else candidates
-      fa = candidates2.minBy(lossEngine(_,pamTransform))
+      val singleton = Feature(null,i)
+      val expectedNumberOfFeatures = pamTransform(i)(i).round.toInt
+      fa = if ( fa.isEmpty ) padWithFeature(fa, singleton, expectedNumberOfFeatures min max)
+      else {
+        val candidates = expand(fa, fa.toList, i)
+        val residualCapacity = maxSize - fa.nFeatures
+        val candidates2 = if ( residualCapacity > 0 ) candidates.map { fa2 =>
+          padWithFeature(fa2, singleton, ( expectedNumberOfFeatures - fa2.nFeatures(i) ) min residualCapacity )
+        } else candidates
+        candidates2.minBy(lossEngine(_, pamTransform))
+      }
     }
     fa
   }
 
-  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, pam: Array[Array[Double]], maxSize: Int, loss: String): FeatureAllocation[Null] = {
-    val (lossEngine, pamTransform) = loss match {
-      case "squaredError" => (binderSumOfSquares[Null] _, pam)
-      case "absoluteError" => (binderSumOfAbsolutes[Null] _, pam)
+  private def getLoss[A](loss: String, pam: Array[Array[Double]]) = {
+    loss match {
+      case "squaredError" => (sumOfSquares[A] _, pam)
+      case "absoluteError" => (sumOfAbsolutes[A] _, pam)
     }
+  }
+
+  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, pam: Array[Array[Double]], maxSize: Int, loss: String): FeatureAllocation[Null] = {
+    val (lossEngine, pamTransform) = getLoss[Null](loss,pam)
     val rng = new scala.util.Random()
     val nItems = pam.length
     val ints = List.tabulate(nItems) { identity }

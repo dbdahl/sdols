@@ -3,6 +3,7 @@
 S3method(plot,sdols.confidence)
 export(II)
 export(confidence)
+export(dlso)
 export(expectedPairwiseAllocationMatrix)
 export(latentStructureFit)
 export(leastSquaresFA)

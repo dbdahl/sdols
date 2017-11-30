@@ -37,15 +37,15 @@ latentStructureFit <- function(estimate, expectedPairwiseAllocationMatrix) {
   epam <- as.expectedPairwiseAllocationMatrix(expectedPairwiseAllocationMatrix,doClustering)
   if ( doClustering ) {
     ref <- s$.Clustering$apply(as.integer(estimate))
-    ss <- s$.ClusteringSummary$binderSumOfSquares(ref,epam)
-    sa <- s$.ClusteringSummary$binderSumOfAbsolutes(ref,epam)
-    binder <- s$.ClusteringSummary$binderSumOfAbsolutes(ref,epam) / 2
+    ss <- s$.ClusteringSummary$sumOfSquares(ref,epam)
+    sa <- s$.ClusteringSummary$sumOfAbsolutes(ref,epam)
+    binder <- s$.ClusteringSummary$sumOfAbsolutes(ref,epam) / 2
     vi <- s$.ClusteringSummary$lowerBoundVariationOfInformation(ref,epam)
     list("squaredError"=ss,"absoluteError"=sa,"binder"=binder,"lowerBoundVariationOfInformation"=vi)
   } else {
     ref <- scalaConvert.featureAllocation(estimate,withParameters=FALSE)
-    ss <- s$.FeatureAllocationSummary$binderSumOfSquares(ref,epam)
-    sa <- s$.FeatureAllocationSummary$binderSumOfAbsolutes(ref,epam)
+    ss <- s$.FeatureAllocationSummary$sumOfSquares(ref,epam)
+    sa <- s$.FeatureAllocationSummary$sumOfAbsolutes(ref,epam)
     list("squaredError"=ss,"absoluteError"=sa)
   }
 }

@@ -1,13 +1,17 @@
-#' Perform Sequentially-Allocated Latent Structure Optimization
+#' Perform Draws-Based Latent Structure Optimization
 #'
-#' This function implements the sequentially-allocated latent structure optimization (SALSO)
-#' to find a clustering or feature allocation that minimizes various loss functions.
-#' The SALSO method is introduced in Dahl and Müller (2018).
+#' This function picks the latent structure among the supplied latent structures minimizes
+#' one of various loss functions.
 #'
-#' @param expectedPairwiseAllocationMatrix A \code{n}-by-\code{n} symmetric matrix
-#' whose \code{(i,j)} elements gives the estimated expected number of times that items
-#' \code{i} and \code{j} are in the same subset (i.e., cluster or feature).  This can be
-#' computed by the \code{\link{expectedPairwiseAllocationMatrix}} function.
+#' @param x A collection of clusterings or feature allocations.  If \code{x} is a
+#' \code{B}-by-\code{n} matrix, each of the \code{B} rows represents a clustering of
+#' \code{n} items using cluster labels.  For clustering \code{b}, items \code{i} and
+#' \code{j} are in the same cluster if \code{x[b,i] == x[b,j]}.  If \code{x}
+#' is a list of length \code{B}, each element of list represents a feature allocation using
+#' a binary matrix of \code{n} rows and an arbitrary number of columns.  For feature
+#' allocation \code{b}, items \code{i} and \code{j} share \code{m} features if, for \code{k}
+#' = 1, 2, ..., the expression \code{x[[b]][i,k] == x[[b]][j,k] == 1} is true exactly
+#' \code{m} times.
 #' @param structure Either \code{"clustering"} or \code{"featureAllocation"} to indicate
 #' the optimization seeks to produce a clustering or a feature allocation.
 #' @param loss One of \code{"squaredError"}, \code{"absoluteError"}, \code{"binder"}, or
@@ -16,8 +20,6 @@
 #' bound of the variation of information loss (Wade & Ghahramani 2017), respectively.  When
 #' \code{structure="clustering"}, the first three are equivalent.  When
 #' \code{structure="featureAllocation"}, only the first two are valid.
-#' @param nCandidates The number of candidates to consider.  The computational cost is linear
-#' in the number of candidates and there are rapidly diminishing returns to more candidates.
 #' @param maxSize Either zero or a positive integer.  If a positive integer, the
 #' optimization is constrained to produce solutions whose number of clusters or number of
 #' features is no more than the supplied value.  If zero, the size is not constrained.
@@ -26,23 +28,22 @@
 #'
 #' @examples
 #' probabilities <- expectedPairwiseAllocationMatrix(iris.clusterings)
-#' salso(probabilities)
+#' dlso(probabilities)
 #'
 #' expectedCounts <- expectedPairwiseAllocationMatrix(USArrests.featureAllocations)
-#' salso(expectedCounts,"featureAllocation")
+#' dlso(expectedCounts,"featureAllocation")
 #'
-#' @seealso \code{\link{expectedPairwiseAllocationMatrix}} \code{\link{dlso}}
+#' @seealso \code{\link{expectedPairwiseAllocationMatrix}} \code{\link{salso}}
 #'
 #' @export
 #' @import rscala
 
-salso <- function(expectedPairwiseAllocationMatrix, structure=c("clustering","featureAllocation")[1],
-                  loss=c("squaredError","absoluteError","binder","lowerBoundVariationOfInformation")[1],
-                  nCandidates=100, maxSize=0) {
+dlso <- function(x, structure=c("clustering","featureAllocation")[1],
+                 loss=c("squaredError","absoluteError","binder","lowerBoundVariationOfInformation")[1],
+                 maxSize=0) {
   if ( identical(structure,"clustering") ) doClustering <- TRUE
   else if ( identical(structure,"featureAllocation") ) doClustering <- FALSE
   else stop("'structure' must be either 'clustering' or 'featureAllocation'.")
-  epam <- as.expectedPairwiseAllocationMatrix(expectedPairwiseAllocationMatrix,doClustering)
   loss <- as.character(loss[1])
   if ( doClustering ) {
     if ( ! loss %in% c("squaredError","absoluteError","binder","lowerBoundVariationOfInformation") )
@@ -51,13 +52,14 @@ salso <- function(expectedPairwiseAllocationMatrix, structure=c("clustering","fe
     if ( ! loss %in% c("squaredError","absoluteError") )
       stop("'loss' should be 'squaredError' or 'absoluteError' when 'structure' is 'featureAllocation'.")
   }
-  nCandidates <- as.integer(nCandidates[1])
   maxSize <- as.integer(maxSize[1])
   if ( doClustering ) {
-    ref <- s$.ClusteringSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,epam,maxSize,loss)
+    x <- cleanUpClusteringMatrix(x)
+    ref <- s$.ClusteringSummary$minAmongDraws(x,maxSize,loss,s$.None)
     ref$toLabels()+1L
   } else {
-    ref <- s$.FeatureAllocationSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,epam,maxSize,loss)
+    x <- scalaConvert.featureAllocation(x)
+    ref <- s$.FeatureAllocationSummary$minAmongDraws(x,maxSize,loss,s$.None)
     result <- scalaConvert.featureAllocation(ref,withParameters=FALSE)
     attr(result,"scalaReference") <- NULL
     result

@@ -118,7 +118,7 @@ class FeatureAllocation[A] private (val nItems: Int, val isLeftOrderedForm: Bool
 
   def toMap = features.groupBy(identity).mapValues(_.size)
 
-  def pairwiseAllocationMatrix: Array[Array[Int]] = {
+  def pairwiseAllocationTriangle: Array[Array[Int]] = {
     val r = Array.ofDim[Int](nItems, nItems)
     features.foreach(f => {
       val indices = f.set.toList.filter(_ < nItems).sortWith(_ > _)
@@ -130,7 +130,11 @@ class FeatureAllocation[A] private (val nItems: Int, val isLeftOrderedForm: Bool
         x = x.tail
       }
     })
-    // Symmetrize
+    r
+  }
+
+  def pairwiseAllocationMatrix: Array[Array[Int]] = {
+    val r = pairwiseAllocationTriangle
     var i = 0
     while ( i < nItems ) {
       val ri = r(i)

@@ -35,13 +35,7 @@
 
 expectedPairwiseAllocationMatrix <- function(x) {
   if ( is.matrix(x) ) {
-    if ( nrow(x) == 0 ) stop("The matrix 'x' must have a least one clustering (i.e, row).")
-    if ( ncol(x) == 0 ) stop("The matrix 'x' must have a least one item (i.e, column).")
-    if ( is.character(x) ) {
-      x <- t(apply(x,1,function(p) {
-        as.integer(as.factor(p))
-      }))
-    } else storage.mode(x) <- "integer"
+    x <- cleanUpClusteringMatrix(x)
     r <- s$.ClusteringSummary$expectedPairwiseAllocationMatrix(x)
     names <- colnames(x)
   } else if ( is.list(x) ) {
@@ -53,3 +47,13 @@ expectedPairwiseAllocationMatrix <- function(x) {
   r
 }
 
+cleanUpClusteringMatrix <- function(x) {
+  if ( nrow(x) == 0 ) stop("The matrix 'x' must have a least one clustering (i.e, row).")
+  if ( ncol(x) == 0 ) stop("The matrix 'x' must have a least one item (i.e, column).")
+  if ( is.character(x) ) {
+    x <- t(apply(x,1,function(p) {
+      as.integer(as.factor(p))
+    }))
+  } else storage.mode(x) <- "integer"
+  x
+}
