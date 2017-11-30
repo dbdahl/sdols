@@ -1,12 +1,12 @@
 #' Perform Draws-Based Latent Structure Optimization
 #'
-#' This function picks the latent structure among the supplied latent structures minimizes
+#' Among the supplied latent structures, this function picks the structure that minimizes
 #' one of various loss functions.
 #'
 #' @param x A collection of clusterings or feature allocations.  If \code{x} is a
 #' \code{B}-by-\code{n} matrix, each of the \code{B} rows represents a clustering of
 #' \code{n} items using cluster labels.  For clustering \code{b}, items \code{i} and
-#' \code{j} are in the same cluster if \code{x[b,i] == x[b,j]}.  If \code{x}
+#' \code{j} are in the same cluster if and only if \code{x[b,i] == x[b,j]}.  If \code{x}
 #' is a list of length \code{B}, each element of list represents a feature allocation using
 #' a binary matrix of \code{n} rows and an arbitrary number of columns.  For feature
 #' allocation \code{b}, items \code{i} and \code{j} share \code{m} features if, for \code{k}
@@ -21,6 +21,9 @@
 #' @param maxSize Either zero or a positive integer.  If a positive integer, the
 #' optimization is constrained to produce solutions whose number of clusters or number of
 #' features is no more than the supplied value.  If zero, the size is not constrained.
+#'
+#' @return A clustering (as a vector of cluster labels) or a feature allocation (as a binary
+#' matrix of feature indicators).
 #'
 #' @author David B. Dahl \email{dahl@stat.byu.edu}
 #'

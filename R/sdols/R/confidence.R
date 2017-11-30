@@ -1,23 +1,24 @@
 #' Compute Clustering Confidence
 #'
 #' This function computes the confidence values for \code{n} observations
-#' based on the supplied clustering and the expected pairwise clustering
+#' based on a clustering estimate and the expected pairwise allocation
 #' matrix.
 #'
 #' @param estimate A vector of length \code{n}, where \code{i} and \code{j}
-#' are in the same cluster if \code{clustering[i] == clustering[j]}.
+#' are in the same cluster if and only if \code{clustering[i] == clustering[j]}.
 #' @param expectedPairwiseAllocationMatrix A \code{n}-by-\code{n} symmetric
 #' matrix whose \code{(i,j)} elements gives the estimated expected probability
-#' that items \code{i} and \code{j} are in the same cluster based on the
-#' frequencies from the supplied clusterings.
+#' that items \code{i} and \code{j} are in the same cluster.
 #'
 #' @author David B. Dahl \email{dahl@stat.byu.edu}
 #'
 #' @examples
-#' epam <- expectedPairwiseAllocationMatrix(iris.clusterings)
-#' clustering <- rep(1:3,each=50)
-#' conf <- confidence(clustering,epam)
+#' probabilities <- expectedPairwiseAllocationMatrix(iris.clusterings)
+#' clustering <- salso(probabilities)
+#' conf <- confidence(clustering,probabilities)
 #' conf
+#'
+#' @seealso \code{\link{expectedPairwiseAllocationMatrix}} \code{\link{dlso}} \code{\link{salso}}
 #'
 #' @export
 #' @import rscala

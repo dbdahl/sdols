@@ -6,8 +6,7 @@
 #'
 #' @param expectedPairwiseAllocationMatrix A \code{n}-by-\code{n} symmetric matrix
 #' whose \code{(i,j)} elements gives the estimated expected number of times that items
-#' \code{i} and \code{j} are in the same subset (i.e., cluster or feature).  This can be
-#' computed by the \code{\link{expectedPairwiseAllocationMatrix}} function.
+#' \code{i} and \code{j} are in the same subset (i.e., cluster or feature).
 #' @param structure Either \code{"clustering"} or \code{"featureAllocation"} to indicate
 #' the optimization seeks to produce a clustering or a feature allocation.
 #' @param loss One of \code{"squaredError"}, \code{"absoluteError"}, \code{"binder"}, or
@@ -21,6 +20,12 @@
 #' @param maxSize Either zero or a positive integer.  If a positive integer, the
 #' optimization is constrained to produce solutions whose number of clusters or number of
 #' features is no more than the supplied value.  If zero, the size is not constrained.
+#' To avoid overfitting in feature allocation estimation, it is recommended that
+#' \code{"maxSize"} be close the mean number of features (i.e., columns) in the
+#' feature allocations that generated the \code{"expectedPairwiseAllocationMatrix"}.
+#'
+#' @return A clustering (as a vector of cluster labels) or a feature allocation (as a binary
+#' matrix of feature indicators).
 #'
 #' @author David B. Dahl \email{dahl@stat.byu.edu}
 #'

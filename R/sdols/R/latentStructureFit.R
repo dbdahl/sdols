@@ -12,8 +12,7 @@
 #' \code{m} times.
 #' @param expectedPairwiseAllocationMatrix A \code{n}-by-\code{n} symmetric matrix
 #' whose \code{(i,j)} elements gives the estimated expected number of times that items
-#' \code{i} and \code{j} are in the same subset (i.e., cluster or feature).  This can be computed by the
-#' \code{\link{expectedPairwiseAllocationMatrix}} function.
+#' \code{i} and \code{j} are in the same subset (i.e., cluster or feature).
 #'
 #' @author David B. Dahl \email{dahl@stat.byu.edu}
 #'

@@ -30,6 +30,8 @@
 #' expectedCounts <- expectedPairwiseAllocationMatrix(USArrests.featureAllocations)
 #' expectedCounts
 #'
+#' @seealso \code{\link{dlso}} \code{\link{salso}}
+#'
 #' @export
 #' @import rscala
 
