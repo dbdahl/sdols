@@ -13,10 +13,12 @@
 #' @author David B. Dahl \email{dahl@stat.byu.edu}
 #'
 #' @examples
+#' \donttest{
 #' probabilities <- expectedPairwiseAllocationMatrix(iris.clusterings)
 #' clustering <- salso(probabilities)
 #' conf <- confidence(clustering,probabilities)
 #' conf
+#' }
 #'
 #' @seealso \code{\link{expectedPairwiseAllocationMatrix}} \code{\link{dlso}} \code{\link{salso}}
 #'

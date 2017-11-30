@@ -52,10 +52,10 @@ object FeatureAllocationSummary {
   def minAmongDraws[A](candidates: Seq[FeatureAllocation[A]], maxSize: Int, loss: String, pamOption: Option[Array[Array[Double]]]): FeatureAllocation[A] = {
     if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
     val pam = pamOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
-    val (lossEngine, pamTransform) = getLoss[A](loss, pam)
+    val lossEngine = getLoss[A](loss)
     candidates.par.minBy { feature =>
       if ( ( maxSize > 0 ) && ( feature.size > maxSize ) ) Double.PositiveInfinity
-      else lossEngine(feature, pamTransform)
+      else lossEngine(feature, pam)
     }
   }
 
@@ -98,24 +98,24 @@ object FeatureAllocationSummary {
     fa
   }
 
-  private def getLoss[A](loss: String, pam: Array[Array[Double]]) = {
+  private def getLoss[A](loss: String) = {
     loss match {
-      case "squaredError" => (sumOfSquares[A] _, pam)
-      case "absoluteError" => (sumOfAbsolutes[A] _, pam)
+      case "squaredError" => sumOfSquares[A] _
+      case "absoluteError" => sumOfAbsolutes[A] _
     }
   }
 
   def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, pam: Array[Array[Double]], maxSize: Int, loss: String): FeatureAllocation[Null] = {
-    val (lossEngine, pamTransform) = getLoss[Null](loss,pam)
+    val lossEngine = getLoss[Null](loss)
     val rng = new scala.util.Random()
     val nItems = pam.length
     val ints = List.tabulate(nItems) { identity }
     val empty = FeatureAllocation.empty[Null](nItems)
     val candidates = Range(0,nCandidates).par.map { i =>
       val permutation = rng.shuffle(ints)
-      sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pamTransform,lossEngine)
+      sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pam,lossEngine)
     }
-    candidates.minBy(lossEngine(_,pamTransform))
+    candidates.minBy(lossEngine(_,pam))
   }
 
 }

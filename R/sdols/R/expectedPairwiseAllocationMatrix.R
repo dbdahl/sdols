@@ -24,11 +24,13 @@
 #' @author David B. Dahl \email{dahl@stat.byu.edu}
 #'
 #' @examples
+#' \donttest{
 #' probabilities <- expectedPairwiseAllocationMatrix(iris.clusterings)
 #' probabilities
 #'
 #' expectedCounts <- expectedPairwiseAllocationMatrix(USArrests.featureAllocations)
 #' expectedCounts
+#' }
 #'
 #' @seealso \code{\link{dlso}} \code{\link{salso}}
 #'

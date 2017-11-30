@@ -1,3 +1,16 @@
+#' \strong{(Developers Only:)} Convert Between R and Scala Representations of Feature Allocations
+#'
+#' \strong{This function is not intended for end users}, but is exported for the benefit of
+#' developers whose wish to write other packages that depend on this package.
+#'
+#' @param x Either: i. a binary matrix or list of binary matrices encoding feature allocation(s).
+#'          ii. a Scala reference to a feature allocation.
+#' @param names A character vector giving the row names when converting from Scala to R.
+#' @param withParameters A logical indicating whether model parameters should also be converted.
+#'
+#' @import rscala
+#' @export
+
 scalaConvert.featureAllocation <- function(x, names=NULL, withParameters=TRUE) {
   if ( is.scalaReference(x) ) {
     singleton <- ! grepl("^Array\\[",x$type)

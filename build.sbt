@@ -6,7 +6,7 @@ version := "1.2-SNAPSHOT"
 
 scalaVersion := "2.12.4"
 
-//crossScalaVersions := Seq("2.11.12", "2.12.4")
+crossScalaVersions := Seq("2.11.12", "2.12.4")
         
 libraryDependencies ++= Seq(
   "org.ddahl" %% "rscala" % "2.5.0",

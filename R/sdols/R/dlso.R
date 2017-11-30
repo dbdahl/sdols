@@ -28,8 +28,10 @@
 #' @author David B. Dahl \email{dahl@stat.byu.edu}
 #'
 #' @examples
+#' \donttest{
 #' dlso(iris.clusterings)
 #' dlso(USArrests.featureAllocations)
+#' }
 #'
 #' @seealso \code{\link{expectedPairwiseAllocationMatrix}} \code{\link{salso}}
 #'

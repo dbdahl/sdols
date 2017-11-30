@@ -17,6 +17,7 @@
 #' @author David B. Dahl \email{dahl@stat.byu.edu}
 #'
 #' @examples
+#' \donttest{
 #' probabilities <- expectedPairwiseAllocationMatrix(iris.clusterings)
 #' estimate <- salso(probabilities)
 #' latentStructureFit(estimate, probabilities)
@@ -24,6 +25,7 @@
 #' expectedCounts <- expectedPairwiseAllocationMatrix(USArrests.featureAllocations)
 #' estimate <- salso(expectedCounts,"featureAllocation")
 #' latentStructureFit(estimate, expectedCounts)
+#' }
 #'
 #' @seealso \code{\link{expectedPairwiseAllocationMatrix}} \code{\link{salso}}
 #'

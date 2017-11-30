@@ -30,11 +30,13 @@
 #' @author David B. Dahl \email{dahl@stat.byu.edu}
 #'
 #' @examples
+#' \donttest{
 #' probabilities <- expectedPairwiseAllocationMatrix(iris.clusterings)
 #' salso(probabilities)
 #'
 #' expectedCounts <- expectedPairwiseAllocationMatrix(USArrests.featureAllocations)
 #' salso(expectedCounts,"featureAllocation")
+#' }
 #'
 #' @seealso \code{\link{expectedPairwiseAllocationMatrix}} \code{\link{dlso}}
 #'

@@ -11,11 +11,13 @@
 #' @author David B. Dahl \email{dahl@stat.byu.edu}
 #'
 #' @examples
+#' \donttest{
 #' probabilities <- expectedPairwiseAllocationMatrix(iris.clusterings)
 #' clustering <- salso(probabilities)
 #' conf <- confidence(clustering,probabilities)
 #' plot(conf)
 #' plot(conf,data=iris)
+#' }
 #'
 #' @importFrom grDevices heat.colors rainbow topo.colors
 #' @importFrom graphics abline axis box image pairs par points polygon segments text
