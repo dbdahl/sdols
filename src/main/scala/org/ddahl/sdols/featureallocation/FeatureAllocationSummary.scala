@@ -70,8 +70,6 @@ object FeatureAllocationSummary {
   }
 
   private def padWithFeature(fa: FeatureAllocation[Null], f: Feature[Null], nTimes: Int) = {
-    fa.add(f)
-    /*
     var fa2 = fa
     var j = 0
     while ( j < nTimes ) {
@@ -79,7 +77,6 @@ object FeatureAllocationSummary {
       j += 1
     }
     fa2
-    */
   }
 
   private def sequentiallyAllocatedLatentStructureOptimization(initial: FeatureAllocation[Null], maxSize: Int, permutation: List[Int], pamTransform: Array[Array[Double]], lossEngine: (FeatureAllocation[Null],Array[Array[Double]]) => Double): FeatureAllocation[Null] = {

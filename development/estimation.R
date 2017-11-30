@@ -38,9 +38,11 @@ latentStructureFit(a,ppm)$lowerBoundVariationOfInformation
 
 
 pcm <- expectedPairwiseAllocationMatrix(USArrests.featureAllocations)
-system.time(a <- salso(pcm,structure="featureAllocation",loss="squaredError",nCandidates=1000,maxSize=5))
+system.time(a <- salso(pcm,structure="featureAllocation",loss="squaredError",nCandidates=500,maxSize=5))
 b <- dlso(USArrests.featureAllocations,structure="featureAllocation",loss="squaredError")
 all(a==b)
+
+dim(a)
 
 latentStructureFit(b,pcm)
 latentStructureFit(a,pcm)
