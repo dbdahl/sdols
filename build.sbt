@@ -2,7 +2,8 @@ name := "sdols"
 
 organization := "org.ddahl"
 
-version := "1.2"
+//version := "1.3"
+version := "1.3-SNAPSHOT"
 
 scalaVersion := "2.12.4"
 
