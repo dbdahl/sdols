@@ -15,8 +15,12 @@
 #' bound of the variation of information loss (Wade & Ghahramani 2017), respectively.  When
 #' \code{structure="clustering"}, the first three are equivalent.  When
 #' \code{structure="featureAllocation"}, only the first two are valid.
-#' @param nCandidates The number of candidates to consider.  The computational cost is linear
-#' in the number of candidates and there are rapidly diminishing returns to more candidates.
+#' @param nCandidates The (maximum) number of candidates to consider.  Fewer than
+#' \code{nCandidates} may be considered if the time in \code{budgetInSeconds} is exceeded.
+#' The computational cost is linear in the number of candidates and there are rapidly
+#' diminishing returns to more candidates.
+#' @param budgetInSeconds The (maximum) number of seconds to devote to the optimization.
+#' When this time is exceeded, no more candidates are considered.
 #' @param maxSize Either zero or a positive integer.  If a positive integer, the
 #' optimization is constrained to produce solutions whose number of clusters or number of
 #' features is no more than the supplied value.  If zero, the size is not constrained.
@@ -45,7 +49,7 @@
 
 salso <- function(expectedPairwiseAllocationMatrix, structure=c("clustering","featureAllocation")[1],
                   loss=c("squaredError","absoluteError","binder","lowerBoundVariationOfInformation")[1],
-                  nCandidates=100, maxSize=0) {
+                  nCandidates=100, budgetInSeconds=10, maxSize=0) {
   if ( identical(structure,"clustering") ) doClustering <- TRUE
   else if ( identical(structure,"featureAllocation") ) doClustering <- FALSE
   else stop("'structure' must be either 'clustering' or 'featureAllocation'.")
@@ -59,15 +63,18 @@ salso <- function(expectedPairwiseAllocationMatrix, structure=c("clustering","fe
       stop("'loss' should be 'squaredError' or 'absoluteError' when 'structure' is 'featureAllocation'.")
   }
   nCandidates <- as.integer(nCandidates[1])
+  budgetInSeconds <- as.integer(budgetInSeconds[1])
   maxSize <- as.integer(maxSize[1])
-  if ( doClustering ) {
-    ref <- s$.ClusteringSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,epam,maxSize,loss)
-    ref$toLabels()+1L
+  result <- if ( doClustering ) {
+    ref <- s$.ClusteringSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxSize,loss)
+    ref$"_1"()$toLabels()+1L
   } else {
-    ref <- s$.FeatureAllocationSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,epam,maxSize,loss)
-    result <- scalaConvert.featureAllocation(ref,withParameters=FALSE)
+    ref <- s$.FeatureAllocationSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxSize,loss)
+    result <- scalaConvert.featureAllocation(ref$"_1"(),withParameters=FALSE)
     attr(result,"scalaReference") <- NULL
     result
   }
+  attr(result,"nCandidates") <- ref$"_2"()
+  result
 }
 

@@ -249,17 +249,20 @@ object ClusteringSummary {
     }
   }
 
-  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, pam: Array[Array[Double]], maxSize: Int, loss: String): Clustering[Null] = {
+  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Int, pam: Array[Array[Double]], maxSize: Int, loss: String): (Clustering[Null], Int) = {
     val (lossEngine, pamTransform) = getLoss[Null](loss, pam)
-    val rng = new scala.util.Random()
+    val rng = new scala.util.Random()   // Thread safe!
     val nItems = pam.length
     val ints = List.tabulate(nItems) { identity }
     val empty = Clustering.empty[Null]()
-    val candidates = Range(0,nCandidates).par.map { i =>
+    val budgetInMillis = if ( budgetInSeconds <= 0 ) Long.MaxValue else budgetInSeconds * 1000L
+    val start = System.currentTimeMillis
+    val candidates = Range(0,nCandidates).par.map( i => {
       val permutation = rng.shuffle(ints)
-      sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pamTransform,lossEngine)
-    }
-    candidates.minBy(lossEngine(_,pamTransform))
+      if ( System.currentTimeMillis - start <= budgetInMillis ) sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pamTransform,lossEngine)
+      else null
+    }).filter(_ != null)
+    (candidates.minBy(lossEngine(_,pamTransform)), candidates.size)
   }
 
 }
