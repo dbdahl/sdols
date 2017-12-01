@@ -1,6 +1,6 @@
 #' Confidence and Exemplar Plotting
 #'
-#' Functions to produce confidence plots (e.g., heatmaps of pairwise clustering probabilities) and exemplar plots.
+#' Functions to produce confidence plots (e.g., heatmaps of pairwise allocation probabilities) and exemplar plots.
 #'
 #' @param x An object of class \code{shallot.confidence}.
 #' @param clustering A vector of cluster labels, or \code{NULL}.
