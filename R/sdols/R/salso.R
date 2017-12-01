@@ -2,7 +2,8 @@
 #'
 #' This function implements the sequentially-allocated latent structure optimization (SALSO)
 #' to find a clustering or feature allocation that minimizes various loss functions.
-#' The SALSO method is introduced in Dahl and Müller (2018).
+#' The SALSO method was presented at the workshop "Bayesian Nonparametric Inference: Dependence
+#' Structures and their Applications" in Oaxaca, Mexico on December 6, 2017.
 #'
 #' @param expectedPairwiseAllocationMatrix A \code{n}-by-\code{n} symmetric matrix
 #' whose \code{(i,j)} elements gives the estimated expected number of times that items
@@ -43,6 +44,9 @@
 #' }
 #'
 #' @seealso \code{\link{expectedPairwiseAllocationMatrix}}, \code{\link{dlso}}
+#'
+#' @references Wade, S. and Ghahramani, Z. (2017). Bayesian cluster analysis: Point estimation and credible balls. Bayesian analysis.
+#' @references Binder, D. (1978). Bayesian Cluster Analysis. Biometrika, 65: 31–38.
 #'
 #' @export
 #' @import rscala

@@ -35,6 +35,9 @@
 #'
 #' @seealso \code{\link{expectedPairwiseAllocationMatrix}}, \code{\link{salso}}
 #'
+#' @references Wade, S. and Ghahramani, Z. (2017). Bayesian cluster analysis: Point estimation and credible balls. Bayesian analysis.
+#' @references Binder, D. (1978). Bayesian Cluster Analysis. Biometrika, 65: 31–38.
+#'
 #' @export
 #' @import rscala
 
