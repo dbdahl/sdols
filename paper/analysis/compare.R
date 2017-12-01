@@ -5,7 +5,8 @@ pp <- expectedPairwiseAllocationMatrix(clusterings)
 
 system.time(est.salso <- salso(pp,nCandidates=100,budgetInSeconds=1))
 attr(est.salso,"nCandidates")
-latentStructureFit(est.salso,pp)
+
+unlist(latentStructureFit(est.salso,pp))
 
 library(mcclust)
 est.avg <- minbinder(pp,method="avg")$cl
