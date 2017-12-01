@@ -45,13 +45,13 @@ do
     f)
       TASK_R=yes
       TASK_RCHECK=yes
-      FLAG_CHECK_CRAN="--as-cran"
+      FLAG_CHECK_CRAN="--as-cran --run-donttest --run-dontrun"
       ;;
     p)
       TASK_SCALA=yes
       TASK_R=yes
       TASK_RCHECK=yes
-      FLAG_CHECK_CRAN="--as-cran"
+      FLAG_CHECK_CRAN="--as-cran --run-donttest --run-dontrun"
       FLAG_POST=yes
       ;;
     *)
