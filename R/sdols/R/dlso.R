@@ -33,7 +33,7 @@
 #' dlso(USArrests.featureAllocations)
 #' }
 #'
-#' @seealso \code{\link{expectedPairwiseAllocationMatrix}} \code{\link{salso}}
+#' @seealso \code{\link{expectedPairwiseAllocationMatrix}}, \code{\link{salso}}
 #'
 #' @export
 #' @import rscala

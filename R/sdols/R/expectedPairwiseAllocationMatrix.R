@@ -32,7 +32,7 @@
 #' expectedCounts
 #' }
 #'
-#' @seealso \code{\link{dlso}} \code{\link{salso}}
+#' @seealso \code{\link{dlso}}, \code{\link{salso}}
 #'
 #' @export
 #' @import rscala

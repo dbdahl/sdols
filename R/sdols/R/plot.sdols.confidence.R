@@ -19,6 +19,8 @@
 #' plot(conf,data=iris)
 #' }
 #'
+#' @seealso \code{\link{expectedPairwiseAllocationMatrix}}, \code{\link{dlso}}, \code{\link{salso}}
+#'
 #' @importFrom grDevices heat.colors rainbow topo.colors
 #' @importFrom graphics abline axis box image pairs par points polygon segments text
 #' @import rscala

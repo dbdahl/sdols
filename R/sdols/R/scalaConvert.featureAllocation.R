@@ -4,7 +4,8 @@
 #' developers whose wish to write other packages that depend on this package.
 #'
 #' @param x Either: i. a binary matrix or list of binary matrices encoding feature allocation(s).
-#'          ii. a Scala reference to a feature allocation.
+#'          ii. a Scala reference to a feature allocation or an array of Scala references to
+#'          feature allocations.
 #' @param names A character vector giving the row names when converting from Scala to R.
 #' @param withParameters A logical indicating whether model parameters should also be converted.
 #'

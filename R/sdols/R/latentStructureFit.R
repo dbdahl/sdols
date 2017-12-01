@@ -5,7 +5,7 @@
 #'
 #' @param estimate A clustering or feature allocation.  If \code{estimate} is a length \code{n}
 #' vector, it is taken to be a clustering where items \code{i} and
-#' \code{j} are in the same cluster if \code{estimate[i] == estimate[j]}.  If \code{estimate}
+#' \code{j} are in the same cluster if and only if \code{estimate[i] == estimate[j]}.  If \code{estimate}
 #' is a binary matrix of \code{n} rows and an arbitrary number of columns, it is taken to be a feature allocation
 #' where items \code{i} and \code{j} share \code{m} features if, for \code{k}
 #' = 1, 2, ..., the expression \code{estimate[i,k] == estimate[j,k] == 1} is true exactly
@@ -27,7 +27,7 @@
 #' latentStructureFit(estimate, expectedCounts)
 #' }
 #'
-#' @seealso \code{\link{expectedPairwiseAllocationMatrix}} \code{\link{salso}}
+#' @seealso \code{\link{expectedPairwiseAllocationMatrix}}, \code{\link{salso}}
 #'
 #' @export
 #' @import rscala

@@ -26,7 +26,7 @@
 #' features is no more than the supplied value.  If zero, the size is not constrained.
 #' To avoid overfitting in feature allocation estimation, it is recommended that
 #' \code{"maxSize"} be close the mean number of features (i.e., columns) in the
-#' feature allocations that generated the \code{"expectedPairwiseAllocationMatrix"}.
+#' feature allocations that generated the \code{expectedPairwiseAllocationMatrix}.
 #'
 #' @return A clustering (as a vector of cluster labels) or a feature allocation (as a binary
 #' matrix of feature indicators).
@@ -42,7 +42,7 @@
 #' salso(expectedCounts,"featureAllocation")
 #' }
 #'
-#' @seealso \code{\link{expectedPairwiseAllocationMatrix}} \code{\link{dlso}}
+#' @seealso \code{\link{expectedPairwiseAllocationMatrix}}, \code{\link{dlso}}
 #'
 #' @export
 #' @import rscala

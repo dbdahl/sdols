@@ -20,7 +20,7 @@
 #' conf
 #' }
 #'
-#' @seealso \code{\link{expectedPairwiseAllocationMatrix}} \code{\link{dlso}} \code{\link{salso}}
+#' @seealso \code{\link{expectedPairwiseAllocationMatrix}}, \code{\link{dlso}}, \code{\link{salso}}
 #'
 #' @export
 #' @import rscala
