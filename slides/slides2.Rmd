@@ -1,0 +1,96 @@
+---
+title: |
+  | Summarizing Distributions of
+  | Latent Structures
+author: |
+  | David B. Dahl: Brigham Young University
+  | Peter Müller: University of Texas at Austin
+  |
+  | Bayesian Nonparametric Inference: Dependence Structures & Applications
+  | Oaxaca, Mexico
+  | December 6, 2017
+#date: "December 6, 2017"
+
+fontsize: 11pt
+output:
+  beamer_presentation:
+    theme: "metropolis"
+    #colortheme: "dolphin"
+    fonttheme: "structurebold"
+    includes:
+      in_header: latex-topmatter.tex
+---
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE)
+knitr::opts_chunk$set(cache=TRUE)
+options(width = 50)
+
+library(sdols)
+iris.clusterings <- unname(iris.clusterings)
+tmp <- iris.clusterings[1,]
+iris.clusterings[1,] <- iris.clusterings[13,]
+iris.clusterings[13,] <- tmp
+```
+
+## Typical Bayesian data analysis workflow...
+
+- Perform exploratory data analysis to understand the data.
+- Define sampling model and prior distribution.
+- Program & debug the model implementation.
+- Obtain posterior draws by letting the MCMC run a long time.
+- Calculate Bayes estimates by summarize posterior draws.
+    - Real- and vector-valued parameters... compute mean
+    - **Latent structures (e.g., partitions, feature allocations, networks)... ???**
+- **Report results**
+    
+## Example: Dirichlet Mixture Model with Gaussian Likelihood
+
+Suppose MCMC output contains 1,000 posterior samples for the partition of 150 observations (encoded with cluster labels), e.g.:
+```{r, echo=TRUE}
+iris.clusterings[1,]
+```
+What is the Bayes estimate of the partition from these 1,000 samples?
+
+## R Markdown
+
+This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+
+## Slide with Bullets
+
+- Bullet 1
+- Bullet 2
+- Bullet 3
+
+## Slide with R Output
+
+This is very important.
+```{r conf, echo=TRUE}
+library(sdols)
+ppm <- expectedPairwiseAllocationMatrix(iris.clusterings)
+est <- salso(ppm)
+conf <- confidence(est,ppm)
+#plot(conf)
+plot(conf,data=iris)
+```
+
+## Another slide
+
+It is very important $\sum_i^n x^2$.
+
+$$\sum_{i=1}^n (x_i - \bar{x})^2$$
+
+```{r cars, echo = TRUE}
+summary(cars)
+```
+
+## Slide with Plot
+
+```{r pressure}
+plot(pressure)
+```
+
