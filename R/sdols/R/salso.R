@@ -53,7 +53,7 @@
 
 salso <- function(expectedPairwiseAllocationMatrix, structure=c("clustering","featureAllocation")[1],
                   loss=c("squaredError","absoluteError","binder","lowerBoundVariationOfInformation")[1],
-                  nCandidates=100, budgetInSeconds=10, maxSize=0) {
+                  nCandidates=100, budgetInSeconds=10, maxSize=0, newMethod=FALSE) {
   if ( identical(structure,"clustering") ) doClustering <- TRUE
   else if ( identical(structure,"featureAllocation") ) doClustering <- FALSE
   else stop("'structure' must be either 'clustering' or 'featureAllocation'.")
@@ -69,8 +69,9 @@ salso <- function(expectedPairwiseAllocationMatrix, structure=c("clustering","fe
   nCandidates <- as.integer(nCandidates[1])
   budgetInSeconds <- as.integer(budgetInSeconds[1])
   maxSize <- as.integer(maxSize[1])
+  newMethod <- as.logical(newMethod)
   result <- if ( doClustering ) {
-    ref <- s$.ClusteringSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxSize,loss)
+    ref <- s$.ClusteringSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxSize,loss,newMethod)
     ref$"_1"()$toLabels()+1L
   } else {
     ref <- s$.FeatureAllocationSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxSize,loss)

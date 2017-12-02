@@ -242,6 +242,20 @@ object ClusteringSummary {
     clustering
   }
 
+  private def sequentiallyAllocatedLatentStructureOptimization2(initial: Clustering[Null], maxSize: Int, permutation: List[Int], pamTransform: Array[Array[Double]], lossEngine: (Clustering[Null],Array[Array[Double]]) => Double): Clustering[Null] = {
+    val emptyTuple = (Cluster.empty[Null](null),0.0)
+    var clustering = initial
+    for ( i <- permutation ) {
+      val pamTransformi = pamTransform(i)
+      val candidates = clustering.map(cluster => (cluster,cluster.foldLeft(0.0) { (sum,j) => sum + pamTransformi(j)})).toList
+      val candidates2 = if ( ( maxSize <= 0 ) || ( clustering.size < maxSize ) ) {
+        emptyTuple :: candidates
+      } else candidates
+      clustering = clustering.add(i,candidates2.minBy(_._2)._1)
+    }
+    clustering
+  }
+
   private def getLoss[A](loss: String, pam: Array[Array[Double]]) = {
     loss match {
       case "binder" | "squaredError" | "absoluteError" => (binderEngine[A] _, pam.map(_.map(x => 0.5-x)))
@@ -249,7 +263,7 @@ object ClusteringSummary {
     }
   }
 
-  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Int, pam: Array[Array[Double]], maxSize: Int, loss: String): (Clustering[Null], Int) = {
+  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Int, pam: Array[Array[Double]], maxSize: Int, loss: String, newMethod: Boolean): (Clustering[Null], Int) = {
     val (lossEngine, pamTransform) = getLoss[Null](loss, pam)
     val rng = new scala.util.Random()   // Thread safe!
     val nItems = pam.length
@@ -259,7 +273,10 @@ object ClusteringSummary {
     val start = System.currentTimeMillis
     val candidates = Range(0,nCandidates).par.map( i => {
       val permutation = rng.shuffle(ints)
-      if ( System.currentTimeMillis - start <= budgetInMillis ) sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pamTransform,lossEngine)
+      if ( System.currentTimeMillis - start <= budgetInMillis ) {
+        if ( newMethod ) sequentiallyAllocatedLatentStructureOptimization2(empty,maxSize,permutation,pamTransform,lossEngine)
+        else sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pamTransform,lossEngine)
+      }
       else null
     }).filter(_ != null)
     (candidates.minBy(lossEngine(_,pamTransform)), candidates.size)
