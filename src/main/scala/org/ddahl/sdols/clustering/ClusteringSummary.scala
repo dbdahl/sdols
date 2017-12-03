@@ -247,8 +247,9 @@ object ClusteringSummary {
     var clustering = initial
     var firstPass = true
     var notDone = true
-    var scanCounter = 0
+    var scanCounter = -1
     while ( firstPass || notDone ) {
+      scanCounter += 1
       val previousClustering = clustering
       for (i <- permutation) {
         if ( ! firstPass ) clustering = clustering.remove(i)
@@ -260,10 +261,7 @@ object ClusteringSummary {
         clustering = clustering.add(i, candidates2.minBy(_._2)._1)
       }
       if ( firstPass ) firstPass = false
-      else {
-        notDone = ( clustering != previousClustering ) && ( scanCounter < maxScans )
-        scanCounter += 1
-      }
+      notDone = ( clustering != previousClustering ) && ( scanCounter < maxScans )
     }
     (clustering, scanCounter)
   }

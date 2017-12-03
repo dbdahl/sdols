@@ -40,7 +40,7 @@ do
     c)
       TASK_R=yes
       TASK_RCHECK=yes
-      FLAG_CHECK_CRAN=""
+      FLAG_CHECK_CRAN="--run-donttest --run-dontrun"
       ;;
     f)
       TASK_R=yes

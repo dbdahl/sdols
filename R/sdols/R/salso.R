@@ -28,6 +28,9 @@
 #' To avoid overfitting in feature allocation estimation, it is recommended that
 #' \code{"maxSize"} be close the mean number of features (i.e., columns) in the
 #' feature allocations that generated the \code{expectedPairwiseAllocationMatrix}.
+#' @param maxScans The maximum number of reallocation scans after the intial allocation.
+#' The actual number of scans may be less than \code{maxScans} since the algorithm stops
+#' if the result does not change between scans.
 #'
 #' @return A clustering (as a vector of cluster labels) or a feature allocation (as a binary
 #' matrix of feature indicators).
