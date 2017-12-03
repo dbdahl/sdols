@@ -21,6 +21,8 @@
 #' @param maxSize Either zero or a positive integer.  If a positive integer, the
 #' optimization is constrained to produce solutions whose number of clusters or number of
 #' features is no more than the supplied value.  If zero, the size is not constrained.
+#' @param multicore Logical indicating whether computations should take advantage of
+#' multiple CPU cores.
 #'
 #' @return A clustering (as a vector of cluster labels) or a feature allocation (as a binary
 #' matrix of feature indicators).
@@ -42,7 +44,7 @@
 #' @import rscala
 
 dlso <- function(x, loss=c("squaredError","absoluteError","binder","lowerBoundVariationOfInformation")[1],
-                 maxSize=0) {
+                 maxSize=0,multicore=TRUE) {
   doClustering <- is.matrix(x)
   loss <- as.character(loss[1])
   if ( doClustering ) {
@@ -53,13 +55,14 @@ dlso <- function(x, loss=c("squaredError","absoluteError","binder","lowerBoundVa
       stop("'loss' should be 'squaredError' or 'absoluteError' when 'x' contains feature allocations.")
   }
   maxSize <- as.integer(maxSize[1])
+  multicore <- as.logical(multicore[1])
   if ( doClustering ) {
     x <- cleanUpClusteringMatrix(x)
-    ref <- s$.ClusteringSummary$minAmongDraws(x,maxSize,loss,s$.None)
+    ref <- s$.ClusteringSummary$minAmongDraws(x,maxSize,multicore,loss,s$.None)
     ref$toLabels()+1L
   } else {
     x <- scalaConvert.featureAllocation(x)
-    ref <- s$.FeatureAllocationSummary$minAmongDraws(x,maxSize,loss,s$.None)
+    ref <- s$.FeatureAllocationSummary$minAmongDraws(x,maxSize,multicore,loss,s$.None)
     result <- scalaConvert.featureAllocation(ref,withParameters=FALSE)
     attr(result,"scalaReference") <- NULL
     result

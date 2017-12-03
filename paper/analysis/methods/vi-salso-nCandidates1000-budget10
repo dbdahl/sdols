@@ -1,0 +1,2 @@
+library(sdols)
+estimate <- salso(pp,loss="lowerBoundVariationOfInformation",nCandidates=1000,budgetInSeconds=10,multicore=FALSE)

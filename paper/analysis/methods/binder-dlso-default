@@ -1,2 +1,2 @@
 library(sdols)
-estimate <- dlso(pp)
+estimate <- dlso(pp,multicore=FALSE)

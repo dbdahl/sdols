@@ -1,2 +1,2 @@
 library(sdols)
-estimate <- salso(pp)
+estimate <- salso(pp,multicore=FALSE)

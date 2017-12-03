@@ -1,0 +1,2 @@
+library(sdols)
+estimate <- dlso(pp,loss="lowerBoundVariationOfInformation",multicore=FALSE)

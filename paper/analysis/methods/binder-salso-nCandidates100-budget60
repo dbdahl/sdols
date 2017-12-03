@@ -1,2 +1,2 @@
 library(sdols)
-estimate <- salso(pp,nCandidates=100,budgetInSeconds=60)
+estimate <- salso(pp,nCandidates=100,budgetInSeconds=60,multicore=FALSE)

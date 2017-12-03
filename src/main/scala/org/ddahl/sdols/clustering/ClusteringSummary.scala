@@ -216,15 +216,16 @@ object ClusteringSummary {
     sum
   }
 
-  def minAmongDraws(candidates: Array[Array[Int]], maxSize: Int, loss: String, pamOption: Option[Array[Array[Double]]] = None): Clustering[Null] = {
-    minAmongDraws(candidates.map(Clustering.apply),maxSize,loss,pamOption)
+  def minAmongDraws(candidates: Array[Array[Int]], maxSize: Int, multicore: Boolean, loss: String, pamOption: Option[Array[Array[Double]]] = None): Clustering[Null] = {
+    minAmongDraws(candidates.map(Clustering.apply),maxSize,multicore,loss,pamOption)
   }
 
-  def minAmongDraws[A](candidates: Seq[Clustering[A]], maxSize: Int, loss: String, pamOption: Option[Array[Array[Double]]]): Clustering[A] = {
+  def minAmongDraws[A](candidates: Seq[Clustering[A]], maxSize: Int, multicore: Boolean, loss: String, pamOption: Option[Array[Array[Double]]]): Clustering[A] = {
     if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
     val pam = pamOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
     val (lossEngine, pamTransform) = getLoss[A](loss, pam)
-    candidates.par.minBy { clustering =>
+    val iter = if ( multicore ) candidates.par else candidates
+    iter.minBy { clustering =>
       if ( ( maxSize > 0 ) && ( clustering.size > maxSize ) ) Double.PositiveInfinity
       else lossEngine(clustering, pamTransform)
     }
@@ -273,7 +274,7 @@ object ClusteringSummary {
     }
   }
 
-  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Int, pam: Array[Array[Double]], maxSize: Int, maxScans: Int, loss: String): (Clustering[Null], Int, Int) = {
+  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Int, pam: Array[Array[Double]], maxSize: Int, maxScans: Int, multicore: Boolean, loss: String): (Clustering[Null], Int, Int) = {
     val (lossEngine, pamTransform) = getLoss[Null](loss, pam)
     val rng = new scala.util.Random()   // Thread safe!
     val nItems = pam.length
@@ -281,7 +282,8 @@ object ClusteringSummary {
     val empty = Clustering.empty[Null]()
     val budgetInMillis = if ( budgetInSeconds <= 0 ) Long.MaxValue else budgetInSeconds * 1000L
     val start = System.currentTimeMillis
-    val candidates = Range(0,nCandidates).par.map( i => {
+    val range = if ( multicore ) Range(0,nCandidates).par else Range(0,nCandidates)
+    val candidates = range.map( i => {
       val permutation = rng.shuffle(ints)
       if ( System.currentTimeMillis - start <= budgetInMillis ) {
         if ( loss != "lowerBoundVariationOfInformation") sequentiallyAllocatedLatentStructureOptimizationFaster(empty,maxSize,maxScans,permutation,pamTransform)

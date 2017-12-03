@@ -49,11 +49,12 @@ object FeatureAllocationSummary {
     engine(fa.pairwiseAllocationTriangle,pam,(x: Double) => x.abs)
   }
 
-  def minAmongDraws[A](candidates: Seq[FeatureAllocation[A]], maxSize: Int, loss: String, pamOption: Option[Array[Array[Double]]]): FeatureAllocation[A] = {
+  def minAmongDraws[A](candidates: Seq[FeatureAllocation[A]], maxSize: Int, multicore: Boolean, loss: String, pamOption: Option[Array[Array[Double]]]): FeatureAllocation[A] = {
     if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
     val pam = pamOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
     val lossEngine = getLoss[A](loss)
-    candidates.par.minBy { feature =>
+    val iter = if ( multicore ) candidates.par else candidates
+    iter.minBy { feature =>
       if ( ( maxSize > 0 ) && ( feature.size > maxSize ) ) Double.PositiveInfinity
       else lossEngine(feature, pam)
     }
@@ -105,7 +106,7 @@ object FeatureAllocationSummary {
     }
   }
 
-  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Int, pam: Array[Array[Double]], maxSize: Int, loss: String): (FeatureAllocation[Null], Int, Int) = {
+  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Int, pam: Array[Array[Double]], maxSize: Int, multicore: Boolean, loss: String): (FeatureAllocation[Null], Int, Int) = {
     val lossEngine = getLoss[Null](loss)
     val rng = new scala.util.Random()   // Thread safe!
     val nItems = pam.length
@@ -113,7 +114,8 @@ object FeatureAllocationSummary {
     val empty = FeatureAllocation.empty[Null](nItems)
     val budgetInMillis = if ( budgetInSeconds <= 0 ) Long.MaxValue else budgetInSeconds * 1000L
     val start = System.currentTimeMillis
-    val candidates = Range(0,nCandidates).par.map( i => {
+    val range = if ( multicore ) Range(0,nCandidates) else Range(0,nCandidates)
+    val candidates = range.map( i => {
       val permutation = rng.shuffle(ints)
       if ( System.currentTimeMillis - start <= budgetInMillis ) sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pam,lossEngine)
       else null
