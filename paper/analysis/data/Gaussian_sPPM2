@@ -1,0 +1,1 @@
+clusterings <- matrix(scan("data/from-page/Gaussian_sPPM2.txt"), nrow=1000, byrow=TRUE)

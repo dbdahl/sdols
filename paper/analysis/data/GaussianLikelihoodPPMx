@@ -1,0 +1,1 @@
+clusterings <- matrix(scan("data/from-page/GaussianLikelihoodPPMx.txt"), nrow=1000, byrow=TRUE)
