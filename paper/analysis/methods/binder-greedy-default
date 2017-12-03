@@ -1,2 +1,2 @@
 library(mcclust.ext)
-estimate <- minbinder(pp,method="greedy")$cl
+estimate <- minbinder.ext(pp,method="greedy")$cl
