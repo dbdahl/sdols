@@ -242,18 +242,30 @@ object ClusteringSummary {
     clustering
   }
 
-  private def sequentiallyAllocatedLatentStructureOptimization2(initial: Clustering[Null], maxSize: Int, permutation: List[Int], pamTransform: Array[Array[Double]], lossEngine: (Clustering[Null],Array[Array[Double]]) => Double): Clustering[Null] = {
+  private def sequentiallyAllocatedLatentStructureOptimizationFaster(initial: Clustering[Null], maxSize: Int, maxScans: Int, permutation: List[Int], pamTransform: Array[Array[Double]]): (Clustering[Null], Int) = {
     val emptyTuple = (Cluster.empty[Null](null),0.0)
     var clustering = initial
-    for ( i <- permutation ) {
-      val pamTransformi = pamTransform(i)
-      val candidates = clustering.map(cluster => (cluster,cluster.foldLeft(0.0) { (sum,j) => sum + pamTransformi(j)})).toList
-      val candidates2 = if ( ( maxSize <= 0 ) || ( clustering.size < maxSize ) ) {
-        emptyTuple :: candidates
-      } else candidates
-      clustering = clustering.add(i,candidates2.minBy(_._2)._1)
+    var firstPass = true
+    var notDone = true
+    var scanCounter = 0
+    while ( firstPass || notDone ) {
+      val previousClustering = clustering
+      for (i <- permutation) {
+        if ( ! firstPass ) clustering = clustering.remove(i)
+        val pamTransformi = pamTransform(i)
+        val candidates = clustering.map(cluster => (cluster, cluster.foldLeft(0.0) { (sum, j) => sum + pamTransformi(j) })).toList
+        val candidates2 = if ((maxSize <= 0) || (clustering.size < maxSize)) {
+          emptyTuple :: candidates
+        } else candidates
+        clustering = clustering.add(i, candidates2.minBy(_._2)._1)
+      }
+      if ( firstPass ) firstPass = false
+      else {
+        notDone = ( clustering != previousClustering ) && ( scanCounter < maxScans )
+        scanCounter += 1
+      }
     }
-    clustering
+    (clustering, scanCounter)
   }
 
   private def getLoss[A](loss: String, pam: Array[Array[Double]]) = {
@@ -263,7 +275,7 @@ object ClusteringSummary {
     }
   }
 
-  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Int, pam: Array[Array[Double]], maxSize: Int, loss: String, newMethod: Boolean): (Clustering[Null], Int) = {
+  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Int, pam: Array[Array[Double]], maxSize: Int, maxScans: Int, loss: String): (Clustering[Null], Int, Int) = {
     val (lossEngine, pamTransform) = getLoss[Null](loss, pam)
     val rng = new scala.util.Random()   // Thread safe!
     val nItems = pam.length
@@ -274,12 +286,13 @@ object ClusteringSummary {
     val candidates = Range(0,nCandidates).par.map( i => {
       val permutation = rng.shuffle(ints)
       if ( System.currentTimeMillis - start <= budgetInMillis ) {
-        if ( newMethod ) sequentiallyAllocatedLatentStructureOptimization2(empty,maxSize,permutation,pamTransform,lossEngine)
-        else sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pamTransform,lossEngine)
+        if ( loss != "lowerBoundVariationOfInformation") sequentiallyAllocatedLatentStructureOptimizationFaster(empty,maxSize,maxScans,permutation,pamTransform)
+        else (sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pamTransform,lossEngine),-1)
       }
       else null
     }).filter(_ != null)
-    (candidates.minBy(lossEngine(_,pamTransform)), candidates.size)
+    val minimizerTuple = candidates.minBy(x => lossEngine(x._1,pamTransform))
+    (minimizerTuple._1, minimizerTuple._2, candidates.size)
   }
 
 }
