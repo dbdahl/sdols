@@ -1,0 +1,10 @@
+#!/bin/bash
+
+for data in $(find data -maxdepth 1 -type f -exec basename {} \;)
+do
+  for method in $(ls methods)
+  do
+    echo ./compare $data $method
+  done
+done
+

@@ -1,0 +1,2 @@
+library(sdols)
+estimate <- salso(pp,nCandidates=10,budgetInSeconds=10)

@@ -1,0 +1,2 @@
+library(sdols)
+clusterings <- iris.clusterings

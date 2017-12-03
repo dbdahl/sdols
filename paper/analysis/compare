@@ -1,9 +1,24 @@
-clusterings <- matrix(scan("from-page/BivariateGaussian_sPPM.txt"), nrow=1000, byrow=TRUE)
+#!/usr/bin/env Rscript
+
+args <- commandArgs(TRUE)
+
+dataScript <- args[1]
+estScript <- args[2]
+
+source(paste0("data/",dataScript))  ## Defines clusterings
 
 library(sdols)
 pp <- expectedPairwiseAllocationMatrix(clusterings)
 
-pp <- expectedPairwiseAllocationMatrix(iris.clusterings)
+time <- system.time(source(paste0("methods/",estScript)))    ## Defines estimate
+
+dirname <- paste0("out/",dataScript)
+dir.create(dirname,recursive=TRUE,showWarnings=FALSE)
+filename <- paste0(dirname,"/",estScript,".Rd")
+save(time,estimate,file=filename)
+
+q()
+
 
 library(mcclust.ext)
 est.avg <- minbinder(pp,method="avg")$cl

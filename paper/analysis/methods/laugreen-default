@@ -1,0 +1,2 @@
+library(mcclust)
+estimate <- minbinder(pp,method="laugreen")$cl
