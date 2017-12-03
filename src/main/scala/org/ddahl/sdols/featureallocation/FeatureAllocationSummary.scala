@@ -105,7 +105,7 @@ object FeatureAllocationSummary {
     }
   }
 
-  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Int, pam: Array[Array[Double]], maxSize: Int, loss: String): (FeatureAllocation[Null], Int) = {
+  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Int, pam: Array[Array[Double]], maxSize: Int, loss: String): (FeatureAllocation[Null], Int, Int) = {
     val lossEngine = getLoss[Null](loss)
     val rng = new scala.util.Random()   // Thread safe!
     val nItems = pam.length
@@ -118,7 +118,7 @@ object FeatureAllocationSummary {
       if ( System.currentTimeMillis - start <= budgetInMillis ) sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pam,lossEngine)
       else null
     }).filter(_ != null)
-    (candidates.minBy(lossEngine(_,pam)), candidates.size)
+    (candidates.minBy(lossEngine(_,pam)), -1, candidates.size)
   }
 
 }
