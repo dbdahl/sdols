@@ -3,6 +3,9 @@ package clustering
 
 import org.ddahl.commonsmath._
 import org.apache.commons.math3.util.FastMath.log
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object ClusteringSummary {
 
@@ -276,23 +279,36 @@ object ClusteringSummary {
 
   def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Int, pam: Array[Array[Double]], maxSize: Int, maxScans: Int, multicore: Boolean, loss: String): (Clustering[Null], Int, Int) = {
     val (lossEngine, pamTransform) = getLoss[Null](loss, pam)
+    val useFasterAlgorithm = loss != "lowerBoundVariationOfInformation"
     val rng = new scala.util.Random()   // Thread safe!
     val nItems = pam.length
     val ints = List.tabulate(nItems) { identity }
     val empty = Clustering.empty[Null]()
+    val nCores = if ( multicore ) Runtime.getRuntime.availableProcessors else 1
+    val nCandidatesPerThread = (nCandidates - 1) / nCores + 1
     val budgetInMillis = if ( budgetInSeconds <= 0 ) Long.MaxValue else budgetInSeconds * 1000L
     val start = System.currentTimeMillis
-    val range = if ( multicore ) Range(0,nCandidates).par else Range(0,nCandidates)
-    val candidates = range.map( i => {
-      val permutation = rng.shuffle(ints)
-      if ( System.currentTimeMillis - start <= budgetInMillis ) {
-        if ( loss != "lowerBoundVariationOfInformation") sequentiallyAllocatedLatentStructureOptimizationFaster(empty,maxSize,maxScans,permutation,pamTransform)
+    val futures = List.fill(nCores) { Future {
+      var counter = 0
+      var minScore = Double.PositiveInfinity
+      var best: (Clustering[Null], Int) = (null,-1)
+      while ( (counter < nCandidatesPerThread) && ( System.currentTimeMillis - start <= budgetInMillis ) ) {
+        counter += 1
+        val permutation = rng.shuffle(ints)
+        val candidate = if ( useFasterAlgorithm ) sequentiallyAllocatedLatentStructureOptimizationFaster(empty,maxSize,maxScans,permutation,pamTransform)
         else (sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pamTransform,lossEngine),-1)
+        val score = lossEngine(candidate._1,pamTransform)
+        if ( score < minScore ) {
+          minScore = score
+          best = candidate
+        }
       }
-      else null
-    }).filter(_ != null)
-    val minimizerTuple = candidates.minBy(x => lossEngine(x._1,pamTransform))
-    (minimizerTuple._1, minimizerTuple._2, candidates.size)
+      (best._1, best._2, minScore, counter)
+    }}
+    val seq = Await.result(Future.sequence(futures), Duration.Inf)
+    val nCandidatesInPractice = seq.foldLeft(0)( (sum,tuple) => sum + tuple._4 )
+    val best = seq.minBy(_._3)
+    (best._1, best._2, nCandidatesInPractice)
   }
 
 }
