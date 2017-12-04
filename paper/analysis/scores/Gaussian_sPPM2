@@ -2,6 +2,7 @@ out/Gaussian_sPPM2/binder-avg-default.Rd binder avg-default 9409.06100000475 2.8
 out/Gaussian_sPPM2/binder-comp-default.Rd binder comp-default 8060.72900000475 3.38313515186885 10.796
 out/Gaussian_sPPM2/binder-dlso-default.Rd binder dlso-default 10464.5410000047 4.23074217092885 3.152
 out/Gaussian_sPPM2/binder-draws-default.Rd binder draws-default 10464.5410000047 4.23074217092885 21.449
+out/Gaussian_sPPM2/binder-greedy-default.Rd binder greedy-default 8365.61100000475 4.65088557713481 67681.53
 out/Gaussian_sPPM2/binder-laugreen-default.Rd binder laugreen-default 7509.73500000475 3.80118737676834 29664.27
 out/Gaussian_sPPM2/binder-salso-default.Rd binder salso-default 7509.73500000475 3.80118737676834 24.237
 out/Gaussian_sPPM2/binder-salso-nCandidates1000-budget10.Rd binder salso-nCandidates1000-budget10 7509.73500000475 3.80118737676834 30.013
