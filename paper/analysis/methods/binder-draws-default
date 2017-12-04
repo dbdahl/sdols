@@ -1,2 +1,2 @@
 library(mcclust)
-estimate <- minbinder(pp,cls.draw=iris.clusterings,method="draws")$cl
+estimate <- minbinder(pp,cls.draw=clusterings,method="draws")$cl

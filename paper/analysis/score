@@ -1,0 +1,24 @@
+#!/usr/bin/env Rscript
+
+args <- commandArgs(TRUE)
+
+dataScript <- args[1]
+source(paste0("data/",dataScript))  ## Defines clusterings
+
+library(sdols)
+pp <- expectedPairwiseAllocationMatrix(clusterings)
+
+files <- system2("find",c("out/iris","-name","'*.Rd'"),stdout=TRUE)
+clean <- function(x) {
+  y <- system2("basename",c(x,".Rd"),stdout=TRUE)
+  y <- strsplit(y,"-")
+  paste(c(y[[1]][1],paste(y[[1]][-1],collapse="-")),collapse=" ")
+}
+
+for ( f in files ) {
+  load(f)
+  cat(clean(f)," ",sep="")
+  cat(paste(unname(unlist(latentStructureFit(estimate,pp)))))
+  cat("\n")
+}
+
