@@ -1,2 +1,2 @@
 library(sdols)
-estimate <- dlso(pp,loss="lowerBoundVariationOfInformation",multicore=FALSE)
+estimate <- dlso(clusterings,loss="lowerBoundVariationOfInformation",multicore=FALSE)
