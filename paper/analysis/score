@@ -8,17 +8,21 @@ source(paste0("data/",dataScript))  ## Defines clusterings
 library(sdols)
 pp <- expectedPairwiseAllocationMatrix(clusterings)
 
-files <- system2("find",c("out/iris","-name","'*.Rd'"),stdout=TRUE)
+files <- system2("find",c(paste0("out/",dataScript),"-name","'*.Rd'"),stdout=TRUE)
 clean <- function(x) {
-  y <- system2("basename",c(x,".Rd"),stdout=TRUE)
-  y <- strsplit(y,"-")
+  y <- strsplit(system2("basename",c(x,".Rd"),stdout=TRUE),"-")
   paste(c(y[[1]][1],paste(y[[1]][-1],collapse="-")),collapse=" ")
 }
 
 for ( f in files ) {
+  cat(f)
+  cat(" ")
   load(f)
-  cat(clean(f)," ",sep="")
-  cat(paste(unname(unlist(latentStructureFit(estimate,pp)))))
+  cat(clean(f))
+  cat(" ")
+  cat(paste(unname(unlist(latentStructureFit(estimate,pp))[3:4])))
+  cat(" ")
+  cat(time[3])
   cat("\n")
 }
 

@@ -1,6 +1,0 @@
-./compare GaussianLikelihoodPPMx vi-dlso-default
-./compare BivariateGaussian_sPPM vi-dlso-default
-./compare OrdinalDataUsingGuassianLatentScoresPPMx vi-dlso-default
-./compare iris vi-dlso-default
-./compare Gaussian_sPPM2 vi-dlso-default
-./compare Gaussian_sPPM vi-dlso-default

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+for i in GaussianLikelihoodPPMx BivariateGaussian_sPPM GaussianLikelihoodPPMx Gaussian_sPPM Gaussian_sPPM2 OrdinalDataUsingGuassianLatentScoresPPMx iris
+do
+  ./score $i | sort >| scores/$i
+done
+
