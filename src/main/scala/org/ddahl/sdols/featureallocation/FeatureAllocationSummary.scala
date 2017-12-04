@@ -107,7 +107,7 @@ object FeatureAllocationSummary {
   }
 
   // This implimentation is not as memory effect as that for clustering, but it can be made so.  I just need to do it.
-  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Int, pam: Array[Array[Double]], maxSize: Int, multicore: Boolean, loss: String): (FeatureAllocation[Null], Int, Int) = {
+  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Double, pam: Array[Array[Double]], maxSize: Int, multicore: Boolean, loss: String): (FeatureAllocation[Null], Int, Int) = {
     val lossEngine = getLoss[Null](loss)
     val rng = new scala.util.Random()   // Thread safe!
     val nItems = pam.length

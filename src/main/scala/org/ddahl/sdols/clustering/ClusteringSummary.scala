@@ -277,7 +277,7 @@ object ClusteringSummary {
     }
   }
 
-  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Int, pam: Array[Array[Double]], maxSize: Int, maxScans: Int, multicore: Boolean, loss: String): (Clustering[Null], Int, Int) = {
+  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Double, pam: Array[Array[Double]], maxSize: Int, maxScans: Int, multicore: Boolean, loss: String): (Clustering[Null], Int, Int) = {
     val (lossEngine, pamTransform) = getLoss[Null](loss, pam)
     val useFasterAlgorithm = loss != "lowerBoundVariationOfInformation"
     val rng = new scala.util.Random()   // Thread safe!
