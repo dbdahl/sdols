@@ -72,7 +72,7 @@ salso <- function(expectedPairwiseAllocationMatrix, structure=c("clustering","fe
       stop("'loss' should be 'squaredError' or 'absoluteError' when 'structure' is 'featureAllocation'.")
   }
   nCandidates <- as.integer(nCandidates[1])
-  budgetInSeconds <- as.integer(budgetInSeconds[1])
+  budgetInSeconds <- as.double(budgetInSeconds[1])
   maxSize <- as.integer(maxSize[1])
   maxScans <- as.integer(maxScans[1])
   multicore <- as.logical(multicore[1])
