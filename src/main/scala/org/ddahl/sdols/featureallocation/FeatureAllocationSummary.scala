@@ -54,9 +54,9 @@ object FeatureAllocationSummary {
     val pam = pamOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
     val lossEngine = getLoss[A](loss)
     val iter = if ( multicore ) candidates.par else candidates
-    iter.minBy { feature =>
-      if ( ( maxSize > 0 ) && ( feature.size > maxSize ) ) Double.PositiveInfinity
-      else lossEngine(feature, pam)
+    iter.minBy { featureAllocation =>
+      if ( ( maxSize > 0 ) && ( featureAllocation.size > maxSize ) ) Double.PositiveInfinity
+      else lossEngine(featureAllocation, pam)
     }
   }
 

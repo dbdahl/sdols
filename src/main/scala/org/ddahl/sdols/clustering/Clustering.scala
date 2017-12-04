@@ -127,6 +127,8 @@ final class Clustering[A](val nItems: Int, val nClusters: Int, protected val x: 
 
   def iterator = x.iterator
 
+  override def size = nClusters
+
   override def toString: String = "{" + map(_.toString).toList.sortWith(_ < _).mkString(",") + "}"
 
   def toStringTerse: String = "{" + map(_.toStringTerse).toList.sortWith(_ < _).mkString(",") + "}"

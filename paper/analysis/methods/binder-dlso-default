@@ -1,2 +1,2 @@
 library(sdols)
-estimate <- dlso(pp,multicore=FALSE)
+estimate <- dlso(clusterings,multicore=FALSE)
