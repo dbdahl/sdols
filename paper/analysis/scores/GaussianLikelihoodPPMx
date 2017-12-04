@@ -1,26 +1,25 @@
-out/GaussianLikelihoodPPMx/binder-avg-default.Rd binder avg-default 4.82800000000003 0.0985922335799862 0.754
-out/GaussianLikelihoodPPMx/binder-comp-default.Rd binder comp-default 4.82800000000003 0.0985922335799862 0.121
-out/GaussianLikelihoodPPMx/binder-dlso-default.Rd binder dlso-default 4.82800000000003 0.0985922335799862 2.308
-out/GaussianLikelihoodPPMx/binder-draws-default.Rd binder draws-default 4.82800000000003 0.0985922335799862 0.87
-out/GaussianLikelihoodPPMx/binder-greedy-default.Rd binder greedy-default 4.82800000000003 0.0985922335799862 15.663
-out/GaussianLikelihoodPPMx/binder-laugreen-default.Rd binder laugreen-default 4.82800000000003 0.0985922335799862 7.525
-out/GaussianLikelihoodPPMx/binder-salso-default.Rd binder salso-default 4.82800000000003 0.0985922335799862 12.268
-out/GaussianLikelihoodPPMx/binder-salso-nCandidates1000-budget10.Rd binder salso-nCandidates1000-budget10 4.82800000000003 0.0985922335799862 19.677
-out/GaussianLikelihoodPPMx/binder-salso-nCandidates1000-budget60.Rd binder salso-nCandidates1000-budget60 4.82800000000003 0.0985922335799862 9.792
-out/GaussianLikelihoodPPMx/binder-salso-nCandidates100-budget10.Rd binder salso-nCandidates100-budget10 4.82800000000003 0.0985922335799862 4.254
-out/GaussianLikelihoodPPMx/binder-salso-nCandidates100-budget60.Rd binder salso-nCandidates100-budget60 4.82800000000003 0.0985922335799862 12.895
-out/GaussianLikelihoodPPMx/binder-salso-nCandidates10-budget10.Rd binder salso-nCandidates10-budget10 4.82800000000003 0.0985922335799862 12.116
-out/GaussianLikelihoodPPMx/binder-salso-nCandidates10-budget60.Rd binder salso-nCandidates10-budget60 4.82800000000003 0.0985922335799862 11.847
-
-out/GaussianLikelihoodPPMx/vi-avg-default.Rd vi avg-default 4.89000000000001 0.0786891256938911 0.27
-out/GaussianLikelihoodPPMx/vi-comp-default.Rd vi comp-default 4.89000000000001 0.0786891256938911 0.294
-out/GaussianLikelihoodPPMx/vi-dlso-default.Rd vi dlso-default 4.89000000000001 0.0786891256938911 1.341
-out/GaussianLikelihoodPPMx/vi-draws-default.Rd vi draws-default 4.89000000000001 0.0786891256938911 0.919
-out/GaussianLikelihoodPPMx/vi-greedy-default.Rd vi greedy-default 4.89000000000001 0.0786891256938911 33.1
-out/GaussianLikelihoodPPMx/vi-salso-default.Rd vi salso-default 4.89000000000001 0.0786891256938911 13.383
-out/GaussianLikelihoodPPMx/vi-salso-nCandidates1000-budget10.Rd vi salso-nCandidates1000-budget10 4.89000000000001 0.0786891256938911 18.593
-out/GaussianLikelihoodPPMx/vi-salso-nCandidates1000-budget60.Rd vi salso-nCandidates1000-budget60 4.89000000000001 0.0786891256938911 17.623
-out/GaussianLikelihoodPPMx/vi-salso-nCandidates100-budget10.Rd vi salso-nCandidates100-budget10 4.89000000000001 0.0786891256938911 8.028
-out/GaussianLikelihoodPPMx/vi-salso-nCandidates100-budget60.Rd vi salso-nCandidates100-budget60 4.89000000000001 0.0786891256938911 16.3
-out/GaussianLikelihoodPPMx/vi-salso-nCandidates10-budget10.Rd vi salso-nCandidates10-budget10 4.89000000000001 0.0786891256938911 11.347
-out/GaussianLikelihoodPPMx/vi-salso-nCandidates10-budget60.Rd vi salso-nCandidates10-budget60 4.89000000000001 0.0786891256938911 11.765
+binder avg-default 4.82800000000003 0.0985922335799862 0.754
+binder comp-default 4.82800000000003 0.0985922335799862 0.121
+binder dlso-default 4.82800000000003 0.0985922335799862 2.308
+binder draws-default 4.82800000000003 0.0985922335799862 0.87
+binder greedy-default 4.82800000000003 0.0985922335799862 15.663
+binder laugreen-default 4.82800000000003 0.0985922335799862 7.525
+binder salso-default 4.82800000000003 0.0985922335799862 12.268
+binder salso-nCandidates1000-budget10 4.82800000000003 0.0985922335799862 19.677
+binder salso-nCandidates1000-budget60 4.82800000000003 0.0985922335799862 9.792
+binder salso-nCandidates100-budget10 4.82800000000003 0.0985922335799862 4.254
+binder salso-nCandidates100-budget60 4.82800000000003 0.0985922335799862 12.895
+binder salso-nCandidates10-budget10 4.82800000000003 0.0985922335799862 12.116
+binder salso-nCandidates10-budget60 4.82800000000003 0.0985922335799862 11.847
+vi avg-default 4.89000000000001 0.0786891256938911 0.27
+vi comp-default 4.89000000000001 0.0786891256938911 0.294
+vi dlso-default 4.89000000000001 0.0786891256938911 1.341
+vi draws-default 4.89000000000001 0.0786891256938911 0.919
+vi greedy-default 4.89000000000001 0.0786891256938911 33.1
+vi salso-default 4.89000000000001 0.0786891256938911 13.383
+vi salso-nCandidates1000-budget10 4.89000000000001 0.0786891256938911 18.593
+vi salso-nCandidates1000-budget60 4.89000000000001 0.0786891256938911 17.623
+vi salso-nCandidates100-budget10 4.89000000000001 0.0786891256938911 8.028
+vi salso-nCandidates100-budget60 4.89000000000001 0.0786891256938911 16.3
+vi salso-nCandidates10-budget10 4.89000000000001 0.0786891256938911 11.347
+vi salso-nCandidates10-budget60 4.89000000000001 0.0786891256938911 11.765

@@ -15,8 +15,6 @@ clean <- function(x) {
 }
 
 for ( f in files ) {
-  cat(f)
-  cat(" ")
   load(f)
   cat(clean(f))
   cat(" ")
