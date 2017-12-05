@@ -191,10 +191,13 @@ equilvalent to the least-squares criterion in Dahl (2006).
     
 ## Approaches to Clustering Estimation
 
-- Wade & Ghahramani (2017) studied the variation of information (VI) of Meilă (2007).
+- Wade & Ghahramani (2017) studied the variation of information (VI) of Meilă (2007)
 
-    yielding the clustering:
-    $$\text{argmin}_c \sum_{i=1}^n \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg)
+    which is computationally expensive to compute.  Instead, they suggest the clustering that
+    minimizes the **lower bound** of the expected value of the posterior expected loss of variation
+    of information:
+    $$\text{argmin}_c \sum_{i=1}^n \bigg( \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg)
+      - 2 \log \bigg( \sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i} \mu_{ij} \bigg) \bigg)
     $$
 
 Decision theory approach:
