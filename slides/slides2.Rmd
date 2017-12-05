@@ -185,7 +185,7 @@ estimates $\mu_{ij} = \text{Pr}( c_i = c_j \mid \text{data})$.
     $$L(c,\hat{c}) = \sum_{i<j} \I{c_i     = c_j} \ \I{\hat{c}_i \not= \hat{c}_j} +
                                 \I{c_i \not= c_j} \ \I{\hat{c}_i     = \hat{c}_j}$$
     yielding the clustering:
-    $$\hat{c} = \text{argmin}_{\hat{c}} \ \sum_{i=1}^n \sum_{j=1}^n \I{\hat{c}_i=\hat{c}_j} ( 0.5 - \mu_{ij} )$$
+    $$\text{argmin}_{\hat{c}} \ \sum_{i=1}^n \sum_{j=1}^n \I{\hat{c}_i=\hat{c}_j} ( 0.5 - \mu_{ij} )$$
 - Dahl & Newton (2007) noted that minimizing the posterior expected loss of Binder (1978) is
 equilvalent to the least-squares criterion in Dahl (2006).
     
@@ -200,6 +200,14 @@ equilvalent to the least-squares criterion in Dahl (2006).
     of information (VI.lb):
     $$\text{argmin}_{\hat{c}} \sum_{i=1}^n \bigg( \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg)
       - 2 \log \bigg( \sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i} \mu_{ij} \bigg) \bigg)$$
+
+## Monte Carlo Estimate the Posterior Expected Loss
+
+- For a given $\hat{c}$, both the Binder and the lower bound of the VI loss are based on the $\mu_{ij}$'s.
+- The $(i,j)$ elements of $\bar{A}$ are Monte Carlo estimates of the $\mu_{ij}$'s, leading to 
+a Monte Carlo estimate of the posterior expected loss.
+- But having a means to estimate the posterior expected loss for a given $\hat{c}$ does not itself give
+a search algorithm for its minimization.
 
 ## Methods for Optimization Given a Loss Function
 
@@ -232,13 +240,14 @@ clustering using $1-\bar{A}$ as the distance matrix.
 - Lau & Green (2007) proposed a heuristic item-swapping algorithm based on binary integer programming to
 minimize the posterior expected Binder loss.
 - Wade & Ghahramani (2017) proposed a greedy search algorithm based on neighborhood search defined by
-the Hasse diagram, which can be used for both Binder and VI.lb loss.
+the Hasse diagram, which can be used for Binder or VI.lb loss.
 - We propose the **sequentially-allocated latent structure optimization (SALSO)** method to perform
-a *series of micro optimizations* for Binder and VI.lb loss.
+a *series of micro optimizations* to obtain a global minimum of posterior expected value of Binder or VI.lb loss.
 
 ## Sequentially-Allocated Latent Structure Optimization
 
-- d
+- Start with an empty partition $\{ \}$ for no integers
+- Build an optimal partition of 
 
 ## R Markdown
 
