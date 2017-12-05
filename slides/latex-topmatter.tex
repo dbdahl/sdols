@@ -2,6 +2,11 @@
 \preto{\@verbatim}{\topsep=0pt \partopsep=0pt }
 \makeatother
 
+\usepackage{bm}
+
 \newcommand{\I}[1]{\text{\fontfamily{ptm}\selectfont I}\{#1\}}
 \newcommand{\given}[0]{\mid}
-
+\newcommand{\partition}{\pi}
+\newcommand{\permutation}{\sigma}
+\newcommand{\Permutation}{\bm{\permutation}}
+\newcommand{\partitionX}[1]{\partition(\permutation_1,\ldots,\permutation_{#1})}
