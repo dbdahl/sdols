@@ -249,7 +249,7 @@ a *series of micro optimizations* to minimizer of posterior expected value of Bi
 - The SALSO method is applicable for many types of latent structure, including clusterings, feature allocations, & networks.
 - The steps to SALSO are:
     1. Build up a full structure by sequentially optimizing the allocation of items.
-    2. Improve the full structure by a series of one-at-a-time optimzations.
+    2. Improve the full structure by a series of one-at-a-time optimizations.
     3. Do the above steps many times for randomly-selected permutations and choose the structure
        that minimizes the posterior expected loss.
 - The random order in which items are allocated is not necessarily their order in the
