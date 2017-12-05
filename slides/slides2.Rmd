@@ -78,13 +78,13 @@ What is the Bayes estimate of the partition from these 1,000 samples?
 
 ## Example: First Clustering in MCMC Output
 
-Clustering in set **_partition_** notation:
-$$\pi^{(1)} = \{ \{ 1, 3\}, \{2, 4, 5\} \}$$
+Clustering in **_cluster label_** notation:
+$$c^{(1)} = (1,2,1,2,2)$$
 
 . . .
 
-Clustering in **_cluster label_** notation:
-$$c^{(1)} = (1,2,1,2,2)$$
+Clustering in set **_partition_** notation:
+$$\pi^{(1)} = \{ \{ 1, 3\}, \{2, 4, 5\} \}$$
 
 . . .
 
@@ -102,11 +102,11 @@ $$
 
 ## Example: Second Clustering in MCMC Output
 
-Clustering in set **_partition_** notation:
-$$\pi^{(2)} = \{ \{ 1, 2, 3\}, \{4\}, \{5\} \}$$
-
 Clustering in **_cluster label_** notation:
 $$c^{(2)} = (1,1,1,2,3)$$
+
+Clustering in set **_partition_** notation:
+$$\pi^{(2)} = \{ \{ 1, 2, 3\}, \{4\}, \{5\} \}$$
 
 Clustering as **_pairwise allocation matrix_** (i.e., adjacency matrix):
 $$
@@ -122,11 +122,11 @@ $$
 
 ## Example: Third Clustering in MCMC Output
 
-Clustering in set **_partition_** notation:
-$$\pi^{(3)} = \{ \{1, 2, 4\}, \{3, 5\} \}$$
-
 Clustering in **_cluster label_** notation:
 $$c^{(3)} = (1,1,2,1,2)$$
+
+Clustering in set **_partition_** notation:
+$$\pi^{(3)} = \{ \{1, 2, 4\}, \{3, 5\} \}$$
 
 Clustering as **_pairwise allocation matrix_** (i.e., adjacency matrix):
 $$
