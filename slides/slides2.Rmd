@@ -57,7 +57,7 @@ clusterings, feature allocations, networks, and variable selection.
 
 ## Overview
 
-- We present the **sequentially-allocated latent structure optimizations (SALSO)** method to
+- We present the **sequentially-allocated latent structure optimization (SALSO)** method to
 minimize an objective criterion to obtain a *point estimate* from a randomly-sampled collection
 of *latent features*.
 
@@ -157,7 +157,7 @@ $$
 \bar{A} = \frac{1}{B} \sum_{b=1}^B A(c^{(b)}) = 
 \begin{bmatrix}
 1 & 2/3 & 2/3 & 1/3 & 0\\
-2/3 & 1 & 1/3 & 2/3 & 2/3\\
+2/3 & 1 & 1/3 & 2/3 & 1/3\\
 2/3 & 1/3 & 1 & 0 & 1/3\\
 1/3 & 2/3 & 0 & 1 & 1/3\\
 0 & 1/3 & 1/3 & 1/3 & 1\\
@@ -166,45 +166,79 @@ $$
 We call this the **estimated expected allocation matrix (EPAM)** because it's $(i,j)$ element
 estimates $\mu_{ij} = \text{Pr}( c_i = c_j \mid \text{data})$.
 
-## Approaches to Clustering Estimation
+## Loss Functions and Bayes Estimators
 
 - A Bayes estimator minimizes the posterior expected value of a loss function.
 
 - The 0-1 loss function:
   $$L(c,\hat{c}) = \I{c = \hat{c}}$$
   yielding the maximum _a posteriori_ (MAP) clustering:
-  $$\hat{c} = \text{argmax}_c \ p(c \given \text{data})$$.
+  $$\text{argmax}_{\hat{c}} \ p(\hat{c} \given \text{data})$$.
     - Equal costs for a clustering that differs by one label and a clustering that differs by many labels.
     - Mode may not represent well the ``center'' of a distribution.
         
-## Approaches to Clustering Estimation
+## Loss Functions and Bayes Estimators
 
 - Dahl (2006) suggested the least-squares clustering:
-    $$\hat{c} = \text{argmin}_c \ \sum_{i=1}^n \sum_{j=1}^n ( A(c)_{ij} - \mu_{ij} )^2$$
+    $$\text{argmin}_{\hat{c}} \ \sum_{i=1}^n \sum_{j=1}^n ( A(\hat{c})_{ij} - \mu_{ij} )^2$$
 - Lau & Green (2007) studied the Binder (1978) loss function in a Bayesian nonparametric context:
     $$L(c,\hat{c}) = \sum_{i<j} \I{c_i     = c_j} \ \I{\hat{c}_i \not= \hat{c}_j} +
                                 \I{c_i \not= c_j} \ \I{\hat{c}_i     = \hat{c}_j}$$
     yielding the clustering:
-    $$\hat{c} = \text{argmin}_c \ \sum_{i=1}^n \sum_{j=1}^n \I{\hat{c}_i=\hat{c}_j} ( 0.5 - \mu_{ij} )$$
+    $$\hat{c} = \text{argmin}_{\hat{c}} \ \sum_{i=1}^n \sum_{j=1}^n \I{\hat{c}_i=\hat{c}_j} ( 0.5 - \mu_{ij} )$$
 - Dahl & Newton (2007) noted that minimizing the posterior expected loss of Binder (1978) is
 equilvalent to the least-squares criterion in Dahl (2006).
     
-## Approaches to Clustering Estimation
+## Loss Functions and Bayes Estimators
 
-- Wade & Ghahramani (2017) studied the variation of information (VI) of Meilă (2007)
-
+- Wade & Ghahramani (2017) proposed using the variation of information (VI) of Meilă (2007) as
+    a loss function, yielding the clustering:
+    $$\begin{split}\text{argmin}_{\hat{c}} \sum_{i=1}^n \bigg( & \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg) \\
+      & - 2 \text{E} \bigg( \log \bigg( \sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i, c_j = c_i} \bigg) \bigg| \text{data} \bigg) \bigg)\end{split}$$
     which is computationally expensive to compute.  Instead, they suggest the clustering that
     minimizes the **lower bound** of the expected value of the posterior expected loss of variation
-    of information:
-    $$\text{argmin}_c \sum_{i=1}^n \bigg( \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg)
-      - 2 \log \bigg( \sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i} \mu_{ij} \bigg) \bigg)
-    $$
+    of information (VI.lb):
+    $$\text{argmin}_{\hat{c}} \sum_{i=1}^n \bigg( \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg)
+      - 2 \log \bigg( \sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i} \mu_{ij} \bigg) \bigg)$$
 
-Decision theory approach:
+## Methods for Optimization Given a Loss Function
 
+- Exhaustive search. Infeasible for even moderate $n$, e.g., $B(15) = 1,382,958,545$.
+- Rounding the estimated expected pairwise allocation matrix (EPAM).  May not lead to a clustering, e.g.:
 $$
-
+\bar{A} = 
+\begin{bmatrix}
+1 & 2/3 & 2/3 & 1/3 & 0\\
+2/3 & 1 & 1/3 & 2/3 & 1/3\\
+2/3 & 1/3 & 1 & 0 & 1/3\\
+1/3 & 2/3 & 0 & 1 & 1/3\\
+0 & 1/3 & 1/3 & 1/3 & 1\\
+\end{bmatrix}
+\Rightarrow
+\begin{bmatrix}
+1 & 1 & 1 & 0 & 0\\
+1 & 1 & 0 & 1 & 0\\
+1 & 0 & 1 & 0 & 0\\
+0 & 1 & 0 & 1 & 0\\
+0 & 0 & 0 & 0 & 1\\
+\end{bmatrix}
 $$
+- Medvedovic and Sivaganesan (2002) selected a clustering using hierarchal
+clustering using $1-\bar{A}$ as the distance matrix.
+- Dahl (2006) selected the clustering in the MCMC output that minimizes the criterion.
+
+## Methods for Optimization Given a Loss Function
+
+- Lau & Green (2007) proposed a heuristic item-swapping algorithm based on binary integer programming to
+minimize the posterior expected Binder loss.
+- Wade & Ghahramani (2017) proposed a greedy search algorithm based on neighborhood search defined by
+the Hasse diagram, which can be used for both Binder and VI.lb loss.
+- We propose the **sequentially-allocated latent structure optimization (SALSO)** method to perform
+a *series of micro optimizations* for Binder and VI.lb loss.
+
+## Sequentially-Allocated Latent Structure Optimization
+
+- d
 
 ## R Markdown
 
