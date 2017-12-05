@@ -58,8 +58,8 @@ clusterings, feature allocations, networks, and variable selection.
 ## Overview
 
 - We present the **sequentially-allocated latent structure optimization (SALSO)** method to
-minimize an objective criterion to obtain a *point estimate* from a randomly-sampled collection
-of *latent features*.
+minimize an objective criterion to obtain a *point estimate* based on a collection of randomly-sampled
+*latent features*.
 
 - SALSO is a *global optimization* method involving a *series of micro optimizations*.
 
@@ -152,7 +152,7 @@ $$( \ (1,2,1,2,2) \ + \ (1,1,1,2,3) \ + \ (1,1,2,1,2) \ ) \ / \ 3 = (1,\ 4/3,\  
 
 . . .
 
-Averaging allocation matrices **does** make sense:
+Averaging pairwise allocation matrices **does** make sense:
 $$
 \bar{A} = \frac{1}{B} \sum_{b=1}^B A(c^{(b)}) = 
 \begin{bmatrix}
@@ -163,7 +163,7 @@ $$
 0 & 1/3 & 1/3 & 1/3 & 1\\
 \end{bmatrix}
 $$
-We call this the **estimated expected allocation matrix (EPAM)** because it's $(i,j)$ element
+$\bar{A}$ is the estimated **expected pairwise allocation matrix (EPAM)** because it's $(i,j)$ element
 estimates $\mu_{ij} = \text{Pr}( c_i = c_j \mid \text{data})$.
 
 ## Loss Functions and Bayes Estimators
@@ -174,12 +174,12 @@ estimates $\mu_{ij} = \text{Pr}( c_i = c_j \mid \text{data})$.
   $$L(c,\hat{c}) = \I{c = \hat{c}}$$
   yielding the maximum _a posteriori_ (MAP) clustering:
   $$\text{argmax}_{\hat{c}} \ p(\hat{c} \given \text{data})$$.
-    - Equal costs for a clustering that differs by one label and a clustering that differs by many labels.
+    - Equal loss for clusterings that differs by one label and a clustering that differs by many labels.
     - Mode may not represent well the ``center'' of a distribution.
         
 ## Loss Functions and Bayes Estimators
 
-- Dahl (2006) suggested the least-squares clustering:
+- Dahl (2006) suggested a least-squares criterion:
     $$\text{argmin}_{\hat{c}} \ \sum_{i=1}^n \sum_{j=1}^n ( A(\hat{c})_{ij} - \mu_{ij} )^2$$
 - Lau & Green (2007) studied the Binder (1978) loss function in a Bayesian nonparametric context:
     $$L(c,\hat{c}) = \sum_{i<j} \I{c_i     = c_j} \ \I{\hat{c}_i \not= \hat{c}_j} +
@@ -195,9 +195,9 @@ equilvalent to the least-squares criterion in Dahl (2006).
     a loss function, yielding the clustering:
     $$\begin{split}\text{argmin}_{\hat{c}} \sum_{i=1}^n \bigg( & \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg) \\
       & - 2 \text{E} \bigg( \log \bigg( \sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i, c_j = c_i} \bigg) \bigg| \text{data} \bigg) \bigg)\end{split}$$
-    which is computationally expensive to compute.  Instead, they suggest the clustering that
-    minimizes the **lower bound** of the expected value of the posterior expected loss of variation
-    of information (VI.lb):
+    which is computationally expensive.  Instead, they suggest the clustering that
+    minimizes the **lower bound** of the posterior expected value of the variation
+    of information loss (VI.lb):
     $$\text{argmin}_{\hat{c}} \sum_{i=1}^n \bigg( \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg)
       - 2 \log \bigg( \sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i} \mu_{ij} \bigg) \bigg)$$
 
@@ -212,7 +212,7 @@ a search algorithm for its minimization.
 ## Methods for Optimization Given a Loss Function
 
 - Exhaustive search. Infeasible for even moderate $n$, e.g., $B(15) = 1,382,958,545$.
-- Rounding the estimated expected pairwise allocation matrix (EPAM).  May not lead to a clustering, e.g.:
+- Round the estimated expected pairwise allocation matrix (EPAM).  May not lead to a clustering, e.g.:
 $$
 \bar{A} = 
 \begin{bmatrix}
@@ -239,30 +239,154 @@ clustering using $1-\bar{A}$ as the distance matrix.
 
 - Lau & Green (2007) proposed a heuristic item-swapping algorithm based on binary integer programming to
 minimize the posterior expected Binder loss.
-- Wade & Ghahramani (2017) proposed a greedy search algorithm based on neighborhood search defined by
+- Wade & Ghahramani (2017) proposed a greedy search algorithm based on neighborhoods defined by
 the Hasse diagram, which can be used for Binder or VI.lb loss.
 - We propose the **sequentially-allocated latent structure optimization (SALSO)** method to perform
-a *series of micro optimizations* to obtain a global minimum of posterior expected value of Binder or VI.lb loss.
+a *series of micro optimizations* to minimizer of posterior expected value of Binder or VI.lb loss.
 
 ## Sequentially-Allocated Latent Structure Optimization
 
 - The SALSO method is applicable for many types of latent structure, including clusterings, feature allocations, & networks.
 - The steps to SALSO are:
-    - Build up a full structure by sequentially optimizing the allocation of items.
-    - Improve the full structure by a series of univariate label optimzations.
-    - Do the above steps many times for random permutations and select the structure that minimizes
-      the expected posterior loss.
+    1. Build up a full structure by sequentially optimizing the allocation of items.
+    2. Improve the full structure by a series of one-at-a-time optimzations.
+    3. Do the above steps many times for randomly-selected permutations and choose the structure
+       that minimizes the posterior expected loss.
 - The random order in which items are allocated is not necessarily their order in the
 dataset; the permutation $\Permutation = (\permutation_1,\ldots,\permutation_n)$
-of $\{1,\ldots,n\}$ gives the sequence
-in which the $n$ items are allocated, where the $t^{\text{th}}$ item allocated
-is $\permutation_t$.
-- For clarity, let's examing SALSO in the clustering context.
+of $\{1,\ldots,n\}$ gives the sequence in which the $n$ items are allocated.
+
+## Illustration of SALSO Method
+
+- To illustrate the SALSO method, consider clustering 5 items.
+- For simplicity, suppose $\Permutation = (\permutation_1,\ldots,\permutation_5) = (1,2,3,4,5)$.
+- Recall the steps to SALSO are:
+    1. Build up a full structure
+    2. Improve the full structure
+    3. Do it for many random permutations
 
 ## Step 1: Build Up a Full Structure
+```latex
+Clustering: ~ ~ ~ ~ ~ 
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: ? ~ ~ ~ ~    Candidates for ? are: 1
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 ~ ~ ~ ~
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 ? ~ ~ ~    Candidates for ? are: 1, 2
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 1 ~ ~ ~
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 1 ? ~ ~    Candidates for ? are: 1, 2
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 1 2 ~ ~
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 1 2 ? ~    Candidates for ? are: 1, 2, 3
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 1 2 3 ~
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 1 2 3 ?    Candidates for ? are: 1, 2, 3, 4
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 1 2 3 3
+```
 
 
-- Let $c_{\permutation_t}$ be the clustering of items $(\permutation_1,\ldots,\permutation_t)$.
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 1 1 2 3 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: ? 1 2 3 3    Candidates for ? are: 1, 2, 3, 4
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 1 2 3 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 ? 2 3 3    Candidates for ? are: 1, 2, 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 1 2 3 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 ? 3 3    Candidates for ? are: 1, 2, 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 2 3 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 2 ? 3    Candidates for ? are: 1, 2, 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 2 1 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 2 1 ?    Candidates for ? are: 1, 2, 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 2 1 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 2 1 3    Scan completed
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 2 1 3    Put in canonical form
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 1 1 1 2 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 1 1 1 2 3    Any change from start of scan?
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 1 1 1 2 3    Yes, so perform another scan
+```
+
+
+## Step 3: Do It For Many Permutations
+
+- The permutation many lead to a local minimizer.
+- Improve the chances of finding the global minimizer by repeating Step 1 and 2 for many
+  random permutations.
+    - _This is embarassingly parallel._
+- Select the structure the minimizes the posterior expected loss among all those good structures obtained
+  by using many random permutations.
+
+## R Markdown
 
 This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
