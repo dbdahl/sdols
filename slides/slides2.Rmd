@@ -246,20 +246,23 @@ a *series of micro optimizations* to obtain a global minimum of posterior expect
 
 ## Sequentially-Allocated Latent Structure Optimization
 
-- Th SALSO method is applicable for many types of latent structure, including clusterings, feature allocations, & networks.
-- The keys to SALSO are:
+- The SALSO method is applicable for many types of latent structure, including clusterings, feature allocations, & networks.
+- The steps to SALSO are:
     - Build up a full structure by sequentially optimizing the allocation of items.
     - Improve the full structure by a series of univariate label optimzations.
     - Do the above steps many times for random permutations and select the structure that minimizes
       the expected posterior loss.
-- The order in which items are allocated is not necessarily their order in the
+- The random order in which items are allocated is not necessarily their order in the
 dataset; the permutation $\Permutation = (\permutation_1,\ldots,\permutation_n)$
 of $\{1,\ldots,n\}$ gives the sequence
 in which the $n$ items are allocated, where the $t^{\text{th}}$ item allocated
 is $\permutation_t$.
 - For clarity, let's examing SALSO in the clustering context.
 
-## R Markdown
+## Step 1: Build Up a Full Structure
+
+
+- Let $c_{\permutation_t}$ be the clustering of items $(\permutation_1,\ldots,\permutation_t)$.
 
 This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
