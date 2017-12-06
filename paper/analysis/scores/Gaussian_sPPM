@@ -1,25 +1,25 @@
-out/Gaussian_sPPM/binder-avg-default.Rd binder avg-default 660.775999999996 2.36915378928829 0.261
-out/Gaussian_sPPM/binder-comp-default.Rd binder comp-default 654.543999999996 2.6241512626947 0.239
-out/Gaussian_sPPM/binder-dlso-default.Rd binder dlso-default 839.913999999995 2.47720095083194 2.055
-out/Gaussian_sPPM/binder-draws-default.Rd binder draws-default 839.913999999995 2.47720095083194 1.476
-out/Gaussian_sPPM/binder-greedy-default.Rd binder greedy-default 696.221999999996 3.65685688953152 59.952
-out/Gaussian_sPPM/binder-laugreen-default.Rd binder laugreen-default 640.547999999996 2.77452363866528 70.468
-out/Gaussian_sPPM/binder-salso-default.Rd binder salso-default 640.547999999996 2.77989289289955 14.326
-out/Gaussian_sPPM/binder-salso-nCandidates1000-budget10.Rd binder salso-nCandidates1000-budget10 640.547999999996 2.77989289289955 23.433
-out/Gaussian_sPPM/binder-salso-nCandidates1000-budget60.Rd binder salso-nCandidates1000-budget60 640.547999999996 2.77989289289955 35.953
-out/Gaussian_sPPM/binder-salso-nCandidates100-budget10.Rd binder salso-nCandidates100-budget10 640.547999999996 2.77989289289955 13.981
-out/Gaussian_sPPM/binder-salso-nCandidates100-budget60.Rd binder salso-nCandidates100-budget60 640.547999999996 2.77989289289955 4.275
-out/Gaussian_sPPM/binder-salso-nCandidates10-budget10.Rd binder salso-nCandidates10-budget10 640.547999999996 2.77989289289955 10.972
-out/Gaussian_sPPM/binder-salso-nCandidates10-budget60.Rd binder salso-nCandidates10-budget60 640.547999999996 2.77989289289955 14.463
-out/Gaussian_sPPM/vi-avg-default.Rd vi avg-default 793.921999999995 2.04362392524456 0.214
-out/Gaussian_sPPM/vi-comp-default.Rd vi comp-default 822.549999999995 2.07826062861963 0.439
-out/Gaussian_sPPM/vi-dlso-default.Rd vi dlso-default 839.913999999995 2.47720095083194 1.475
-out/Gaussian_sPPM/vi-draws-default.Rd vi draws-default 839.913999999995 2.47720095083194 1.627
-out/Gaussian_sPPM/vi-greedy-default.Rd vi greedy-default 696.997999999995 3.64487517710433 164.394
-out/Gaussian_sPPM/vi-salso-default.Rd vi salso-default 784.063999999995 2.05138749913727 22.286
-out/Gaussian_sPPM/vi-salso-nCandidates1000-budget10.Rd vi salso-nCandidates1000-budget10 779.099999999995 2.05093068683036 25.225
-out/Gaussian_sPPM/vi-salso-nCandidates1000-budget60.Rd vi salso-nCandidates1000-budget60 781.945999999996 2.04344561946357 16.999
-out/Gaussian_sPPM/vi-salso-nCandidates100-budget10.Rd vi salso-nCandidates100-budget10 778.447999999995 2.05786183145617 15.665
-out/Gaussian_sPPM/vi-salso-nCandidates100-budget60.Rd vi salso-nCandidates100-budget60 780.089999999995 2.0542409354426 19.837
-out/Gaussian_sPPM/vi-salso-nCandidates10-budget10.Rd vi salso-nCandidates10-budget10 747.615999999995 2.09754615139305 14.77
-out/Gaussian_sPPM/vi-salso-nCandidates10-budget60.Rd vi salso-nCandidates10-budget60 765.101999999996 2.09484710945292 14.353
+binder avg-default 660.775999999996 2.36915378928829 0.261
+binder comp-default 654.543999999996 2.6241512626947 0.239
+binder dlso-default 839.913999999995 2.47720095083194 2.055
+binder draws-default 839.913999999995 2.47720095083194 1.476
+binder greedy-default 696.221999999996 3.65685688953152 59.952
+binder laugreen-default 640.547999999996 2.77452363866528 70.468
+binder salso-default 640.547999999996 2.77989289289955 14.326
+binder salso-nCandidates1000-budget10 640.547999999996 2.77989289289955 23.433
+binder salso-nCandidates1000-budget60 640.547999999996 2.77989289289955 35.953
+binder salso-nCandidates100-budget10 640.547999999996 2.77989289289955 13.981
+binder salso-nCandidates100-budget60 640.547999999996 2.77989289289955 4.275
+binder salso-nCandidates10-budget10 640.547999999996 2.77989289289955 10.972
+binder salso-nCandidates10-budget60 640.547999999996 2.77989289289955 14.463
+vi avg-default 793.921999999995 2.04362392524456 0.214
+vi comp-default 822.549999999995 2.07826062861963 0.439
+vi dlso-default 839.913999999995 2.47720095083194 1.475
+vi draws-default 839.913999999995 2.47720095083194 1.627
+vi greedy-default 696.997999999995 3.64487517710433 164.394
+vi salso-default 784.063999999995 2.05138749913727 22.286
+vi salso-nCandidates1000-budget10 779.099999999995 2.05093068683036 25.225
+vi salso-nCandidates1000-budget60 781.945999999996 2.04344561946357 16.999
+vi salso-nCandidates100-budget10 778.447999999995 2.05786183145617 15.665
+vi salso-nCandidates100-budget60 780.089999999995 2.0542409354426 19.837
+vi salso-nCandidates10-budget10 747.615999999995 2.09754615139305 14.77
+vi salso-nCandidates10-budget60 765.101999999996 2.09484710945292 14.353
