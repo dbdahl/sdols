@@ -248,7 +248,8 @@ a *series of micro optimizations* to minimizer of posterior expected value of Bi
 
 - The SALSO method is applicable for many types of latent structure, including clusterings, feature allocations, & networks.
 - The steps to SALSO are:
-    1. Build up a full structure by sequentially optimizing the allocation of items.
+    1. Starting for an empty structure, build up a full structure by sequentially optimizing the
+       allocation of items.
     2. Improve the full structure by a series of one-at-a-time optimizations.
     3. Do the above steps many times for randomly-selected permutations and choose the structure
        that minimizes the posterior expected loss.
@@ -261,7 +262,7 @@ of $\{1,\ldots,n\}$ gives the sequence in which the $n$ items are allocated.
 - To illustrate the SALSO method, consider clustering 5 items.
 - For simplicity, suppose $\Permutation = (\permutation_1,\ldots,\permutation_5) = (1,2,3,4,5)$.
 - Recall the steps to SALSO are:
-    1. Build up a full structure
+    1. Build up a full structure from an empty structure
     2. Improve the full structure
     3. Do it for many random permutations
 
@@ -376,7 +377,6 @@ Clustering: 1 1 1 2 3    Any change from start of scan?
 Clustering: 1 1 1 2 3    Yes, so perform another scan
 ```
 
-
 ## Step 3: Do It For Many Permutations
 
 - The permutation many lead to a local minimizer.
@@ -386,40 +386,86 @@ Clustering: 1 1 1 2 3    Yes, so perform another scan
 - Select the structure the minimizes the posterior expected loss among all those good structures obtained
   by using many random permutations.
 
+## Review of the Steps of the SALSO Method
+
+1. Build up a full structure from an empty structure
+2. Improve the full structure
+3. Do it for many random permutations
+
+## SALSO Options
+
+SALSO has the following options:
+
+- nCandidates
+- multicore
+- maxScans
+- budgetInSeconds
+- maxSize
+
 ## Constrained Optimization
 
 - We may want to constrain the optimization.
-   - For example, the sake of interpretation, it may be helpful to **limit** the number of clusters
-     or features (yet we still want a small posterior expected loss).
+    - For example, the sake of interpretation, it may be helpful to **limit** the number of clusters
+      or features (yet we still want a small posterior expected loss).
+
 . . .
+
 - Solution: During micro optimization, never create a structure that violates the constraint.
-   - For example, don't consider allocations that create clusters beyond the desired \texttt{maxSize}.
+    - For example, don't consider allocations that create clusters beyond the desired \texttt{maxSize}.
+
 . . .
+
 ```latex
 Clustering: ? 1 2 3 3    Candidates for ? are: 1, 2, 3
                                       but not: 4
 ```
 
-## Tuning Parameters
+## Emperial Results
 
-SALSO has the following tuning parameters:
-- nCandidates
-- budgetInSeconds
-- multicore
-- maxScans
-- max
+- Consider the various optimization methods:
+    - Hierarchal clustering of Medvedovic and Sivaganesan (2002)
+      using average or complete linkage [mcclust]
+    - Draws method of Dahl (2006) [sdols]
+    - Linear programming method of Lau & Green (2007) [mcclust]
+    - Greedy search by Wade & Ghahramani (2017) [mcclust.ext]
+    - SALSO method [sdols]
+- Loss functions
+    - Binder loss (Binder 1978)
+    - Lower bound of the variation of information loss (Wade & Ghahramani 2017)
+- Datasets: Six sets of MCMC output from a variety of models by Garritt Page.
 
-## R Markdown
+## BivariateGaussian_sPPM
 
-This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+Example 1: Bivariate Gaussian likelihood with a spatial PPM (Page & Quintana 2016) prior.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
+Size: 600 observations
 
-## Slide with Bullets
+| Method       | Binder    | Time           |
+| -------------|-----------|----------------|
+| SALSO (12)   |  46270.74 | 0.937 seconds  |
+| SALSO (100)  |  46270.74 | 7.709 seconds  |
+| L & G        |  46271.21 | 9.8 hours      |
+| M & S (avg)  |  46724.64 | 1.609 seconds  |
+| M & S (comp) |  47844.03 | 1.641 seconds  |
+| Draws        |  53182.66 | 1.005 seconds  |
+| W & G        |  57761.10 | 24.1 hours     |
 
-- Bullet 1
-- Bullet 2
-- Bullet 3
+## BivariateGaussian_sPPM
+
+Example 1: Bivariate Gaussian likelihood with a spatial PPM (Page & Quintana 2016) prior.
+
+Size: 600 observations
+
+| Method       |  VI.lb  | Time            |
+|--------------|---------|-----------------|
+| SALSO (100)  |  1.5620 |  14.182 seconds |
+| SALSO (12)   |  1.5649 |  1.552 seconds  |
+| M & S (comp) |  1.5829 |  0.673 seconds  |
+| M & S (avg)  |  1.5858 |  0.733 seconds  |
+| Draws        |  1.9108 |  0.555 seconds  |
+| W & G        |  7.2197 |  41.6 hours     |
+| L & G        |  --     |  --             |
+
 
 ## Slide with R Output
 
