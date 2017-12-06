@@ -184,7 +184,7 @@ estimates $\mu_{ij} = \text{Pr}( c_i = c_j \mid \text{data})$.
     yielding the clustering:
     $$\text{argmin}_{\hat{c}} \ \sum_{i=1}^n \sum_{j=1}^n \I{\hat{c}_i=\hat{c}_j} ( 0.5 - \mu_{ij} )$$
 - Dahl & Newton (2007) noted that minimizing the posterior expected loss of Binder (1978) is
-equilvalent to the least-squares criterion in Dahl (2006).
+equivalent to the least-squares criterion in Dahl (2006).
     
 ## Loss Functions and Bayes Estimators
 
@@ -379,7 +379,7 @@ Clustering: 1 1 1 2 3    Yes, so perform another scan
 - The permutation many lead to a local minimizer.
 - Improve the chances of finding the global minimizer by repeating Step 1 and 2 for many
   random permutations.
-    - _This is embarassingly parallel._
+    - _This is embarrassingly parallel._
 - Select the structure the minimizes the posterior expected loss among all those good structures obtained
   by using many random permutations.
 
@@ -426,7 +426,7 @@ Clustering: ? 1 2 3 3    Candidates for ? are: 1, 2, 3
                                       but not: 4
 ```
 
-## Emperial Results
+## Empirical Results
 
 - Consider the various optimization methods:
     - Hierarchal clustering of Medvedovic and Sivaganesan (2002)
@@ -497,7 +497,7 @@ Size: 600 observations
 | Method       | VI.lb   | Time          |
 |--------------|---------|---------------|
 | M & S (avg)  |  2.7543 | 0.700 seconds |
-| SALSO (100)  |  2.8241 | 3.94 minutes  |
+| SALSO (100)  |  2.8241 | 3.94 seconds  |
 | M & W (comp) |  2.8526 | 0.715 seconds |
 | SALSO (12)   |  2.8633 | 26.61 seconds |
 | Draws        |  3.7788 | 1.176 seconds |
@@ -536,6 +536,57 @@ Size: 600 observations
 | Draws        |  1.9108 |  0.555 seconds  |
 | W & G        |  7.2197 |  41.6 hours     |
 | L & G        |  --     |  --             |
+
+## Application for Feature Allocation
+
+Consider a feature allocation: $\{ \{1,2,4,5,6\}, \{1,3,4,7\}, \{2,5\} \}$
+
+... and its associated binary matrix:
+
+```latex
+Utah              1    0    1
+Vermont           0    1    1
+Virginia          1    0    0
+Washington        1    0    1
+West Virginia     0    1    1
+Wisconsin         0    0    1
+Wyoming           1    0    0
+|
+```
+
+## Application for Feature Allocation
+
+Consider a feature allocation: $\{ \{1,2,4,5,6\}, \{1,3,4,7\}, \{2,5\} \}$
+
+... and its associated pairwise allocation matrix:
+
+```latex
+     [,1] [,2] [,3] [,4] [,5] [,6] [,7]
+[1,]    2    1    1    2    1    1    1
+[2,]    1    2    0    1    2    1    0
+[3,]    1    0    1    1    0    0    1
+[4,]    2    1    1    2    1    1    1
+[5,]    1    2    0    1    2    1    0
+[6,]    1    1    0    1    1    1    0
+[7,]    1    0    1    1    0    0    1
+```
+
+## Application for Feature Allocation
+
+The associatd pairwise allocation matrices for the feature allocations in your MCMC output
+can be averaged:
+
+```latex
+     [,1] [,2] [,3] [,4] [,5] [,6] [,7]
+[1,] 2.04 1.02 1.06 2.02 1.09 1.01 1.00
+[2,] 1.02 2.09 0.90 1.08 2.02 1.01 0.96
+[3,] 1.06 0.90 1.50 1.14 0.94 0.54 0.32
+[4,] 2.02 1.08 1.14 2.21 1.16 1.01 1.01
+[5,] 1.09 2.02 0.94 1.16 2.18 1.01 1.02
+[6,] 1.01 1.01 0.54 1.01 1.01 1.03 0.54
+[7,] 1.00 0.96 0.32 1.01 1.02 0.54 1.54
+```
+$$\text{argmin}_{\hat{Z}} \sum_{i=1}^n \sum_{j=1}^n ( A(\hat{Z}) - \bar{A} )^2$$
 
 ## Way to Improve the Method?
 
