@@ -68,13 +68,6 @@ minimize an objective criterion to obtain a *point estimate* based on a collecti
 - Several objective criterion can be used, including squared error loss, absolute error loss, Binder (1978)
 loss, or the lower bound of the variation of information loss (Wade & Ghahramani 2017), respectively.
 
-## Example: Dirichlet Mixture Model with Gaussian Likelihood
-
-Suppose MCMC output contains 1,000 posterior samples for the partition of 150 observations (encoded with cluster labels), e.g.:
-```{r, echo=TRUE}
-iris.clusterings[1,]
-```
-What is the Bayes estimate of the partition from these 1,000 samples?
 
 ## Example: First Clustering in MCMC Output
 
@@ -140,15 +133,19 @@ A(c^{(3)}) =
 \end{bmatrix}
 $$
 
+## More Realistic Example
+
+Suppose MCMC output contains 1,000 posterior samples for the partition of 150 observations (encoded with cluster labels), e.g.:
+```{r, echo=TRUE}
+iris.clusterings[1,]
+```
+What is the Bayes estimate of the partition from these 1,000 samples?
+
 ## Example: Averaging the MCMC Clustering Output
  
-Averaging the set partitions is **not defined**.
-$$( \{ \{ 1, 3\}, \{2, 4, 5\} \} \ + \ \{ \{ 1, 2, 3\}, \{4\}, \{5\} \} \ + \  \{ \{ 1, 2, 4\}, \{3, 5\} \} ) / 3 \ = \ ???$$
-
-. . .
-
 Averaging the vector of cluster labels **does not make sense**.
-$$( \ (1,2,1,2,2) \ + \ (1,1,1,2,3) \ + \ (1,1,2,1,2) \ ) \ / \ 3 = (1,\ 4/3,\  4/3,\ 5/3,\ 2)$$
+
+Averaging the set partitions is **not defined**.
 
 . . .
 
@@ -390,17 +387,26 @@ Clustering: 1 1 1 2 3    Yes, so perform another scan
 
 1. Build up a full structure from an empty structure
 2. Improve the full structure
-3. Do it for many random permutations
+3. Do it for many random  permutations
 
-## SALSO Options
+## Software Implementation
 
-SALSO has the following options:
+SALSO is implemented in the R package "sdols" available on CRAN.
 
-- nCandidates
-- multicore
-- maxScans
-- budgetInSeconds
-- maxSize
+```{r, echo=TRUE}
+library(sdols)
+dim(iris.clusterings)
+epam <- expectedPairwiseAllocationMatrix(iris.clusterings)
+estimate <- salso(epam, nCandidates=100,
+                  budgetInSeconds=20, maxSize=3)
+table(estimate)
+```
+
+##
+
+```{r, echo=TRUE}
+plot(confidence(estimate, epam))
+```
 
 ## Constrained Optimization
 
@@ -432,44 +438,11 @@ Clustering: ? 1 2 3 3    Candidates for ? are: 1, 2, 3
 - Loss functions
     - Binder loss (Binder 1978)
     - Lower bound of the variation of information loss (Wade & Ghahramani 2017)
-- Datasets: Six sets of MCMC output from a variety of models by Garritt Page.
-
-## BivariateGaussian_sPPM
-
-Example 1: Bivariate Gaussian likelihood with a spatial PPM (Page & Quintana 2016) prior.
-
-Size: 600 observations
-
-| Method       | Binder    | Time           |
-| -------------|-----------|----------------|
-| SALSO (12)   |  46270.74 | 0.937 seconds  |
-| SALSO (100)  |  46270.74 | 7.709 seconds  |
-| L & G        |  46271.21 | 9.8 hours      |
-| M & S (avg)  |  46724.64 | 1.609 seconds  |
-| M & S (comp) |  47844.03 | 1.641 seconds  |
-| Draws        |  53182.66 | 1.005 seconds  |
-| W & G        |  57761.10 | 24.1 hours     |
-
-## BivariateGaussian_sPPM
-
-Example 1: Bivariate Gaussian likelihood with a spatial PPM (Page & Quintana 2016) prior.
-
-Size: 600 observations
-
-| Method       |  VI.lb  | Time            |
-|--------------|---------|-----------------|
-| SALSO (100)  |  1.5620 |  14.182 seconds |
-| SALSO (12)   |  1.5649 |  1.552 seconds  |
-| M & S (comp) |  1.5829 |  0.673 seconds  |
-| M & S (avg)  |  1.5858 |  0.733 seconds  |
-| Draws        |  1.9108 |  0.555 seconds  |
-| W & G        |  7.2197 |  41.6 hours     |
-| L & G        |  --     |  --             |
-
+- Datasets: Three sets of MCMC output from a variety of models.
 
 ## Iris
 
-Example 2: Ewens Pitman attraction distribution (Dahl, Day, Tsai 2017) applied to iris data.
+Example 1: Ewens Pitman attraction distribution (Dahl, Day, Tsai 2017) applied to iris data.
 
 Size: 150 observations
 
@@ -485,7 +458,7 @@ Size: 150 observations
 
 ## Iris
 
-Example 2: Ewens Pitman attraction distribution (Dahl, Day, Tsai 2017) applied to iris data.
+Example 1: Ewens Pitman attraction distribution (Dahl, Day, Tsai 2017) applied to iris data.
 
 Size: 150 observations
 
@@ -499,10 +472,80 @@ Size: 150 observations
 | Draws        |  1.3320 |  0.102 seconds  |
 | L & G        |  --     |  --             |
 
-## Ways to Improve the Method?
+## Gaussian_sPPM2
+
+Example 2: Gaussian likelihood with a spatial PPM (Page & Quintana 2016) prior.
+
+Size: 600 observations
+
+| Method       | Binder  | Time          |
+|--------------|---------|---------------|
+| SALSO (12)   |  7509.7 | 0.843 seconds |
+| SALSO (100)  |  7509.7 | 7.033 seconds |
+| L & G        |  7509.7 | 8.2 hours     |  
+| M & W (comp) |  8060.7 | 1.615 seconds |
+| W & G        |  8365.6 | 18.8 hours    |  
+| M & S (avg)  |  9409.1 | 1.604 seconds |
+| Draws        | 10464.5 | 0.765 seconds |
+
+## Gaussian_sPPM2
+
+Example 2: Gaussian likelihood with a spatial PPM (Page & Quintana 2016) prior.
+
+Size: 600 observations
+
+| Method       | VI.lb   | Time          |
+|--------------|---------|---------------|
+| M & S (avg)  |  2.7543 | 0.700 seconds |
+| SALSO (100)  |  2.8241 | 3.94 minutes  |
+| M & W (comp) |  2.8526 | 0.715 seconds |
+| SALSO (12)   |  2.8633 | 26.61 seconds |
+| Draws        |  3.7788 | 1.176 seconds |
+| W & G        |  4.6411 | 36.3 hours    |
+| L & G        |  --     | --            |
 
 
-  
+## BivariateGaussian_sPPM
+
+Example 3: Bivariate Gaussian likelihood with a spatial PPM (Page & Quintana 2016) prior.
+
+Size: 600 observations
+
+| Method       | Binder    | Time           |
+| -------------|-----------|----------------|
+| SALSO (12)   |  46270.74 | 0.937 seconds  |
+| SALSO (100)  |  46270.74 | 7.709 seconds  |
+| L & G        |  46271.21 | 9.8 hours      |
+| M & S (avg)  |  46724.64 | 1.609 seconds  |
+| M & S (comp) |  47844.03 | 1.641 seconds  |
+| Draws        |  53182.66 | 1.005 seconds  |
+| W & G        |  57761.10 | 24.1 hours     |
+
+## BivariateGaussian_sPPM
+
+Example 3: Bivariate Gaussian likelihood with a spatial PPM (Page & Quintana 2016) prior.
+
+Size: 600 observations
+
+| Method       |  VI.lb  | Time            |
+|--------------|---------|-----------------|
+| SALSO (100)  |  1.5620 |  14.182 seconds |
+| SALSO (12)   |  1.5649 |  1.552 seconds  |
+| M & S (comp) |  1.5829 |  0.673 seconds  |
+| M & S (avg)  |  1.5858 |  0.733 seconds  |
+| Draws        |  1.9108 |  0.555 seconds  |
+| W & G        |  7.2197 |  41.6 hours     |
+| L & G        |  --     |  --             |
+
+## Way to Improve the Method?
+
+Modified method:
+
+1. Build up a full structure from an empty structure
+    - Periodically reallocate items (**a la** Step 2) in the as-of-yet incomplete structure.
+2. Improve the full structure
+3. Do it for many random permutations
+
 ## Conclusion
 
 - We presented the **sequentially-allocated latent structure optimization (SALSO)** method to
@@ -518,17 +561,3 @@ minimize an objective criterion to obtain a *point estimate* based on a collecti
     
 - Can we pick a representative observation?
 - Summarizes other than point estimates?
-
-
-## Slide with R Output
-
-This is very important.
-```{r conf, echo=TRUE}
-library(sdols)
-ppm <- expectedPairwiseAllocationMatrix(iris.clusterings)
-est <- salso(ppm)
-conf <- confidence(est,ppm)
-#plot(conf)
-plot(conf,data=iris)
-```
-
