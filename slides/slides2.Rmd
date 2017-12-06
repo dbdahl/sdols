@@ -35,7 +35,7 @@ iris.clusterings[13,] <- tmp
 
 ## Motivation
 
-- In a typical Bayesian analysis, consider effort is placed
+- In a typical Bayesian analysis, considerable effort is placed
 on "**fitting the model**" (e.g., sampling from the posterior)
 but this is **only half of the inference problem**.
 
@@ -74,8 +74,6 @@ loss, or the lower bound of the variation of information loss (Wade & Ghahramani
 
 Clustering in **_cluster label_** notation:
 $$c^{(1)} = (1,2,1,2,2)$$
-
-. . .
 
 Clustering in set **_partition_** notation:
 $$\pi^{(1)} = \{ \{ 1, 3\}, \{2, 4, 5\} \}$$
