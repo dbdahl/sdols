@@ -386,6 +386,29 @@ Clustering: 1 1 1 2 3    Yes, so perform another scan
 - Select the structure the minimizes the posterior expected loss among all those good structures obtained
   by using many random permutations.
 
+## Constrained Optimization
+
+- We may want to constrain the optimization.
+   - For example, the sake of interpretation, it may be helpful to **limit** the number of clusters
+     or features (yet we still want a small posterior expected loss).
+. . .
+- Solution: During micro optimization, never create a structure that violates the constraint.
+   - For example, don't consider allocations that create clusters beyond the desired \texttt{maxSize}.
+. . .
+```latex
+Clustering: ? 1 2 3 3    Candidates for ? are: 1, 2, 3
+                                      but not: 4
+```
+
+## Tuning Parameters
+
+SALSO has the following tuning parameters:
+- nCandidates
+- budgetInSeconds
+- multicore
+- maxScans
+- max
+
 ## R Markdown
 
 This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
