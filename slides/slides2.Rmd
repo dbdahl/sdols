@@ -68,6 +68,7 @@ minimize an objective criterion to obtain a *point estimate* based on a collecti
 - Several objective criterion can be used, including squared error loss, absolute error loss, Binder (1978)
 loss, or the lower bound of the variation of information loss (Wade & Ghahramani 2017), respectively.
 
+# Setting the Stage
 
 ## Example: First Clustering in MCMC Output
 
@@ -133,14 +134,6 @@ A(c^{(3)}) =
 \end{bmatrix}
 $$
 
-## More Realistic Example
-
-Suppose MCMC output contains 1,000 posterior samples for the partition of 150 observations (encoded with cluster labels), e.g.:
-```{r, echo=TRUE}
-iris.clusterings[1,]
-```
-What is the Bayes estimate of the partition from these 1,000 samples?
-
 ## Example: Averaging the MCMC Clustering Output
  
 Averaging the vector of cluster labels **does not make sense**.
@@ -162,6 +155,14 @@ $$
 $$
 $\bar{A}$ is the estimated **expected pairwise allocation matrix (EPAM)** because it's $(i,j)$ element
 estimates $\mu_{ij} = \text{Pr}( c_i = c_j \mid \text{data})$.
+
+## More Realistic Example
+
+Suppose MCMC output contains 1,000 posterior samples for the partition of 150 observations (encoded with cluster labels), e.g.:
+```{r, echo=TRUE}
+iris.clusterings[1,]
+```
+What is the Bayes estimate of the partition from these 1,000 samples?
 
 ## Loss Functions and Bayes Estimators
 
@@ -239,7 +240,9 @@ minimize the posterior expected Binder loss.
 - Wade & Ghahramani (2017) proposed a greedy search algorithm based on neighborhoods defined by
 the Hasse diagram, which can be used for Binder or VI.lb loss.
 - We propose the **sequentially-allocated latent structure optimization (SALSO)** method to perform
-a *series of micro optimizations* to minimizer of posterior expected value of Binder or VI.lb loss.
+a *series of micro optimizations* to stochastically search for the minimizer of the posterior expected value of Binder or VI.lb loss.
+
+# Sequentially-Allocated Latent Structure Optimization
 
 ## Sequentially-Allocated Latent Structure Optimization
 
@@ -389,6 +392,8 @@ Clustering: 1 1 1 2 3    Yes, so perform another scan
 2. Improve the full structure
 3. Do it for many random  permutations
 
+# Software & Constrained Optimization
+
 ## Software Implementation
 
 SALSO is implemented in the R package "sdols" available on CRAN.
@@ -426,19 +431,21 @@ Clustering: ? 1 2 3 3    Candidates for ? are: 1, 2, 3
                                       but not: 4
 ```
 
-## Empirical Results
+# Empirical Comparison
 
-- Consider the various optimization methods:
+## Comparison Methodology
+
+- Various optimization methods:
     - Hierarchal clustering of Medvedovic and Sivaganesan (2002)
       using average or complete linkage [mcclust]
-    - Draws method of Dahl (2006) [sdols]
+    - Draws method of Dahl (2006) [sdols, mcclust]
     - Linear programming method of Lau & Green (2007) [mcclust]
     - Greedy search by Wade & Ghahramani (2017) [mcclust.ext]
     - SALSO method [sdols]
 - Loss functions
     - Binder loss (Binder 1978)
     - Lower bound of the variation of information loss (Wade & Ghahramani 2017)
-- Datasets: Three sets of MCMC output from a variety of models.
+- Datasets: Three sets of MCMC output from a variety of models with 1,000 samples each.
 
 ## Iris
 
@@ -537,7 +544,9 @@ Size: 600 observations
 | W & G        |  7.2197 |  41.6 hours     |
 | L & G        |  --     |  --             |
 
-## Application for Feature Allocation
+# SALSO for Feature Allocation
+
+## SALSO for Feature Allocation
 
 Consider a feature allocation: $\{ \{1,2,4,5,6\}, \{1,3,4,7\}, \{2,5\} \}$
 
@@ -554,7 +563,7 @@ Wyoming           1    0    0
 |
 ```
 
-## Application for Feature Allocation
+## SALSO for Feature Allocation
 
 Consider a feature allocation: $\{ \{1,2,4,5,6\}, \{1,3,4,7\}, \{2,5\} \}$
 
@@ -571,7 +580,7 @@ Consider a feature allocation: $\{ \{1,2,4,5,6\}, \{1,3,4,7\}, \{2,5\} \}$
 [7,]    1    0    1    1    0    0    1
 ```
 
-## Application for Feature Allocation
+## SALSO for Feature Allocation
 
 The associatd pairwise allocation matrices for the feature allocations in your MCMC output
 can be averaged:
@@ -587,6 +596,19 @@ can be averaged:
 [7,] 1.00 0.96 0.32 1.01 1.02 0.54 1.54
 ```
 $$\text{argmin}_{\hat{Z}} \sum_{i=1}^n \sum_{j=1}^n ( A(\hat{Z}) - \bar{A} )^2$$
+
+## SALSO for Feature Allocation
+
+```{r, echo=TRUE}
+epam <- expectedPairwiseAllocationMatrix(
+          USArrests.featureAllocations)
+est.salso <- salso(epam,structure="featureAllocation")
+est.dlso <- dlso(USArrests.featureAllocations)
+latentStructureFit(est.salso,epam)$squaredError
+latentStructureFit(est.dlso,epam)$squaredError
+```
+
+# Wrapping Up
 
 ## Way to Improve the Method?
 
