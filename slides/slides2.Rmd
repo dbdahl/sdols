@@ -53,7 +53,7 @@ is more challenging, e.g., the "average" network in the network distribution
 is not easily defined.
 
 - We consider summarizing distributions of latent structures, e.g.,
-clusterings, feature allocations, networks, and variable selection.
+clusterings, feature allocations, and networks.
 
 ## Overview
 
@@ -61,9 +61,9 @@ clusterings, feature allocations, networks, and variable selection.
 minimize an objective criterion to obtain a *point estimate* based on a collection of randomly-sampled
 *latent features*.
 
-- SALSO is a *global optimization* method involving a *series of micro optimizations*.
+- SALSO is a *stochastic search* method involving a *series of micro optimizations*.
 
-- The method can be applied to *clusterings*, *feature allocations*, *networks*, *variable selection*, etc.
+- The method can be applied to *clusterings*, *feature allocations*, *networks*, etc.
 
 - Several objective criterion can be used, including squared error loss, absolute error loss, Binder (1978)
 loss, or the lower bound of the variation of information loss (Wade & Ghahramani 2017), respectively.
@@ -467,6 +467,59 @@ Size: 600 observations
 | L & G        |  --     |  --             |
 
 
+## Iris
+
+Example 2: Ewens Pitman attraction distribution (Dahl, Day, Tsai 2017) applied to iris data.
+
+Size: 150 observations
+
+| Method       | Binder    | Time           |   
+| -------------|-----------|----------------|
+| SALSO (12)   |   3493.16 | 0.039 seconds  |
+| SALSO (100)  |   3493.16 | 0.218 seconds  |
+| M & S (avg)  |   3497.01 | 0.055 seconds  |
+| W & G        |   3500.12 | 3.8 minutes    |   
+| M & S (comp) |   3512.90 | 0.055 seconds  |
+| L & G        |   3560.01 | 2.7 minutes    |   
+| Draws        |   3607.48 | 0.085 seconds  |
+
+## Iris
+
+Example 2: Ewens Pitman attraction distribution (Dahl, Day, Tsai 2017) applied to iris data.
+
+Size: 150 observations
+
+| Method       |  VI.lb  | Time            |
+|--------------|---------|-----------------|
+| M & S (comp) |  1.3246 |  0.026 seconds  |
+| M & S (avg)  |  1.3246 |  0.026 seconds  |
+| SALSO (12)   |  1.3246 |  0.033 seconds  |
+| SALSO (100)  |  1.3246 |  0.197 seconds  |
+| W & G        |  1.3246 |  7.9 minutes    |
+| Draws        |  1.3320 |  0.102 seconds  |
+| L & G        |  --     |  --             |
+
+## Ways to Improve the Method?
+
+
+  
+## Conclusion
+
+- We presented the **sequentially-allocated latent structure optimization (SALSO)** method to
+minimize an objective criterion to obtain a *point estimate* based on a collection of randomly-sampled
+*latent features*.
+
+- SALSO is a *stochastic search* method involving a *series of micro optimizations*.
+
+- Status:
+    - Well-developed for *clusterings*.  Implemented in the "sdols" package on CRAN.
+    - Initial version for *feature allocations* in the "sdols" package.
+    - Want to apply to other structures, e.g., *networks*.
+    
+- Can we pick a representative observation?
+- Summarizes other than point estimates?
+
+
 ## Slide with R Output
 
 This is very important.
@@ -477,21 +530,5 @@ est <- salso(ppm)
 conf <- confidence(est,ppm)
 #plot(conf)
 plot(conf,data=iris)
-```
-
-## Another slide
-
-It is very important $\sum_i^n x^2$.
-
-$$\sum_{i=1}^n (x_i - \bar{x})^2$$
-
-```{r cars, echo = TRUE}
-summary(cars)
-```
-
-## Slide with Plot
-
-```{r pressure}
-plot(pressure)
 ```
 
