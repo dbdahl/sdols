@@ -502,9 +502,9 @@ Size: 600 observations
 | Method       | VI.lb   | Time          |
 |--------------|---------|---------------|
 | M & S (avg)  |  2.7543 | 0.700 seconds |
-| SALSO (100)  |  2.8241 | 3.94 seconds  |
+| SALSO (12)   |  2.8241 | 3.94 seconds  |
 | M & W (comp) |  2.8526 | 0.715 seconds |
-| SALSO (12)   |  2.8633 | 26.61 seconds |
+| SALSO (100)  |  2.8633 | 26.61 seconds |
 | Draws        |  3.7788 | 1.176 seconds |
 | W & G        |  4.6411 | 36.3 hours    |
 | L & G        |  --     | --            |
