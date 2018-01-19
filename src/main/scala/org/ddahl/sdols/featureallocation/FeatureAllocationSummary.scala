@@ -2,7 +2,9 @@ package org.ddahl.sdols
 package featureallocation
 
 import org.ddahl.commonsmath._
-
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.mutable.ListBuffer
 
 object FeatureAllocationSummary {
@@ -106,22 +108,36 @@ object FeatureAllocationSummary {
     }
   }
 
-  // This implimentation is not as memory effect as that for clustering, but it can be made so.  I just need to do it.
-  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Double, pam: Array[Array[Double]], maxSize: Int, multicore: Boolean, loss: String): (FeatureAllocation[Null], Int, Int) = {
+  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Double, pam: Array[Array[Double]], maxSize: Int, maxScans: Int, multicore: Boolean, loss: String): (FeatureAllocation[Null], Int, Int) = {
     val lossEngine = getLoss[Null](loss)
     val rng = new scala.util.Random()   // Thread safe!
     val nItems = pam.length
     val ints = List.tabulate(nItems) { identity }
     val empty = FeatureAllocation.empty[Null](nItems)
+    val nCores = if ( multicore ) Runtime.getRuntime.availableProcessors else 1
+    val nCandidatesPerThread = (nCandidates - 1) / nCores + 1
     val budgetInMillis = if ( budgetInSeconds <= 0 ) Long.MaxValue else budgetInSeconds * 1000L
     val start = System.currentTimeMillis
-    val range = if ( multicore ) Range(0,nCandidates) else Range(0,nCandidates)
-    val candidates = range.map( i => {
-      val permutation = rng.shuffle(ints)
-      if ( System.currentTimeMillis - start <= budgetInMillis ) sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pam,lossEngine)
-      else null
-    }).filter(_ != null)
-    (candidates.minBy(lossEngine(_,pam)), -1, candidates.size)
+    val futures = List.fill(nCores) { Future {
+      var counter = 0
+      var minScore = Double.PositiveInfinity
+      var best: (FeatureAllocation[Null], Int) = (null,-1)
+      while ( (counter < nCandidatesPerThread) && ( System.currentTimeMillis - start <= budgetInMillis ) ) {
+        counter += 1
+        val permutation = rng.shuffle(ints)
+        val candidate = (sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pam,lossEngine),-1)
+        val score = lossEngine(candidate._1,pam)
+        if ( score < minScore ) {
+          minScore = score
+          best = candidate
+        }
+      }
+      (best._1, best._2, minScore, counter)
+    }}
+    val seq = Await.result(Future.sequence(futures), Duration.Inf)
+    val nCandidatesInPractice = seq.foldLeft(0)( (sum,tuple) => sum + tuple._4 )
+    val best = seq.minBy(_._3)
+    (best._1, best._2, nCandidatesInPractice)
   }
 
 }

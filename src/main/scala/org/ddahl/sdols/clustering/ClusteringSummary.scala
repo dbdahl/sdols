@@ -219,6 +219,15 @@ object ClusteringSummary {
     sum
   }
 
+  private val emptyTuple = (Cluster.empty[Null](null),0.0)
+
+  private def binderShortcutEngine(i: Int, clusteringWithoutI: Clustering[Null], maxSize: Int, pamTransform: Array[Array[Double]]): List[(Cluster[Null], Double)] = {
+    val pamTransformi = pamTransform(i)
+    val candidates = clusteringWithoutI.map(cluster => (cluster, cluster.foldLeft(0.0) { (sum, j) => sum + pamTransformi(j) })).toList
+    if ((maxSize <= 0) || (clusteringWithoutI.size < maxSize)) emptyTuple :: candidates
+    else candidates
+  }
+
   def minAmongDraws(candidates: Array[Array[Int]], maxSize: Int, multicore: Boolean, loss: String, pamOption: Option[Array[Array[Double]]] = None): Clustering[Null] = {
     minAmongDraws(candidates.map(Clustering.apply),maxSize,multicore,loss,pamOption)
   }
@@ -247,7 +256,6 @@ object ClusteringSummary {
   }
 
   private def sequentiallyAllocatedLatentStructureOptimizationFaster(initial: Clustering[Null], maxSize: Int, maxScans: Int, permutation: List[Int], pamTransform: Array[Array[Double]]): (Clustering[Null], Int) = {
-    val emptyTuple = (Cluster.empty[Null](null),0.0)
     var clustering = initial
     var firstPass = true
     var notDone = true
@@ -257,12 +265,8 @@ object ClusteringSummary {
       val previousClustering = clustering
       for (i <- permutation) {
         if ( ! firstPass ) clustering = clustering.remove(i)
-        val pamTransformi = pamTransform(i)
-        val candidates = clustering.map(cluster => (cluster, cluster.foldLeft(0.0) { (sum, j) => sum + pamTransformi(j) })).toList
-        val candidates2 = if ((maxSize <= 0) || (clustering.size < maxSize)) {
-          emptyTuple :: candidates
-        } else candidates
-        clustering = clustering.add(i, candidates2.minBy(_._2)._1)
+        val candidates = binderShortcutEngine(i,clustering,maxSize,pamTransform)
+        clustering = clustering.add(i, candidates.minBy(_._2)._1)
       }
       if ( firstPass ) firstPass = false
       notDone = ( clustering != previousClustering ) && ( scanCounter < maxScans )
@@ -277,6 +281,7 @@ object ClusteringSummary {
     }
   }
 
+  // Oops, when not useFasterAlgorithm, we don't do any sweetening scans.
   def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Double, pam: Array[Array[Double]], maxSize: Int, maxScans: Int, multicore: Boolean, loss: String): (Clustering[Null], Int, Int) = {
     val (lossEngine, pamTransform) = getLoss[Null](loss, pam)
     val useFasterAlgorithm = loss != "lowerBoundVariationOfInformation"
