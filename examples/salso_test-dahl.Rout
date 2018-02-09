@@ -1,0 +1,556 @@
+
+R Under development (unstable) (2018-02-04 r74204) -- "Unsuffered Consequences"
+Copyright (C) 2018 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> library(mvnfast)
+> library(MCMCpack)
+Loading required package: coda
+Loading required package: MASS
+##
+## Markov Chain Monte Carlo Package (MCMCpack)
+## Copyright (C) 2003-2018 Andrew D. Martin, Kevin M. Quinn, and Jong Hee Park
+##
+## Support provided by the U.S. National Science Foundation
+## (Grants SES-0350646 and SES-0350613)
+##
+> library(reshape2)
+> library(ggplot2)
+> library(sdols)
+> library(label.switching)
+> 
+> log_vec_renorm = function(vec)
++ {
++  
++     n = length(vec);
++     result =numeric(n)     
++     ## take care of infinite values by ignoring them and scale on the mean
++     ## scaling help numerical stability.
++     indx = is.infinite(vec);
++     vec2 = rep(-Inf,n);
++     vec2[!indx] = vec[!indx] - mean(vec[!indx])
++         for(i in 1:n)
++         {
++         result[i] = exp( -log(1+ sum(exp( vec2[-i] - vec2[i])))) 
++         }
++     return(result)
++ }
+> 
+> 
+> ##########################################
+> ##########################################
+> ##########################################
+> ##########################################
+> set.seed(1234)
+> 
+> 
+> 
+> ## 3 dimension : 2) mixture model clustering 3) indpendent noise 
+> 
+> 
+> 
+> mu12 = list()
+> mu12[[1]] = c(-2,-2)
+> mu12[[2]] = c(2,2)
+> 
+> dati         = list()
+> dati$N       = 200
+> dati$p       = 2
+> dati$data    = matrix(0,dati$N,dati$p)
+> dati$mix_mem = integer(dati$N)
+> 
+> 
+> 
+> for(i in 1:dati$N){
++   dati$mix_mem[i]      = sample(1:2,size =1)
++   dati$data[i,1:2]     = rmvn(1,mu = mu12[[dati$mix_mem[i]]],sigma = diag(1,2))
++   dati$data[i,-c(1:2)] = rnorm(dati$p -2)
++ }
+>     
+> ##########################################
+> ##########################################
+> ## K-MEAN CLUSTERING
+> ##########################################
+> ##########################################
+> 
+> mod_kmean = kmeans(dati$data , 2, nstart = 20)
+> 
+> 
+> ggplot(data.frame(dati$data, class = factor(mod_kmean$cluster),lt = factor(dati$mix_mem )))+
++ geom_point(aes(X1,X2,col = class,shape = lt),size =4)
+> 
+> 
+> ##########################################
+> ##########################################
+> ## gaussian mixture model --- cond-ind-kern
+> ##########################################
+> ##########################################
+> 
+> ## prior
+> prior           = list()
+> prior$H         = 5 ## upperbound from the number of clusters
+> ## normal inverse wishart
+> prior$mu        = 0 
+> prior$sigma     = 1
+> prior$alpha     = 2
+> prior$beta      = 2
+> 
+> ## parameters
+> 
+> param           = list()
+> param$mu        = matrix(0,dati$p,prior$H)
+> param$sigma     = array(1, dim = c(dati$p,prior$H))
+> param$zi        = numeric(dati$N)
+> param$lambda    = rep(1/prior$H,prior$H) 
+> 
+> 
+> 
+> 
+> 
+> ##########################################
+> ##########################################
+> ## initialize parameters
+> ##########################################
+> ##########################################
+> param$zi    =  sample(1:prior$H,size = dati$N,replace = TRUE)
+> 
+> 
+> nrep = 10000
+> 
+> results = list()
+> results$mu        = array(0,dim  = c(nrep,dati$p,prior$H))
+> results$Sigma     = array(0, dim = c(nrep,dati$p,prior$H))
+> results$zi        = array(0,dim  = c(nrep,dati$N))
+> results$lambda    = array(0,dim  = c(nrep,prior$H))
+> 
+> 
+> for(r in 1:nrep){
++ 
++ ##########################################
++ ##########################################
++ ## update Kernel parameters
++ ##########################################
++ ##########################################
++ 
++ 
++ for(h in 1:prior$H){
++     sel_h  = param$zi==h
++     nh     = sum(sel_h ==h)
++     
++     if(nh >0){
++       ##########################################
++       ##########################################
++       ## NORMAL
++       ##########################################
++       ##########################################
++ 
++      for(j in dati$p){
++      # mean 
++      tmp_var  = 1/(1/prior$sigma + nh/param$sigma[j,h])
++      tmp_mean = tmp_var * (prior$mu/prior$sigma +
++                            sum(dati$data[sel_h,j]))
++      param$mu[j,h] = rnorm(1,mean = tmp_mean,sd = sqrt(tmp_var))  
++ 
++      ## variance
++      param$sigma[j,h] =
++      1/rgamma(1,shape = prior$alpha + nh/2,rate = prior$beta +  sum((dati$data[sel_h,j] - param$mu[j,h])^2)/2)
++      }
++ 
++     }
++       ##########################################
++       ##########################################
++       ## generate from the prior for empty classes
++       ##########################################
++       ##########################################
++       else{ 
++       for(j in 1:dati$p){
++        param$mu[j,h]       = rnorm(1,mean = prior$mu, sd = sqrt(prior$sigma))
++        param$sigma[j,h]  = 1/rgamma(1,shape = prior$alpha, rate = prior$beta)
++       }
++ 
++    }
++ }
++ 
++ ##########################################
++ ##########################################
++ ## mixture  data augmentation
++ ##########################################
++ ##########################################
++ 
++ 
++ for(i in 1:dati$N){
++     
++     tmp_prob = rep(0,prior$H)
++     for(h in 1:prior$H){
++     ##########################################
++     ##########################################
++     ## COMPUTE LOG-LIKELIHOOD 
++     ##########################################
++     ##########################################
++         log_lik_h = 0
++         ## continuous
++         log_lik_h  = log_lik_h  +dmvn(dati$data[i,], mu = param$mu[,h], sigma = diag(param$sigma[,h]) , log = T)
++ 
++ 
++         tmp_prob[h] = log_lik_h + param$lambda[h]
++ 
++     }
++     param$zi[i] = sample(1:prior$H,size = 1,prob = log_vec_renorm(tmp_prob))
++     }
++ 
++ 
++ 
++ ##########################################
++ ##########################################
++ ## Update mixture weights
++ ##########################################
++ ##########################################
++ param$lambda = c(rdirichlet(1, 1/prior$H + table(factor(param$zi,1:prior$H))))
++ 
++ 
++ ##########################################
++ ##########################################
++ ## save results across iterations
++ ##########################################
++ ##########################################
++ results$mu[r,,]         = param$mu
++ results$Sigma[r,,]      = param$sigma 
++ results$zi[r,]          = param$zi
++ results$lambda[r,]      = param$lambda
++ 
++ if(r%%1000 ==0){
++     cat('Iteration: ',r, '/',nrep,'\n')
++     cat(paste(1:prior$H,'\t'),'\n')
++     cat(paste(table(factor(param$zi,1:prior$H)),'\t'),'\n')
++ } 
++ }
+Iteration:  1000 / 10000 
+1 	 2 	 3 	 4 	 5 	 
+49 	 27 	 50 	 62 	 12 	 
+Iteration:  2000 / 10000 
+1 	 2 	 3 	 4 	 5 	 
+56 	 4 	 75 	 37 	 28 	 
+Iteration:  3000 / 10000 
+1 	 2 	 3 	 4 	 5 	 
+28 	 16 	 68 	 63 	 25 	 
+Iteration:  4000 / 10000 
+1 	 2 	 3 	 4 	 5 	 
+23 	 31 	 91 	 26 	 29 	 
+Iteration:  5000 / 10000 
+1 	 2 	 3 	 4 	 5 	 
+20 	 48 	 18 	 8 	 106 	 
+Iteration:  6000 / 10000 
+1 	 2 	 3 	 4 	 5 	 
+29 	 20 	 21 	 25 	 105 	 
+Iteration:  7000 / 10000 
+1 	 2 	 3 	 4 	 5 	 
+2 	 18 	 71 	 55 	 54 	 
+Iteration:  8000 / 10000 
+1 	 2 	 3 	 4 	 5 	 
+47 	 17 	 28 	 13 	 95 	 
+Iteration:  9000 / 10000 
+1 	 2 	 3 	 4 	 5 	 
+8 	 42 	 56 	 62 	 32 	 
+Iteration:  10000 / 10000 
+1 	 2 	 3 	 4 	 5 	 
+44 	 9 	 25 	 59 	 63 	 
+> 
+> 
+> ##########################################
+> ##########################################
+> ## Define a burnin
+> ##########################################
+> ##########################################
+> burnin = 1:floor(nrep/2)
+> 
+> 
+> ##########################################
+> ##########################################
+> ## using  salso
+> ##########################################
+> ##########################################
+> 
+> apply(results$zi[-burnin,],1,function(x) length(unique(x)))
+   [1] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+  [38] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+  [75] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [112] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 4 5 5 5 5 5 5 5 5
+ [149] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [186] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 4 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [223] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 4 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [260] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [297] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [334] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [371] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [408] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [445] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [482] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [519] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [556] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [593] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [630] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [667] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [704] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [741] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [778] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [815] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [852] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [889] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [926] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+ [963] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1000] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1037] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1074] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1111] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1148] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1185] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 4 5 5 5 5 5 5 5 5 5
+[1222] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1259] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1296] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1333] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1370] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1407] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1444] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1481] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 4
+[1518] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1555] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1592] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1629] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1666] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1703] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1740] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1777] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1814] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 4 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1851] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1888] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1925] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1962] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[1999] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2036] 5 5 5 5 5 5 5 5 5 5 5 4 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2073] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2110] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2147] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2184] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2221] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2258] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2295] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2332] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2369] 5 5 5 5 4 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2406] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2443] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2480] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2517] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2554] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2591] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2628] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2665] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2702] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2739] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2776] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2813] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2850] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2887] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2924] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2961] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[2998] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3035] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3072] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3109] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3146] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3183] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3220] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3257] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3294] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3331] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3368] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3405] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3442] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3479] 4 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3516] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3553] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3590] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3627] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3664] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3701] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3738] 4 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3775] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3812] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3849] 5 5 4 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3886] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 4 5 5 5 5 5 5 5 5 5 5
+[3923] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 4 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3960] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[3997] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4034] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4071] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4108] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4145] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4182] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4219] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 4 5
+[4256] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4293] 5 5 5 5 4 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4330] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4367] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4404] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4441] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4478] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4515] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4552] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4589] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4626] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4663] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4700] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4737] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4774] 4 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 4 5 5 5 5 5 5 5
+[4811] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 4 5 5
+[4848] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4885] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4922] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4959] 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5
+[4996] 5 5 5 5 5
+> 
+> library(sdols)
+> library(mcclust)
+Loading required package: lpSolve
+> library(mcclust.ext) # Available at https://warwick.ac.uk/fac/sci/statistics/staff/academic-research/wade/
+> 
+> results$probabilities = expectedPairwiseAllocationMatrix(results$zi[-burnin,])
+> 
+> ########
+> #### Binder loss function
+> ########
+> 
+> # Algorithms to minimize the posterior expectation of the Binder loss function.
+> system.time(clustering.binder.salso  <- salso(results$probabilities))
+   user  system elapsed 
+  0.008   0.000   1.769 
+> system.time(clustering.binder.lg     <- minbinder(results$probabilities, method="laugreen")$cl)    # Lau & Green (2007)
+   user  system elapsed 
+344.356  11.208 355.601 
+> system.time(clustering.binder.avg    <- minbinder(results$probabilities, method="avg")$cl)
+   user  system elapsed 
+  0.060   0.000   0.058 
+> system.time(clustering.binder.comp   <- minbinder(results$probabilities, method="comp")$cl)
+   user  system elapsed 
+  0.060   0.000   0.058 
+> system.time(clustering.binder.draws  <- minbinder(results$probabilities, cls.draw=results$zi[-burnin,], method="draws")$cl)
+   user  system elapsed 
+  6.648   0.000   6.647 
+> system.time(clustering.binder.wg     <- minbinder.ext(results$probabilities, method="greedy")$cl)  # Wade & Ghahramani (2018)
+   user  system elapsed 
+412.724   0.000 412.777 
+> 
+> # How well do they do at minimizing the posterior exectation of the Binder loss function?
+> latentStructureFit(clustering.binder.salso, results$probabilities)$binder
+[1] 5184.932
+> latentStructureFit(clustering.binder.lg,    results$probabilities)$binder
+[1] 5195.985
+> latentStructureFit(clustering.binder.avg,   results$probabilities)$binder
+[1] 5199.479
+> latentStructureFit(clustering.binder.comp,  results$probabilities)$binder
+[1] 5235.119
+> latentStructureFit(clustering.binder.draws, results$probabilities)$binder
+[1] 5805.618
+> 
+> ########
+> #### Lower bound of the variation of information loss
+> ########
+> 
+> # Algorithms to minimize the posterior expectation of the lower bound of the variation of information loss.
+> system.time(clustering.lbVI.salso  <- salso(results$probabilities,loss="lowerBoundVariationOfInformation"))
+   user  system elapsed 
+  0.004   0.000   0.415 
+> system.time(clustering.lbVI.avg    <- minVI(results$probabilities, method="avg")$cl)
+   user  system elapsed 
+  0.036   0.000   0.038 
+> system.time(clustering.lbVI.comp   <- minVI(results$probabilities, method="comp")$cl)
+   user  system elapsed 
+  0.036   0.000   0.037 
+> system.time(clustering.lbVI.draws  <- minVI(results$probabilities, cls.draw=results$zi[-burnin,], method="draws")$cl)
+   user  system elapsed 
+  5.792   0.000   5.793 
+> system.time(clustering.lbVI.wg     <- minVI(results$probabilities, method="greedy")$cl)  # Wade & Ghahramani (2018)
+   user  system elapsed 
+827.716   0.000 827.798 
+> 
+> # How well do they do at minimizing the posterior exectation of the lower bound of the variation of information mass?
+> latentStructureFit(clustering.lbVI.salso, results$probabilities)$lowerBoundVariationOfInformation
+[1] 1.6771
+> latentStructureFit(clustering.lbVI.avg,   results$probabilities)$lowerBoundVariationOfInformation
+[1] 1.6771
+> latentStructureFit(clustering.lbVI.comp,  results$probabilities)$lowerBoundVariationOfInformation
+[1] 1.872104
+> latentStructureFit(clustering.lbVI.draws, results$probabilities)$lowerBoundVariationOfInformation
+[1] 2.139502
+> latentStructureFit(clustering.lbVI.draws, results$probabilities)$lowerBoundVariationOfInformation
+[1] 2.139502
+> 
+> results$cluster <- clustering.lbVI.salso
+> 
+> ggplot(data.frame(dati$data, class = factor(results$cluster),lt = factor(dati$mix_mem )))+
++ geom_point(aes(X1,X2,col = class,shape = lt),size =4)
+> 
+> 
+> ##########################################
+> ##########################################
+> ## MAP assignation after label.switching correction
+> ##########################################
+> ##########################################
+> 
+> mod_ls  = label.switching(method = 'DATA-BASED',  z = results$zi[-burnin,],K = prior$H,data = dati$data)
+
+    ......................................................................................
+    . Method                         Time (sec)           Status                         . 
+    ......................................................................................
+    . DATA-BASED                     3.009                OK                             . 
+    ......................................................................................
+
+    Relabelling all methods according to method DATA-BASED ... done!
+    Retrieve the 1 permutation arrays by typing:
+        [...]$permutations$"DATA-BASED"
+    Retrieve the 1 best clusterings: [...]$clusters
+    Retrieve the 1 CPU times: [...]$timings
+    Retrieve the 1 X 1 similarity matrix: [...]$similarity
+    Label switching finished. Total time: 3.3 seconds. 
+> 
+> ggplot(data.frame(dati$data[,1:2], class = factor(mod_ls$cluster),lt = factor(dati$mix_mem))) + 
++ geom_point(aes(X1,X2,col = class,shape = lt),size =4)
+> 
+> mod_ls2   = label.switching(method = 'ECR-ITERATIVE-1',  z = results$zi[-burnin,],K = prior$H,data = dati$data)
+
+    ......................................................................................
+    . Method                         Time (sec)           Status                         . 
+    ......................................................................................
+    . ECR-ITERATIVE-1                11.768               Converged (7 iterations)       . 
+    ......................................................................................
+
+    Relabelling all methods according to method ECR-ITERATIVE-1 ... done!
+    Retrieve the 1 permutation arrays by typing:
+        [...]$permutations$"ECR-ITERATIVE-1"
+    Retrieve the 1 best clusterings: [...]$clusters
+    Retrieve the 1 CPU times: [...]$timings
+    Retrieve the 1 X 1 similarity matrix: [...]$similarity
+    Label switching finished. Total time: 12 seconds. 
+> 
+> 
+> ggplot(data.frame(dati$data[,1:2], class = factor(mod_ls2$cluster),lt = factor(dati$mix_mem))) + 
++ geom_point(aes(X1,X2,col = class,shape = lt),size =4)
+> 
+> 
+> 
+> proc.time()
+    user   system  elapsed 
+1753.388   15.876 1773.639 
