@@ -33,6 +33,8 @@
 #' if the result does not change between scans.
 #' @param multicore Logical indicating whether computations should take advantage of
 #' multiple CPU cores.
+#' @param useOldImplementation Logical indicating whether to use the old implementation.  This should
+#' be removed after sufficient testing of the new implementation.
 #'
 #' @return A clustering (as a vector of cluster labels) or a feature allocation (as a binary
 #' matrix of feature indicators).
@@ -58,7 +60,7 @@
 
 salso <- function(expectedPairwiseAllocationMatrix, structure=c("clustering","featureAllocation")[1],
                   loss=c("squaredError","absoluteError","binder","lowerBoundVariationOfInformation")[1],
-                  nCandidates=100, budgetInSeconds=10, maxSize=0, maxScans=10, multicore=TRUE) {
+                  nCandidates=100, budgetInSeconds=10, maxSize=0, maxScans=10, multicore=TRUE,useOldImplementation=FALSE) {
   if ( identical(structure,"clustering") ) doClustering <- TRUE
   else if ( identical(structure,"featureAllocation") ) doClustering <- FALSE
   else stop("'structure' must be either 'clustering' or 'featureAllocation'.")
@@ -77,7 +79,7 @@ salso <- function(expectedPairwiseAllocationMatrix, structure=c("clustering","fe
   maxScans <- as.integer(maxScans[1])
   multicore <- as.logical(multicore[1])
   result <- if ( doClustering ) {
-    ref <- s$.ClusteringSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxSize,maxScans,multicore,loss)
+    ref <- s$.ClusteringSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxSize,maxScans,multicore,loss,useOldImplementation)
     ref$"_1"()$toLabels()+1L
   } else {
     ref <- s$.FeatureAllocationSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxScans,maxSize,multicore,loss)

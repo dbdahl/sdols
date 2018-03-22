@@ -5,13 +5,13 @@ organization := "org.ddahl"
 //version := "1.4"
 version := "1.5-SNAPSHOT"
 
-scalaVersion := "2.12.4"
+scalaVersion := "2.12.5"
 
-crossScalaVersions := Seq("2.11.12", "2.12.4")
+crossScalaVersions := Seq("2.11.12", "2.12.5")
         
 libraryDependencies ++= Seq(
-  "org.ddahl" %% "rscala" % "2.5.0",
-  "org.ddahl" %% "commonsmath" % "1.1",
+  "org.ddahl" %% "rscala" % "2.5.2-SNAPSHOT",
+  "org.ddahl" %% "commonsmath" % "1.2-SNAPSHOT",
   "org.apache.commons" % "commons-math3" % "3.6.1",
   "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )

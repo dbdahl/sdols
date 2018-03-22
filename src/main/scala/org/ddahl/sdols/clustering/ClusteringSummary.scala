@@ -228,6 +228,14 @@ object ClusteringSummary {
     else candidates
   }
 
+  private def lowerBoundVariationOfInformationShortcutEngine(i: Int, clusteringWithoutI: Clustering[Null], maxSize: Int, pam: Array[Array[Double]]): List[(Cluster[Null], Double)] = {
+    val candidates = clusteringWithoutI.map(cluster => {
+      (cluster,lowerBoundVariationOfInformationEngine(clusteringWithoutI.add(i,cluster),pam))
+    }).toList
+    if ((maxSize <= 0) || (clusteringWithoutI.size < maxSize)) (Cluster.empty[Null](null),lowerBoundVariationOfInformationEngine(clusteringWithoutI.add(i,Cluster.empty[Null](null)),pam)) :: candidates
+    else candidates
+  }
+
   def minAmongDraws(candidates: Array[Array[Int]], maxSize: Int, multicore: Boolean, loss: String, pamOption: Option[Array[Array[Double]]] = None): Clustering[Null] = {
     minAmongDraws(candidates.map(Clustering.apply),maxSize,multicore,loss,pamOption)
   }
@@ -235,7 +243,7 @@ object ClusteringSummary {
   def minAmongDraws[A](candidates: Seq[Clustering[A]], maxSize: Int, multicore: Boolean, loss: String, pamOption: Option[Array[Array[Double]]]): Clustering[A] = {
     if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
     val pam = pamOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
-    val (lossEngine, pamTransform) = getLoss[A](loss, pam)
+    val (lossEngine, shortcutEngine, pamTransform) = getLoss[A](maxSize, loss, pam)
     val iter = if ( multicore ) candidates.par else candidates
     iter.minBy { clustering =>
       if ( ( maxSize > 0 ) && ( clustering.size > maxSize ) ) Double.PositiveInfinity
@@ -243,7 +251,7 @@ object ClusteringSummary {
     }
   }
 
-  private def sequentiallyAllocatedLatentStructureOptimization(initial: Clustering[Null], maxSize: Int, permutation: List[Int], pamTransform: Array[Array[Double]], lossEngine: (Clustering[Null],Array[Array[Double]]) => Double): Clustering[Null] = {
+  private def sequentiallyAllocatedLatentStructureOptimizationOld(initial: Clustering[Null], maxSize: Int, permutation: List[Int], pamTransform: Array[Array[Double]], lossEngine: (Clustering[Null],Array[Array[Double]]) => Double): Clustering[Null] = {
     var clustering = initial
     for ( i <- permutation ) {
       val candidates = clustering.map(cluster => clustering.add(i,cluster)).toList
@@ -255,7 +263,15 @@ object ClusteringSummary {
     clustering
   }
 
-  private def sequentiallyAllocatedLatentStructureOptimizationFaster(initial: Clustering[Null], maxSize: Int, maxScans: Int, permutation: List[Int], pamTransform: Array[Array[Double]]): (Clustering[Null], Int) = {
+  def mkShortcutEngineBinder(maxSize: Int, pamTransform: Array[Array[Double]]) = (i: Int, clusteringWithoutI: Clustering[Null]) => {
+    binderShortcutEngine(i, clusteringWithoutI, maxSize, pamTransform)
+  }
+
+  def mkShortcutEngineLowerBoundVariationOfInformation(maxSize: Int, pam: Array[Array[Double]]) = (i: Int, clusteringWithoutI: Clustering[Null]) => {
+    lowerBoundVariationOfInformationShortcutEngine(i, clusteringWithoutI, maxSize, pam)
+  }
+
+  private def sequentiallyAllocatedLatentStructureOptimization(initial: Clustering[Null], maxScans: Int, permutation: List[Int], engine: (Int,Clustering[Null]) => List[(Cluster[Null], Double)]): (Clustering[Null], Int) = {
     var clustering = initial
     var firstPass = true
     var notDone = true
@@ -265,7 +281,7 @@ object ClusteringSummary {
       val previousClustering = clustering
       for (i <- permutation) {
         if ( ! firstPass ) clustering = clustering.remove(i)
-        val candidates = binderShortcutEngine(i,clustering,maxSize,pamTransform)
+        val candidates = engine(i,clustering)
         clustering = clustering.add(i, candidates.minBy(_._2)._1)
       }
       if ( firstPass ) firstPass = false
@@ -274,17 +290,21 @@ object ClusteringSummary {
     (clustering, scanCounter)
   }
 
-  private def getLoss[A](loss: String, pam: Array[Array[Double]]) = {
+  private def getLoss[A](maxSize: Int, loss: String, pam: Array[Array[Double]]) = {
     loss match {
-      case "binder" | "squaredError" | "absoluteError" => (binderEngine[A] _, pam.map(_.map(x => 0.5-x)))
-      case "lowerBoundVariationOfInformation" => (lowerBoundVariationOfInformationEngine[A] _, pam)
+      case "binder" | "squaredError" | "absoluteError" => {
+        val pamTransform = pam.map(_.map(x => 0.5-x))
+        (binderEngine[A] _, mkShortcutEngineBinder(maxSize, pamTransform), pamTransform)
+      }
+      case "lowerBoundVariationOfInformation" => {
+        (lowerBoundVariationOfInformationEngine[A] _, mkShortcutEngineLowerBoundVariationOfInformation(maxSize, pam), pam)
+      }
     }
   }
 
-  // Oops, when not useFasterAlgorithm, we don't do any sweetening scans.
-  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Double, pam: Array[Array[Double]], maxSize: Int, maxScans: Int, multicore: Boolean, loss: String): (Clustering[Null], Int, Int) = {
-    val (lossEngine, pamTransform) = getLoss[Null](loss, pam)
-    val useFasterAlgorithm = loss != "lowerBoundVariationOfInformation"
+  // Oops, when useOldAlgorithm, we don't do any sweetening scans.
+  def sequentiallyAllocatedLatentStructureOptimization(nCandidates: Int, budgetInSeconds: Double, pam: Array[Array[Double]], maxSize: Int, maxScans: Int, multicore: Boolean, loss: String, useOldImplementation: Boolean): (Clustering[Null], Int, Int) = {
+    val (lossEngine, shortcutEngine, pamTransform) = getLoss[Null](maxSize, loss, pam)
     val rng = new scala.util.Random()   // Thread safe!
     val nItems = pam.length
     val ints = List.tabulate(nItems) { identity }
@@ -300,8 +320,8 @@ object ClusteringSummary {
       while ( (counter < nCandidatesPerThread) && ( System.currentTimeMillis - start <= budgetInMillis ) ) {
         counter += 1
         val permutation = rng.shuffle(ints)
-        val candidate = if ( useFasterAlgorithm ) sequentiallyAllocatedLatentStructureOptimizationFaster(empty,maxSize,maxScans,permutation,pamTransform)
-        else (sequentiallyAllocatedLatentStructureOptimization(empty,maxSize,permutation,pamTransform,lossEngine),-1)
+        val candidate = if ( ! useOldImplementation ) sequentiallyAllocatedLatentStructureOptimization(empty,maxScans,permutation,shortcutEngine)
+        else (sequentiallyAllocatedLatentStructureOptimizationOld(empty,maxSize,permutation,pamTransform,lossEngine),-1)
         val score = lossEngine(candidate._1,pamTransform)
         if ( score < minScore ) {
           minScore = score
