@@ -93,13 +93,15 @@ scalaConvert.featureAllocation <- function(x, names=NULL, withParameters=TRUE) {
             data2[ii] <- ncol(W)
             ii <- ii + 1
           }
-          data2[ii:(ii+length(W)-1)] <- t(W)
-          ii <- ii + length(W)
+          if ( length(W) > 0 ) {
+            data2[ii:(ii+length(W)-1)] <- t(W)
+            ii <- ii + length(W)
+          }
         }
       }
       data[i] <- ncol(fa)
       i <- i + 1
-      for ( k in 1:ncol(fa) ) {
+      for ( k in seq_len(ncol(fa)) ) {
         what <- which(fa[,k]==1)-1L
         data[i] <- length(what)
         i <- i + 1
@@ -108,9 +110,9 @@ scalaConvert.featureAllocation <- function(x, names=NULL, withParameters=TRUE) {
       }
     }
     result <- if ( length(data2) > 0 ) {
-      s$.FeatureAllocation$deserializeWithParameters(data,data2)
+      s$.FeatureAllocation$deserializeWithParameters(I(data),I(data2))
     } else {
-      s$.FeatureAllocation$deserialize(data)
+      s$.FeatureAllocation$deserialize(I(data))
     }
     if ( singleton ) result$head()
     else result

@@ -23,6 +23,10 @@
 #' features is no more than the supplied value.  If zero, the size is not constrained.
 #' @param multicore Logical indicating whether computations should take advantage of
 #' multiple CPU cores.
+#' @param expectedPairwiseAllocationMatrix A \code{n}-by-\code{n} symmetric matrix
+#' whose \code{(i,j)} elements gives the estimated expected number of times that items
+#' \code{i} and \code{j} are in the same subset (i.e., cluster or feature).  If \code{NULL},
+#' it is computed from \code{x}.
 #'
 #' @return A clustering (as a vector of cluster labels) or a feature allocation (as a binary
 #' matrix of feature indicators).
@@ -44,7 +48,7 @@
 #' @import rscala
 
 dlso <- function(x, loss=c("squaredError","absoluteError","binder","lowerBoundVariationOfInformation")[1],
-                 maxSize=0,multicore=TRUE) {
+                 maxSize=0,multicore=TRUE,expectedPairwiseAllocationMatrix=NULL) {
   doClustering <- is.matrix(x)
   loss <- as.character(loss[1])
   if ( doClustering ) {
@@ -56,13 +60,15 @@ dlso <- function(x, loss=c("squaredError","absoluteError","binder","lowerBoundVa
   }
   maxSize <- as.integer(maxSize[1])
   multicore <- as.logical(multicore[1])
+  epam <- if ( is.null(expectedPairwiseAllocationMatrix) ) s$.None
+  else s$.Some$apply(as.matrix(expectedPairwiseAllocationMatrix))
   if ( doClustering ) {
     x <- cleanUpClusteringMatrix(x)
-    ref <- s$.ClusteringSummary$minAmongDraws(x,maxSize,multicore,loss,s$.None)
+    ref <- s$.ClusteringSummary$minAmongDraws(x,maxSize,multicore,loss,epam)
     ref$toLabels()+1L
   } else {
     x <- scalaConvert.featureAllocation(x)
-    ref <- s$.FeatureAllocationSummary$minAmongDraws(x,maxSize,multicore,loss,s$.None)
+    ref <- s$.FeatureAllocationSummary$minAmongDraws(x,maxSize,multicore,loss,epam)
     result <- scalaConvert.featureAllocation(ref,withParameters=FALSE)
     attr(result,"scalaReference") <- NULL
     result
