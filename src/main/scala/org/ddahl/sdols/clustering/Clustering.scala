@@ -1,6 +1,7 @@
 package org.ddahl.sdols
 package clustering
 
+import scala.annotation.tailrec
 import scala.reflect.ClassTag
 
 final class Clustering[A](val nItems: Int, val nClusters: Int, protected val x: Set[Cluster[A]]) extends Iterable[Cluster[A]] {
@@ -179,22 +180,21 @@ object Clustering {
     }
   }
 
-  import scala.annotation.tailrec
-
-  @tailrec private def makeClustering[A](sampler: () => A, labelsWithIndex: Iterable[(Int, Int)], list: List[Cluster[A]]): List[Cluster[A]] = {
+  @tailrec
+  private def makeClustering[A](sampler: Int => A, labelsWithIndex: Iterable[(Int, Int)], list: List[Cluster[A]]): List[Cluster[A]] = {
     val label = labelsWithIndex.head._1
     val (left, right) = labelsWithIndex.partition(_._1 == label)
-    val longerList = Cluster(sampler(), left.map(_._2)) +: list
+    val longerList = Cluster(sampler(label), left.map(_._2)) +: list
     if (right.isEmpty) longerList
     else makeClustering(sampler, right, longerList)
   }
 
-  def apply[A](sampler: () => A, labels: Iterable[Int]): Clustering[A] = {
+  def apply[A](sampler: Int => A, labels: Iterable[Int]): Clustering[A] = {
     if (labels.isEmpty) throw new IllegalArgumentException("Labels may not by empty.")
     apply(makeClustering(sampler, labels.zipWithIndex, List[Cluster[A]]()))
   }
 
-  def apply(labels: Array[Int]): Clustering[Null] = apply(() => null, labels)
+  def apply(labels: Array[Int]): Clustering[Null] = apply((i: Int) => null, labels)
 
   def apply[A](i: Cluster[A]*): Clustering[A] = apply(i)
 
