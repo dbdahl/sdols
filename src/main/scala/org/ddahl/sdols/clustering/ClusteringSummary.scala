@@ -3,6 +3,7 @@ package clustering
 
 import org.ddahl.commonsmath._
 import org.apache.commons.math3.util.FastMath.log
+import scala.annotation.tailrec
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -59,66 +60,46 @@ object ClusteringSummary {
     x.map(_.map(_/cl))
   }
 
-  def confidenceComputations[A](clustering: Array[Int], pam: Array[Array[Double]]): (Array[Int], Array[Double], Array[Array[Double]], Array[Int], Array[Int]) = {
-    val nItems = pam.length
-    assert(clustering.length == nItems)
-    def overlap(cluster1: Set[Int], cluster2: Set[Int]): Double = {
-      cluster1.map(i => {
-        val pami = pam(i)
-        cluster2.map(j => {
-          pami(j)
-        }).sum
-      }).sum / (cluster1.size * cluster2.size)
-    }
-    val clustering2 = makeClustering(clustering)
-    val matrix = scala.collection.mutable.HashMap[Tuple2[Set[Int], Set[Int]], Double]()
-    clustering2.foreach(s1 => clustering2.foreach(s2 => matrix((s1, s2)) = overlap(s1, s2)))
-    val clustersWithSumOverlap = clustering2.map(s1 => (s1, clustering2.map(s2 => matrix(s1, s2)).sum))
-    val sortedClusters = clustersWithSumOverlap.sortWith((t1, t2) => t1._2 < t2._2).map(_._1)
-    val map = sortedClusters.zipWithIndex.toMap
-    val matrixOutSmall = Array.ofDim[Double](clustering2.size, clustering2.size)
-    clustering2.foreach(c1 => clustering2.foreach(c2 => matrixOutSmall(map(c1))(map(c2)) = matrix((c1, c2))))
-    val confidence = new Array[Double](nItems)
-    for (i <- 0 until nItems) {
-      val ppmi = pam(i)
-      val cluster = clustering2.find(_.contains(i)).get
-      confidence(i) = cluster.map(j => ppmi(j)).sum / cluster.size
-    }
-    val UNINITIALIZED = -1
-    val exemplar = Array.fill(map.size) { UNINITIALIZED }
-    val order = Array.range(0, nItems).sortWith{ (i, j) =>
-      val io = map(clustering2.find(_.contains(i)).get)
-      val jo = map(clustering2.find(_.contains(j)).get)
-      if (io < jo) {
-        true
-      } else if (io > jo) {
-        false
-      } else {
-        val iBigger = confidence(i) > confidence(j)
-        if (iBigger) {
-          if ((exemplar(io) == UNINITIALIZED) || (confidence(exemplar(io)) < confidence(i))) exemplar(io) = i
-        } else {
-          if ((exemplar(jo) == UNINITIALIZED) || (confidence(exemplar(jo)) < confidence(j))) exemplar(jo) = j
-        }
-        iBigger
+  def confidenceComputations(clustering: Array[Int], pam: Array[Array[Double]]): (Array[Double], Array[Array[Double]], Array[Int], Array[Int], Array[Int]) = {
+    val clustering2 = Clustering(i => i, clustering)
+    val confidence = (0 until clustering2.nItems).map { i =>
+      val pami = pam(i)
+      val cluster = clustering2.clusterFor(i)
+      cluster.foldLeft(0.0) { (sum, j) => sum + pami(j) } / cluster.size
+    }.toArray
+    val sizes = clustering2.map( cluster => (cluster,cluster.size) ).toMap
+    val clusters = clustering2.toList.sortWith( (c1,c2) => sizes(c1) > sizes(c2) )
+    val confidenceMatrixLabels = clusters.map(_.parameter).toArray
+    val confidenceMatrix = clusters.map { cluster1 =>
+      clusters.map { cluster2 =>
+        cluster1.foldLeft(0.0) { (sum1, i) =>
+          val pami = pam(i)
+          sum1 + cluster2.foldLeft(0.0) { (sum2, j) =>
+            sum2 + pami(j)
+          }
+        } / ( cluster1.size * cluster2.size )
+      }.toArray
+    }.toArray
+    val exemplar = clusters.map { cluster =>
+      cluster.toList.sortWith { (i, j) =>
+        if (confidence(i) > confidence(j)) true
+        else if (confidence(i) == confidence(j)) i < j
+        else false
       }
-    }
-    val labels = Array.range(0, nItems).map(i => map(clustering2.find(_.contains(i)).get))
-    (labels, confidence, matrixOutSmall, order, exemplar)
-  }
-
-  @scala.annotation.tailrec
-  private def makeClustering(labelsWithIndex: Iterable[(Int, Int)], list: List[Set[Int]]): List[Set[Int]] = {
-    val label = labelsWithIndex.head._1
-    val (left, right) = labelsWithIndex.partition(_._1 == label)
-    val longerList = left.map(_._2).toSet +: list
-    if (right.isEmpty) longerList
-    else makeClustering(right, longerList)
-  }
-
-  private def makeClustering(clustering: Array[Int]): List[Set[Int]] = {
-    if (clustering.isEmpty) throw new IllegalArgumentException("Labels may not by empty.")
-    makeClustering(clustering.zipWithIndex, List[Set[Int]]())
+    }.map(_.head).toArray
+    val orderList = clusters.zip(exemplar).flatMap { x =>
+      @tailrec
+      def findBest(candidates: List[Int], members: List[Int]): List[Int] = {
+        if ( ! candidates.isEmpty ) {
+          val best = candidates.map { y =>
+            (members.foldLeft(0.0) { (sum, j) => sum + pam(y)(j) }, y)
+          }.sortWith(_._1 > _._1).head._2
+          findBest(candidates.filterNot(_ == best), best :: members)
+        } else members
+      }
+      findBest((x._1.x - x._2).toList, List[Int](x._2))
+    }.toArray
+    (confidence, confidenceMatrix, confidenceMatrixLabels, orderList, exemplar)
   }
 
   def lowerBoundVariationOfInformation[A](clustering: Clustering[A], pam: Array[Array[Double]]): Double = {

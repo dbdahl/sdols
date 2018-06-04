@@ -29,8 +29,9 @@
 plot.sdols.confidence <- function(x, clustering=NULL, data=NULL, show.labels=length(x$clustering)<=50, ...) {
   if ( ! is.null(data) ) {
     if ( ! is.null(clustering) ) stop("'clustering' must be 'NULL' for pairs plot.")
-    i <- x$exemplar[x$clustering]
-    c <- rainbow(length(x$exemplar))[x$clustering]
+    m <- match(x$clustering,as.numeric(colnames(x$confidenceMatrix)))
+    i <- x$exemplar[m]
+    c <- rainbow(length(x$exemplar))[m]
     panelFnc <- function(x0,y0,...) {
       points(x0,y0,col=c,pch=19,...)
       segments(x0,y0,x0[i],y0[i],col=c,...)

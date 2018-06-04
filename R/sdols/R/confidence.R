@@ -29,17 +29,15 @@ confidence <- function(estimate, expectedPairwiseAllocationMatrix) {
   clustering <- as.clustering(estimate)
   expectedPairwiseAllocationMatrix <- as.expectedPairwiseAllocationMatrix(expectedPairwiseAllocationMatrix)
   tmpObj <- s$.ClusteringSummary$confidenceComputations(clustering,expectedPairwiseAllocationMatrix)
-  clustering <- tmpObj$"_1"() + 1
-  names(clustering) <- colnames(expectedPairwiseAllocationMatrix)
-  confidence <- tmpObj$"_2"()
-  names(confidence) <- names(clustering)
-  confidenceMatrix <- tmpObj$"_3"()
-  dimnames(confidenceMatrix) <- list(1:nrow(confidenceMatrix),1:ncol(confidenceMatrix))
+  confidence <- tmpObj$"_1"()
+  names(confidence) <- colnames(expectedPairwiseAllocationMatrix)
+  confidenceMatrix <- tmpObj$"_2"()
+  confidenceMatrixLabels <- tmpObj$"_3"()
+  dimnames(confidenceMatrix) <- list(confidenceMatrixLabels,confidenceMatrixLabels)
   order <- tmpObj$"_4"() + 1L
-  names(order) <- names(clustering)
   exemplar <- tmpObj$"_5"() + 1L
-  names(exemplar) <- 1:length(exemplar)
-  result <- list(clustering=clustering,confidence=confidence,confidenceMatrix=confidenceMatrix,exemplar=exemplar,order=order,expectedPairwiseAllocationMatrix=expectedPairwiseAllocationMatrix)
+  names(exemplar) <- confidenceMatrixLabels
+  result <- list(clustering=estimate,confidence=confidence,confidenceMatrix=confidenceMatrix,exemplar=exemplar,order=order,expectedPairwiseAllocationMatrix=expectedPairwiseAllocationMatrix)
   class(result) <- "sdols.confidence"
   result
 }
@@ -54,7 +52,7 @@ as.expectedPairwiseAllocationMatrix <- function(expectedPairwiseAllocationMatrix
   if ( ! isSymmetric(expectedPairwiseAllocationMatrix) ) stop("'expectedPairwiseAllocationMatrix' must be symmetric.")
   storage.mode(expectedPairwiseAllocationMatrix) <- "double"
   if ( min(expectedPairwiseAllocationMatrix) < 0.0 ) stop("Elements of 'expectedPairwiseAllocationMatrix' are less than 0.")
-  if ( isProbability && ( max(expectedPairwiseAllocationMatrix) > 1.0 ) ) stop("Elements of 'expectedPairwiseAllocationMatrix' are greater than 0.")
+  if ( isProbability && ( max(expectedPairwiseAllocationMatrix) > 1.0 ) ) stop("Elements of 'expectedPairwiseAllocationMatrix' are greater than 1.")
   expectedPairwiseAllocationMatrix
 }
 
