@@ -60,15 +60,15 @@ dlso <- function(x, loss=c("squaredError","absoluteError","binder","lowerBoundVa
   }
   maxSize <- as.integer(maxSize[1])
   multicore <- as.logical(multicore[1])
-  epam <- if ( is.null(expectedPairwiseAllocationMatrix) ) s$.None
-  else s$.Some$apply(as.matrix(expectedPairwiseAllocationMatrix))
+  epam <- if ( is.null(expectedPairwiseAllocationMatrix) ) s$None()
+  else s$Some(as.matrix(expectedPairwiseAllocationMatrix))
   if ( doClustering ) {
     x <- cleanUpClusteringMatrix(x)
-    ref <- s$.ClusteringSummary$minAmongDraws(x,maxSize,multicore,loss,epam)
+    ref <- s$ClusteringSummary.minAmongDraws(x,maxSize,multicore,loss,epam)
     ref$toLabels()+1L
   } else {
     x <- scalaConvert.featureAllocation(x)
-    ref <- s$.FeatureAllocationSummary$minAmongDraws(x,maxSize,multicore,loss,epam)
+    ref <- s$FeatureAllocationSummary.minAmongDraws(x,maxSize,multicore,loss,epam)
     result <- scalaConvert.featureAllocation(ref,withParameters=FALSE)
     attr(result,"scalaReference") <- NULL
     result

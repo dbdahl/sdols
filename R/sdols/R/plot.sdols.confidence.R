@@ -91,14 +91,16 @@ plot.sdols.confidence <- function(x, clustering=NULL, data=NULL, show.labels=len
   invisible()
 }
 
-.rotateForConfidencePlot <- function(expectedPairwiseAllocationMatrix, order) s %!% '
-  val nItems = expectedPairwiseAllocationMatrix.length
-  val xx = Array.ofDim[Double](nItems, nItems)
-  for (i <- 0 until nItems) {
-    for (j <- 0 until nItems) {
-      xx(i)(nItems - j - 1) = expectedPairwiseAllocationMatrix(order(i) - 1)(order(j) - 1)
+.rotateForConfidencePlot <- function(expectedPairwiseAllocationMatrix, order) {
+  s(epam=expectedPairwiseAllocationMatrix, order=order) %~% '
+    val nItems = epam.length
+    val xx = Array.ofDim[Double](nItems, nItems)
+    for (i <- 0 until nItems) {
+      for (j <- 0 until nItems) {
+        xx(i)(nItems - j - 1) = epam(order(i) - 1)(order(j) - 1)
+      }
     }
-  }
-  xx
-'
+    xx
+  '
+}
 

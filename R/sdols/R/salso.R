@@ -79,10 +79,10 @@ salso <- function(expectedPairwiseAllocationMatrix, structure=c("clustering","fe
   maxScans <- as.integer(maxScans[1])
   multicore <- as.logical(multicore[1])
   result <- if ( doClustering ) {
-    ref <- s$.ClusteringSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxSize,maxScans,multicore,loss,useOldImplementation)
+    ref <- s$ClusteringSummary.sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxSize,maxScans,multicore,loss,useOldImplementation)
     ref$"_1"()$toLabels()+1L
   } else {
-    ref <- s$.FeatureAllocationSummary$sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxScans,maxSize,multicore,loss)
+    ref <- s$FeatureAllocationSummary.sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxScans,maxSize,multicore,loss)
     result <- scalaConvert.featureAllocation(ref$"_1"(),withParameters=FALSE)
     attr(result,"scalaReference") <- NULL
     result

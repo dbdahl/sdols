@@ -40,11 +40,11 @@
 expectedPairwiseAllocationMatrix <- function(x) {
   if ( is.matrix(x) ) {
     x <- cleanUpClusteringMatrix(x)
-    r <- s$.ClusteringSummary$expectedPairwiseAllocationMatrix(x)
+    r <- s$ClusteringSummary.expectedPairwiseAllocationMatrix(x)
     names <- colnames(x)
   } else if ( is.list(x) ) {
     reference <- scalaConvert.featureAllocation(x)
-    r <- s$.FeatureAllocationSummary$expectedPairwiseAllocationMatrix(reference)
+    r <- s$FeatureAllocationSummary.expectedPairwiseAllocationMatrix(reference)
     names <- rownames(x[[1]])
   }
   dimnames(r) <- list(names,names)

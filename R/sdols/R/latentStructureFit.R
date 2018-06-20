@@ -37,16 +37,16 @@ latentStructureFit <- function(estimate, expectedPairwiseAllocationMatrix) {
   doClustering <- ! is.matrix(estimate)
   epam <- as.expectedPairwiseAllocationMatrix(expectedPairwiseAllocationMatrix,doClustering)
   if ( doClustering ) {
-    ref <- s$.Clustering$apply(as.integer(estimate))
-    ss <- s$.ClusteringSummary$sumOfSquares(ref,epam)
-    sa <- s$.ClusteringSummary$sumOfAbsolutes(ref,epam)
-    binder <- s$.ClusteringSummary$sumOfAbsolutes(ref,epam) / 2
-    vi <- s$.ClusteringSummary$lowerBoundVariationOfInformation(ref,epam)
+    ref <- s$Clustering(as.integer(estimate))
+    ss <- s$ClusteringSummary.sumOfSquares(ref,epam)
+    sa <- s$ClusteringSummary.sumOfAbsolutes(ref,epam)
+    binder <- s$ClusteringSummary.sumOfAbsolutes(ref,epam) / 2
+    vi <- s$ClusteringSummary.lowerBoundVariationOfInformation(ref,epam)
     list("squaredError"=ss,"absoluteError"=sa,"binder"=binder,"lowerBoundVariationOfInformation"=vi)
   } else {
     ref <- scalaConvert.featureAllocation(estimate,withParameters=FALSE)
-    ss <- s$.FeatureAllocationSummary$sumOfSquares(ref,epam)
-    sa <- s$.FeatureAllocationSummary$sumOfAbsolutes(ref,epam)
+    ss <- s$FeatureAllocationSummary.sumOfSquares(ref,epam)
+    sa <- s$FeatureAllocationSummary.sumOfAbsolutes(ref,epam)
     list("squaredError"=ss,"absoluteError"=sa)
   }
 }

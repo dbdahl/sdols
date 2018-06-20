@@ -1,15 +1,14 @@
 #' @import commonsMath
 
 .onLoad <- function(libname, pkgname) {
-  snippet <- '
+  assign.callback <- function(s) s %@% '
     import org.ddahl.sdols._
     import org.ddahl.sdols.network._
     import org.ddahl.sdols.clustering._
     import org.ddahl.sdols.featureallocation._
     import org.apache.commons.math3.random.{ RandomDataGenerator => RDG }
   '
-  ## Tell users they may want to set heap.maximum using options(rscala.heap.maximum="4G")
-  .rscalaPackage(pkgname,classpath.packages="commonsMath",snippet=snippet)
+  .rscalaPackage(c(pkgname,"commonsMath"),assign.callback)
 }
 
 .onUnload <- function(libpath) {

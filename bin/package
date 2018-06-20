@@ -134,7 +134,6 @@ then
     rsync --chmod=644 "$TGZ_NAME" dahl.byu.edu:public
     ssh dahl.byu.edu "cd public && ln -f -s $TGZ_NAME ${PKG_NAME}_LATEST.tar.gz"
     echo -e "####\nPosted to\n  https://dahl.byu.edu/public/$TGZ_NAME\n####"
-    echo -e "Install with\n  ${PKG_NAME}:::latest()\n####"
   fi
   echo deliveries/$TGZ_NAME
 fi

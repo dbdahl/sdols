@@ -13,17 +13,17 @@
 #' @export
 
 scalaConvert.featureAllocation <- function(x, names=NULL, withParameters=TRUE) {
-  if ( is.scalaReference(x) ) {
-    singleton <- ! grepl("^Array\\[",x$type)
+  if ( inherits(x,"rscalaReference") ) {
+    singleton <- ! grepl("^Array\\[",x[['type']])
     if ( singleton ) {
       xSingleton <- x
-      x <- s$.Array$apply(xSingleton)
+      x <- s$.Array(xSingleton)
     }
     dataTuple <- if ( withParameters ) {
-      tmp <- s$.FeatureAllocation$serializeWithParameters(x)
+      tmp <- s$FeatureAllocation.serializeWithParameters(x)
       list(tmp$"_1"(),tmp$"_2"())
     }
-    else list(s$.FeatureAllocation$serialize(x),double())
+    else list(s$FeatureAllocation.serialize(x),double())
     xx <- dataTuple[[1]]
     yy <- dataTuple[[2]]
     if ( length(xx) == 0 ) return(NULL)
@@ -110,9 +110,9 @@ scalaConvert.featureAllocation <- function(x, names=NULL, withParameters=TRUE) {
       }
     }
     result <- if ( length(data2) > 0 ) {
-      s$.FeatureAllocation$deserializeWithParameters(I(data),I(data2))
+      s$FeatureAllocation.deserializeWithParameters(I(data),I(data2))
     } else {
-      s$.FeatureAllocation$deserialize(I(data))
+      s$FeatureAllocation.deserialize(I(data))
     }
     if ( singleton ) result$head()
     else result

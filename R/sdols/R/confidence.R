@@ -28,7 +28,7 @@
 confidence <- function(estimate, expectedPairwiseAllocationMatrix) {
   clustering <- as.clustering(estimate)
   expectedPairwiseAllocationMatrix <- as.expectedPairwiseAllocationMatrix(expectedPairwiseAllocationMatrix)
-  tmpObj <- s$.ClusteringSummary$confidenceComputations(clustering,expectedPairwiseAllocationMatrix)
+  tmpObj <- s$ClusteringSummary.confidenceComputations(clustering,expectedPairwiseAllocationMatrix)
   confidence <- tmpObj$"_1"()
   names(confidence) <- colnames(expectedPairwiseAllocationMatrix)
   confidenceMatrix <- tmpObj$"_2"()

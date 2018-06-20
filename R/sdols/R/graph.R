@@ -9,8 +9,8 @@ mkGraph <- function(adjacency, as.directed=FALSE) {
   }
   if ( ( ! is.matrix(adjacency) ) || ( nrow(adjacency) != ncol(adjacency) ) ) stop("'adjacency' should be a square matrix.")
   storage.mode(adjacency) <- "logical"
-  if ( as.directed ) s$.DirectedGraph$apply(adjacency)
-  else s$.UndirectedGraph$apply(adjacency)
+  if ( as.directed ) s$DirectedGraph(adjacency)
+  else s$UndirectedGraph(adjacency)
 }
 
 probLink <- function(w1,w2) 1 - exp(-2*w1*w2)
@@ -36,9 +36,9 @@ sampleGGP <- function(alpha, kappa, gamma, sample.P0, nBins=1000000, lower=0.001
 }
 
 sampleGGP2 <- function(alpha, kappa, gamma, sample.P0, smallestWeight=0.001, nBreaks=10L, rng=NULL, normalized=TRUE) {
-  ggp <- s$.GeneralizedGammaProcess$apply(alpha,kappa,gamma)
+  ggp <- s$GeneralizedGammaProcess(alpha,kappa,gamma)
   if ( is.null(rng) ) {
-    rng <- s$.org.apache.commons.math3.random.MersenneTwister$new()
+    rng <- s$.new_org.apache.commons.math3.random.MersenneTwister()
   }
   ws <- ggp$sampleWeights(smallestWeight, nBreaks, rng)
   ndraws <- length(ws)
@@ -48,13 +48,13 @@ sampleGGP2 <- function(alpha, kappa, gamma, sample.P0, smallestWeight=0.001, nBr
 }
 
 sampleGraph <- function(alpha, kappa, gamma, as.directed=FALSE, smallestWeight=0.001, nBreaks=10L, rng=NULL) {
-  ggp <- s$.GeneralizedGammaProcess$apply(alpha, kappa, gamma)
+  ggp <- s$GeneralizedGammaProcess.apply(alpha, kappa, gamma)
   if ( is.null(rng) ) {
-    rng <- s$.org.apache.commons.math3.random.MersenneTwister$new()
+    rng <- s$.new_org.apache.commons.math3.random.MersenneTwister()
   }
   ws <- ggp$sampleWeights(smallestWeight, nBreaks, rng, .AS.REFERENCE=TRUE)
-  if ( as.directed ) s$.DirectedGraph$sample(ws,rng)
-  else s$.UndirectedGraph$sample(ws,rng)
+  if ( as.directed ) s$DirectedGraph.sample(ws,rng)
+  else s$UndirectedGraph.sample(ws,rng)
 }
 
 
