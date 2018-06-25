@@ -43,6 +43,7 @@
 #'
 #' @examples
 #' \donttest{
+#'
 #' probabilities <- expectedPairwiseAllocationMatrix(iris.clusterings)
 #' salso(probabilities)
 #'

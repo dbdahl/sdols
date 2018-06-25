@@ -12,6 +12,7 @@
 #'
 #' @examples
 #' \donttest{
+#'
 #' probabilities <- expectedPairwiseAllocationMatrix(iris.clusterings)
 #' clustering <- salso(probabilities)
 #' conf <- confidence(clustering,probabilities)
@@ -92,7 +93,7 @@ plot.sdols.confidence <- function(x, clustering=NULL, data=NULL, show.labels=len
 }
 
 .rotateForConfidencePlot <- function(expectedPairwiseAllocationMatrix, order) {
-  s(epam=expectedPairwiseAllocationMatrix, order=order) %~% '
+  s(epam=expectedPairwiseAllocationMatrix, order=order) * '
     val nItems = epam.length
     val xx = Array.ofDim[Double](nItems, nItems)
     for (i <- 0 until nItems) {

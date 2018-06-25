@@ -25,6 +25,7 @@
 #'
 #' @examples
 #' \donttest{
+#'
 #' probabilities <- expectedPairwiseAllocationMatrix(iris.clusterings)
 #' probabilities
 #'

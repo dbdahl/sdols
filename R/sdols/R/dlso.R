@@ -35,6 +35,7 @@
 #'
 #' @examples
 #' \donttest{
+#'
 #' dlso(iris.clusterings)
 #' dlso(USArrests.featureAllocations)
 #' }
