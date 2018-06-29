@@ -59,14 +59,13 @@ clusterings, feature allocations, and networks.
 
 - We present the **sequentially-allocated latent structure optimization (SALSO)** method to
 minimize an objective criterion to obtain a *point estimate* based on a collection of randomly-sampled
-*clusterings / partitions*.
+*clusterings/partitions*.
 
 - SALSO is a *stochastic search* method involving a *series of micro optimizations*.
-
-- The method can be applied to *clusterings*, *feature allocations*, *networks*, etc.
+<!-- - The method can be applied to *clusterings*, *feature allocations*, *networks*, etc. -->
 
 - Several objective criterion can be used, including squared error loss, absolute error loss, Binder (1978)
-loss, or the lower bound of the variation of information loss (Wade & Ghahramani 2017), respectively.
+loss, or the lower bound of the variation of information loss (Wade & Ghahramani 2018), respectively.
 
 # Setting the Stage
 
@@ -77,8 +76,6 @@ $$c^{(1)} = (1,2,1,2,2)$$
 
 Clustering in set **_partition_** notation:
 $$\pi^{(1)} = \{ \{ 1, 3\}, \{2, 4, 5\} \}$$
-
-. . .
 
 Clustering as **_pairwise allocation matrix_** (i.e., adjacency matrix):
 $$
@@ -138,8 +135,6 @@ Averaging the vector of cluster labels **does not make sense**.
 
 Averaging the set partitions is **not defined**.
 
-. . .
-
 Averaging pairwise allocation matrices **does** make sense:
 $$
 \bar{A} = \frac{1}{B} \sum_{b=1}^B A(c^{(b)}) = 
@@ -169,7 +164,7 @@ What is the Bayes estimate of the partition from these 1,000 samples?
 - The 0-1 loss function:
   $$L(c,\hat{c}) = \I{c = \hat{c}}$$
   yielding the maximum _a posteriori_ (MAP) clustering:
-  $$\text{argmax}_{\hat{c}} \ p(\hat{c} \given \text{data})$$.
+  $$\text{argmax}_{\hat{c}} \ p(\hat{c} \given \text{data})$$
     - Equal loss for clusterings that differs by one label and a clustering that differs by many labels.
     - Mode may not represent well the ``center'' of a distribution.
         
@@ -187,7 +182,7 @@ equivalent to the least-squares criterion in Dahl (2006).
     
 ## Loss Functions and Bayes Estimators
 
-- Wade & Ghahramani (2017) proposed using the variation of information (VI) of Meilă (2007) as
+- Wade & Ghahramani (2018) used the variation of information (VI) of Meilă (2007) as
     a loss function, yielding the clustering:
     $$\begin{split}\text{argmin}_{\hat{c}} \sum_{i=1}^n \bigg( & \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg) \\
       & - 2 \text{E} \bigg( \log \bigg( \sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i, c_j = c_i} \bigg) \bigg| \text{data} \bigg) \bigg)\end{split}$$
@@ -196,13 +191,14 @@ equivalent to the least-squares criterion in Dahl (2006).
     of information loss (VI.lb):
     $$\text{argmin}_{\hat{c}} \sum_{i=1}^n \bigg( \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg)
       - 2 \log \bigg( \sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i} \mu_{ij} \bigg) \bigg)$$
+- Paulon, Trippa, Müller (2018) propose a scientifically-tailored loss function.
 
 ## Monte Carlo Estimate the Posterior Expected Loss
 
 - For a given $\hat{c}$, both the Binder and the lower bound of the VI loss are based on the $\mu_{ij}$'s.
 - The $(i,j)$ elements of $\bar{A}$ are Monte Carlo estimates of the $\mu_{ij}$'s, leading to 
 a Monte Carlo estimate of the posterior expected loss.
-- But having a means to estimate the posterior expected loss for a given $\hat{c}$ does not itself give
+- But having a way to estimate the posterior expected loss **for a given $\hat{c}$** does _not_ give
 a search algorithm for its minimization.
 
 ## Methods for Optimization Given a Loss Function
@@ -233,10 +229,10 @@ clustering using $1-\bar{A}$ as the distance matrix.
 
 ## Methods for Optimization Given a Loss Function
 
-- Lau & Green (2007) proposed a heuristic item-swapping algorithm based on binary integer programming to
-minimize the posterior expected Binder loss.
-- Wade & Ghahramani (2017) proposed a greedy search algorithm based on neighborhoods defined by
-the Hasse diagram, which can be used for Binder or VI.lb loss.
+- More sophisticated search algorithms:
+    - Lau & Green (2007) proposed a heuristic item-swapping algorithm based on binary integer programming to minimize the posterior expected Binder loss.
+    - Wade & Ghahramani (2018) proposed a greedy search algorithm based on neighborhoods defined by the Hasse diagram, which can be used for Binder or VI.lb loss.
+
 - We propose the **sequentially-allocated latent structure optimization (SALSO)** method to perform
 a *series of micro optimizations* to stochastically search for the minimizer of the posterior expected value of Binder or VI.lb loss.
 
@@ -262,7 +258,7 @@ of $\{1,\ldots,n\}$ gives the sequence in which the $n$ items are allocated.
 - Recall the steps to SALSO are:
     1. Build up a full structure from an empty structure
     2. Improve the full structure
-    3. Do it for many random permutations
+    3. Do it for many random permutations (not just $\Permutation = (1,2,3,4,5)$)
 
 ## Step 1: Build Up a Full Structure
 ```latex
@@ -390,7 +386,7 @@ Clustering: 1 1 1 2 3    Yes, so perform another scan
 2. Improve the full structure
 3. Do it for many random  permutations
 
-# Software & Constrained Optimization
+# Software and Empirical Comparison
 
 ## Software Implementation
 
@@ -411,26 +407,6 @@ table(estimate)
 plot(confidence(estimate, epam))
 ```
 
-## Constrained Optimization
-
-- We may want to constrain the optimization.
-    - For example, the sake of interpretation, it may be helpful to **limit** the number of clusters
-      or features (yet we still want a small posterior expected loss).
-
-. . .
-
-- Solution: During micro optimization, never create a structure that violates the constraint.
-    - For example, don't consider allocations that create clusters beyond the desired \texttt{maxSize}.
-
-. . .
-
-```latex
-Clustering: ? 1 2 3 3    Candidates for ? are: 1, 2, 3
-                                      but not: 4
-```
-
-# Empirical Comparison
-
 ## Comparison Methodology
 
 - Various optimization methods:
@@ -438,11 +414,11 @@ Clustering: ? 1 2 3 3    Candidates for ? are: 1, 2, 3
       using average or complete linkage [mcclust]
     - Draws method of Dahl (2006) [sdols, mcclust]
     - Linear programming method of Lau & Green (2007) [mcclust]
-    - Greedy search by Wade & Ghahramani (2017) [mcclust.ext]
+    - Greedy search by Wade & Ghahramani (2018) [mcclust.ext]
     - SALSO method [sdols]
 - Loss functions
     - Binder loss (Binder 1978)
-    - Lower bound of the variation of information loss (Wade & Ghahramani 2017)
+    - Lower bound of the variation of information loss (Wade & Ghahramani 2018)
 - Datasets: Three sets of MCMC output from a variety of models with 1,000 samples each.
 
 ## Iris
@@ -542,6 +518,7 @@ Size: 600 observations
 | W & G        |  7.2197 |  41.6 hours     |
 | L & G        |  --     |  --             |
 
+<!--
 # SALSO for Feature Allocation
 
 ## SALSO for Feature Allocation
@@ -605,8 +582,26 @@ est.dlso <- dlso(USArrests.featureAllocations)
 latentStructureFit(est.salso,epam)$squaredError
 latentStructureFit(est.dlso,epam)$squaredError
 ```
+-->
 
 # Wrapping Up
+
+## Constrained Optimization
+
+- We may want to constrain the optimization.
+    - e.g.: For the sake of interpretation, it may be helpful to **limit** the number of clusters or features.
+
+- Solution: Tweak the loss function to give inifinite loss for violate constraint
+    - e.g.: Infinite loss for clusterings with more clusters than desired.
+
+- Implementation: During micro optimization, never create a structure that violates the constraint.
+    - e.g.: Don't consider allocations that create clusters beyond the desired \texttt{maxSize}.
+
+Suppose we want at most three clusters.
+```latex
+Clustering: ? 1 2 3 3    Candidates for ? are: 1, 2, 3
+                                      but not: 4
+```
 
 ## Way to Improve the Method?
 
