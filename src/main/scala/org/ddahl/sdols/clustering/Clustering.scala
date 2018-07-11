@@ -149,16 +149,16 @@ final class Clustering[A](val nItems: Int, val nClusters: Int, protected val x: 
     result
   }
 
-  def toLabelsWithParameters(implicit m: ClassTag[A]): (Array[Int], Array[A]) = {
+  def toLabelsWithParameters: (Array[Int], List[A]) = {
     val result = new Array[Int](nItems)
-    val resultParameters = new Array[A](nClusters)
+    var resultParameters = List[A]()
     var label = 0
     toList.sortWith(_.min < _.min).foreach(cluster => {
       cluster.foreach(i => result(i) = label)
-      resultParameters(label) = cluster.parameter
+      resultParameters = cluster.parameter :: resultParameters
       label += 1
     })
-    (result, resultParameters)
+    (result, resultParameters.reverse)
   }
 
   def write(objOutputStream: java.io.ObjectOutputStream): Unit = {

@@ -14,7 +14,7 @@
 
 scalaConvert.featureAllocation <- function(x, names=NULL, withParameters=TRUE) {
   if ( inherits(x,"rscalaReference") ) {
-    singleton <- ! grepl("^Array\\[",x[['type']])
+    singleton <- ! grepl("^Array\\[",scalaType(x))
     if ( singleton ) {
       xSingleton <- x
       x <- s$.Array(xSingleton)
