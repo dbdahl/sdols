@@ -7,4 +7,5 @@
 /R/*/java/*.jar
 /R/*/inst/java/*.jar
 /R/*/inst/java/scala*/*.jar
+/R/*/.Rhistory
 .Rproj.user
