@@ -13,8 +13,7 @@
 #' @param withParameters A logical indicating whether model parameters should also be converted.
 #'
 #' @import rscala
-#' @export
-
+#'
 scalaUnserialize.sdolsClustering <- function(x, names=NULL, withParameters=TRUE) {
   if ( inherits(x,"rscalaReference") ) {
     if ( grepl("^List\\[org\\.ddahl\\.shallot\\.parameter\\.partition\\.Partition\\[.*\\]$",scalaType(x)) ) {

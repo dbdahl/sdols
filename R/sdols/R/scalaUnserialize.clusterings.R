@@ -1,20 +1,18 @@
-#' \strong{(Developers Only:)} Convert Between R and Scala Representations of Clusterings
-#'
-#' \strong{This function is not intended for end users}, but is exported for the benefit of
-#' developers whose wish to write other packages that depend on this package.
-#'
-#' @param x Either: i. a list containing a elements 'labels' and 'parameters' which are,
-#'          respectively, a matrix of cluster labels and list whose number of elements
-#'          is the same as the number of rows of 'labels' and whose elements are are lists
-#'          whose length is the number of clusters for the corresponding cluster.
-#'          ii. a Scala reference to a clustering or a list of Scala references to
-#'          clusterings.
-#' @param names A character vector giving the item labels when converting from Scala to R.
-#' @param withParameters A logical indicating whether model parameters should also be converted.
-#'
-#' @import rscala
-#' @export
-#' 
+# \strong{(Developers Only:)} Convert Between R and Scala Representations of Clusterings
+#
+# \strong{This function is not intended for end users}, but is exported for the benefit of
+# developers whose wish to write other packages that depend on this package.
+#
+# @param x Either: i. a list containing a elements 'labels' and 'parameters' which are,
+#          respectively, a matrix of cluster labels and list whose number of elements
+#          is the same as the number of rows of 'labels' and whose elements are are lists
+#          whose length is the number of clusters for the corresponding cluster.
+#          ii. a Scala reference to a clustering or a list of Scala references to
+#          clusterings.
+# @param names A character vector giving the item labels when converting from Scala to R.
+# @param withParameters A logical indicating whether model parameters should also be converted.
+#
+# @import rscala
 scalaUnserialize.clusterings <- function(reference, type=scalaType(reference), bridge=scalaFindBridge(reference), verbose=FALSE, names=NULL, withParameters=TRUE) {
   if ( verbose ) cat("scalaUnserialize.clusterings: Trying...\n")
   if ( grepl("^List\\[org\\.ddahl\\.shallot\\.parameter\\.partition\\.Partition\\[.*\\]$",type) ) {
@@ -67,9 +65,7 @@ scalaUnserialize.clusterings <- function(reference, type=scalaType(reference), b
 #' @param withParameters A logical indicating whether model parameters should also be converted.
 #'
 #' @import rscala
-#' @export
-
-scalaConvert.clustering <- function(x, names=NULL, withParameters=TRUE) {
+scalaConvert.clustering_OFF <- function(x, names=NULL, withParameters=TRUE) {
   if ( inherits(x,"rscalaReference") ) {
     if ( grepl("^List\\[org\\.ddahl\\.shallot\\.parameter\\.partition\\.Partition\\[.*\\]$",scalaType(x)) ) {
       if ( withParameters && ( scalaType(x) == "List[org.ddahl.shallot.parameter.partition.Partition[org.ddahl.rscala.RObject]]" ) ) {

@@ -10,8 +10,6 @@
 #' @param withParameters A logical indicating whether model parameters should also be converted.
 #'
 #' @import rscala
-#' @export
-
 scalaConvert.featureAllocation <- function(x, names=NULL, withParameters=TRUE) {
   if ( inherits(x,"rscalaReference") ) {
     singleton <- ! grepl("^Array\\[",scalaType(x))
