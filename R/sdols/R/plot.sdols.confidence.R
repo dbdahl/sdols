@@ -18,6 +18,10 @@
 #' conf <- confidence(clustering,probabilities)
 #' plot(conf)
 #' plot(conf,data=iris)
+#' 
+#' \dontshow{
+#' rscala::scalaSuspend(sdols:::s)
+#' }
 #' }
 #'
 #' @seealso \code{\link{expectedPairwiseAllocationMatrix}}, \code{\link{dlso}}, \code{\link{salso}}

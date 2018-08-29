@@ -38,6 +38,10 @@
 #'
 #' dlso(iris.clusterings)
 #' dlso(USArrests.featureAllocations)
+#' 
+#' \dontshow{
+#' rscala::scalaSuspend(sdols:::s)
+#' }
 #' }
 #'
 #' @seealso \code{\link{expectedPairwiseAllocationMatrix}}, \code{\link{salso}}

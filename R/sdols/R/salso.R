@@ -49,6 +49,10 @@
 #'
 #' expectedCounts <- expectedPairwiseAllocationMatrix(USArrests.featureAllocations)
 #' salso(expectedCounts,"featureAllocation")
+#' 
+#' \dontshow{
+#' rscala::scalaSuspend(sdols:::s)
+#' }
 #' }
 #'
 #' @seealso \code{\link{expectedPairwiseAllocationMatrix}}, \code{\link{dlso}}

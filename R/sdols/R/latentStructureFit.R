@@ -25,6 +25,10 @@
 #' expectedCounts <- expectedPairwiseAllocationMatrix(USArrests.featureAllocations)
 #' estimate <- salso(expectedCounts,"featureAllocation")
 #' latentStructureFit(estimate, expectedCounts)
+#' 
+#' \dontshow{
+#' rscala::scalaSuspend(sdols:::s)
+#' }
 #' }
 #'
 #' @seealso \code{\link{expectedPairwiseAllocationMatrix}}, \code{\link{salso}}
