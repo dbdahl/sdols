@@ -40,7 +40,7 @@
 #' dlso(USArrests.featureAllocations)
 #' 
 #' \dontshow{
-#' rscala::scalaSuspend(sdols:::s)
+#' rscala::scalaDisconnect(sdols:::s)
 #' }
 #' }
 #'

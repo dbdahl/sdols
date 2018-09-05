@@ -21,7 +21,7 @@
 #' conf
 #' 
 #' \dontshow{
-#' rscala::scalaSuspend(sdols:::s)
+#' rscala::scalaDisconnect(sdols:::s)
 #' }
 #' }
 #'
