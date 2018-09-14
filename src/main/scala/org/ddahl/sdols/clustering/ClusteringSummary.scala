@@ -217,9 +217,11 @@ object ClusteringSummary {
     else candidates
   }
 
+/*
   def minAmongDraws(candidates: Array[Array[Int]], maxSize: Int, multicore: Boolean, loss: String, pamOption: Option[Array[Array[Double]]] = None): Clustering[Null] = {
     minAmongDraws(candidates.map(Clustering.apply),maxSize,multicore,loss,pamOption)
   }
+*/
 
   def minAmongDraws[A](candidates: Seq[Clustering[A]], maxSize: Int, multicore: Boolean, loss: String, pamOption: Option[Array[Array[Double]]]): Clustering[A] = {
     if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")

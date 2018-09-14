@@ -72,11 +72,9 @@ dlso <- function(x, loss=c("squaredError","absoluteError","binder","lowerBoundVa
     ref <- s$ClusteringSummary.minAmongDraws(x,maxSize,multicore,loss,epam)
     ref$toLabels()+1L
   } else {
-    x <- scalaConvert.featureAllocation(x)
-    ref <- s$FeatureAllocationSummary.minAmongDraws(x,maxSize,multicore,loss,epam)
-    result <- scalaConvert.featureAllocation(ref,withParameters=FALSE)
-    attr(result,"scalaReference") <- NULL
-    result
+    refs <- scalaSerialize(x,bridge=s)
+    ref <- s$FeatureAllocationSummary.minAmongDraws(refs,maxSize,multicore,loss,epam)
+    scalaUnserialize(ref,bridge=s,names=row.names(x[[1]]))
   }
 }
 

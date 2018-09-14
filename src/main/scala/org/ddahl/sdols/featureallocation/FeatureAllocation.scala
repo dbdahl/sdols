@@ -5,7 +5,7 @@ import org.ddahl.sdols.clustering.{Cluster, Clustering}
 
 import scala.collection.mutable.ArrayBuffer
 
-class FeatureAllocation[A] private (val nItems: Int, val isLeftOrderedForm: Boolean, private val features: Vector[Feature[A]]) extends Iterable[Feature[A]] {
+class FeatureAllocation[A] private (val nItems: Int, val isLeftOrderedForm: Boolean, val features: Vector[Feature[A]]) extends Iterable[Feature[A]] {
 
   override def canEqual(a: Any) = a.isInstanceOf[FeatureAllocation[A]]
 
@@ -228,87 +228,6 @@ object FeatureAllocation {
       }
     }
     engine(empty[A](nItems), 0, empty[A](nItems).features)
-  }
-
-  def serialize[A](featureAllocations: Array[FeatureAllocation[A]]): Array[Int] = {
-    if ( featureAllocations.isEmpty ) return Array[Int]()
-    val fas = featureAllocations.map(_.dropParameters.leftOrderedForm)
-    val data = ArrayBuffer[Int]()
-    data += fas.head.nItems
-    data += fas.size
-    fas.foreach { fa =>
-      data += fa.size
-      fa.features.foreach { f =>
-        data += f.size
-        data ++= f.set.toArray
-      }
-    }
-    data.toArray
-  }
-
-  def serializeWithParameters(featureAllocations: Array[FeatureAllocation[Vector[Double]]]): (Array[Int], Array[Double]) = {
-    if ( featureAllocations.isEmpty ) return (Array[Int](),Array[Double]())
-    val fas = featureAllocations.map(_.leftOrderedForm)
-    val data = ArrayBuffer[Int]()
-    val data2 = ArrayBuffer[Double]()
-    var sizeDeclared = false
-    data += fas.head.nItems
-    data += fas.length
-    fas.foreach { fa =>
-      data += fa.size
-      fa.features.foreach { f =>
-        data += f.size
-        data ++= f.set.toArray
-        if ( ! sizeDeclared ) {
-          sizeDeclared = true
-          data2 += f.parameter.length
-        }
-        data2 ++= f.parameter
-      }
-    }
-    (data.toArray, data2.toArray)
-  }
-
-  def deserialize(data: Array[Int]): Array[FeatureAllocation[Null]] = {
-    if ( data.isEmpty ) return Array[FeatureAllocation[Null]]()
-    val iter = data.iterator
-    val nItems = iter.next()
-    val N = iter.next()
-    val fas = Array.ofDim[FeatureAllocation[Null]](N)
-    for ( i <- 0 until N ) {
-      var fa = FeatureAllocation.empty[Null](nItems)
-      val K = iter.next()
-      for ( k <- 0 until K ) {
-        fa = fa.add(Feature(Seq.fill(iter.next()) { iter.next() }:_*))
-      }
-      fas(i) = fa
-    }
-    fas
-  }
-
-  def deserializeWithParameters(data: Array[Int], data2: Array[Double]): Array[FeatureAllocation[Vector[Double]]] = {
-    if ( data.isEmpty ) return Array[FeatureAllocation[Vector[Double]]]()
-    val iter = data.iterator
-    val iter2 = data2.iterator
-    var sizeDeclared = false
-    var size = -1
-    val nItems = iter.next()
-    val N = iter.next()
-    val fas = Array.ofDim[FeatureAllocation[Vector[Double]]](N)
-    for ( i <- 0 until N ) {
-      var fa = FeatureAllocation.empty[Vector[Double]](nItems)
-      val K = iter.next()
-      for ( k <- 0 until K ) {
-        if ( ! sizeDeclared ) {
-          sizeDeclared = true
-          size = iter2.next().toInt
-        }
-        val parameter = Vector.fill(size) { iter2.next() }
-        fa = fa.add(Feature(parameter,Seq.fill(iter.next()) { iter.next() }:_*))
-      }
-      fas(i) = fa
-    }
-    fas
   }
 
 }

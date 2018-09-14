@@ -9,7 +9,10 @@
     import org.ddahl.sdols.featureallocation._
     import org.apache.commons.math3.random.{ RandomDataGenerator => RDG }
   ')
-  scalaUnserializeRegister(scalaUnserialize.clusterings)
+  scalaSerializeRegister(scalaSerialize.clustering,s)
+  scalaUnserializeRegister(scalaUnserialize.clustering,s)
+  scalaSerializeRegister(scalaSerialize.featureAllocation,s)
+  scalaUnserializeRegister(scalaUnserialize.featureAllocation,s)
   assign("s",s,envir=parent.env(environment()))
 }
 
