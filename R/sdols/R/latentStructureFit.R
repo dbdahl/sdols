@@ -48,7 +48,7 @@ latentStructureFit <- function(estimate, expectedPairwiseAllocationMatrix) {
     vi <- s$ClusteringSummary.lowerBoundVariationOfInformation(ref,epam)
     list("squaredError"=ss,"absoluteError"=sa,"binder"=binder,"lowerBoundVariationOfInformation"=vi)
   } else {
-    ref <- scalaSerialize(estimate,bridge=s)
+    ref <- scalaPush(estimate,"featureAllocation",s)
     ss <- s$FeatureAllocationSummary.sumOfSquares(ref,epam)
     sa <- s$FeatureAllocationSummary.sumOfAbsolutes(ref,epam)
     list("squaredError"=ss,"absoluteError"=sa)

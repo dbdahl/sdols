@@ -9,13 +9,14 @@
     import org.ddahl.sdols.featureallocation._
     import org.apache.commons.math3.random.{ RandomDataGenerator => RDG }
   ')
-  scalaSerializeRegister(scalaSerialize.clustering,s)
-  scalaUnserializeRegister(scalaUnserialize.clustering,s)
-  scalaSerializeRegister(scalaSerialize.featureAllocation,s)
-  scalaUnserializeRegister(scalaUnserialize.featureAllocation,s)
+  scalaPushRegister(scalaPush.clustering,"clustering",s)
+  scalaPullRegister(scalaPull.clustering,"clustering",s)
+  scalaPushRegister(scalaPush.featureAllocation,"featureAllocation",s)
+  scalaPullRegister(scalaPull.featureAllocation,"featureAllocation",s)
   assign("s",s,envir=parent.env(environment()))
 }
 
 .onUnload <- function(libpath) {
   close(s)
 }
+

@@ -1,31 +1,15 @@
 #' @import rscala
-scalaSerialize.featureAllocation <- function(x, bridge=scalaFindBridge(), verbose=FALSE, withParameters=TRUE, ...) {
-  if ( verbose ) cat("scalaSerialize.featureAllocation: Trying...\n")
+scalaPush.featureAllocation <- function(x, bridge, withParameters=TRUE) {
   singleton <- is.matrix(x)
   if ( singleton ) x <- list(x)
-  if ( ! is.list(x) ) {
-    if ( verbose ) cat("scalaSerialize.featureAllocation: Object is not a list.\n")
-    return(NULL)
-  }
-  if ( length(x) == 0 ) {
-    if ( verbose ) cat("scalaSerialize.featureAllocation: Object should not be empty.\n")
-    return(NULL)
-  }
+  if ( ! is.list(x) ) stop("Object is not a list.")
+  if ( length(x) == 0 ) stop("Object should not be empty.")
   nRow <- nrow(x[[1]])
   for ( i in 1:length(x) ) {
     Z <- x[[i]]
-    if ( ! is.matrix(Z) ) {
-      if ( verbose ) cat(paste0("Element ",i," of 'x' is not a matrix.\n"))
-      return(NULL)
-    }
-    if ( nrow(Z) != nRow ) {
-      if ( verbose ) cat(paste0("Number of rows must be consistent.\n"))
-      return(NULL)      
-    }
-    if ( ! all(unique(as.vector(Z)) %in% c(0,1)) ) {
-      if ( verbose ) cat(paste0("Element ",i," of 'x' is not a binary feature matrix.\n"))
-      return(NULL)
-    }
+    if ( ! is.matrix(Z) ) stop(paste0("Element ",i," of 'x' is not a matrix."))
+    if ( nrow(Z) != nRow ) stop(paste0("Number of rows must be consistent."))
+    if ( ! all(unique(as.vector(Z)) %in% c(0,1)) ) stop(paste0("Element ",i," of 'x' is not a binary feature matrix.\n"))
   }
   data <- integer(0)
   data2 <- double(0)
@@ -107,14 +91,13 @@ scalaSerialize.featureAllocation <- function(x, bridge=scalaFindBridge(), verbos
 }
 
 #' @import rscala
-scalaUnserialize.featureAllocation <- function(reference, type=scalaType(reference), bridge=scalaFindBridge(reference), verbose=FALSE, names=NULL, withParameters=TRUE, ...) {
-  if ( verbose ) cat("scalaUnserialize.featureAllocation: Trying...\n")
+scalaPull.featureAllocation <- function(reference, bridge, names=NULL, withParameters=TRUE) {
   singleton <- FALSE 
   if ( reference$"isInstanceOf[org.ddahl.sdols.featureallocation.FeatureAllocation[_]]"() ) {
     reference <- s(x=reference) ^ 'List(x)'
-    type <- scalaType(reference)
     singleton <- TRUE
   }
+  type <- scalaType(reference)
   if ( ! reference$"isInstanceOf[List[org.ddahl.sdols.featureallocation.FeatureAllocation[_]]]"() ) return(NULL)
   withParameters <- withParameters && ( substr(type,nchar(type)-16,nchar(type)) == "[Vector[Double]]]" )
   dataTuple <- if ( withParameters ) { 
@@ -188,9 +171,10 @@ scalaUnserialize.featureAllocation <- function(reference, type=scalaType(referen
       values <- if ( K*M > 0 ) yy[ii:(ii+K*M-1)] else 0
       attr(Z,"parameters") <- matrix(values,nrow=K,ncol=M,byrow=TRUE)
       ii <- ii + K*M 
-    }   
+    }
     rownames(Z) <- names
     Zs[[a]] <- Z
   }   
   if ( singleton ) Zs[[1]] else Zs
 }
+

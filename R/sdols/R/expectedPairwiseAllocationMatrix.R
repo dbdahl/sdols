@@ -48,7 +48,7 @@ expectedPairwiseAllocationMatrix <- function(x) {
     r <- s$ClusteringSummary.expectedPairwiseAllocationMatrix(x)
     names <- colnames(x)
   } else if ( is.list(x) ) {
-    refs <- scalaSerialize(x,bridge=s)
+    refs <- scalaPush(x,"featureAllocation",s)
     r <- s$FeatureAllocationSummary.expectedPairwiseAllocationMatrix(refs)
     names <- rownames(x[[1]])
   }

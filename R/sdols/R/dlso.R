@@ -68,13 +68,13 @@ dlso <- function(x, loss=c("squaredError","absoluteError","binder","lowerBoundVa
   epam <- if ( is.null(expectedPairwiseAllocationMatrix) ) s$None()
   else s$Some(as.matrix(expectedPairwiseAllocationMatrix))
   if ( doClustering ) {
-    x <- cleanUpClusteringMatrix(x)
-    ref <- s$ClusteringSummary.minAmongDraws(x,maxSize,multicore,loss,epam)
-    ref$toLabels()+1L
+    refs <- scalaPush(cleanUpClusteringMatrix(x),"clustering",s)
+    ref <- s$ClusteringSummary.minAmongDraws(refs,maxSize,multicore,loss,epam)
+    scalaPull(ref,"clustering",colnames(x))
   } else {
-    refs <- scalaSerialize(x,bridge=s)
+    refs <- scalaPush(x,"featureAllocation",s)
     ref <- s$FeatureAllocationSummary.minAmongDraws(refs,maxSize,multicore,loss,epam)
-    scalaUnserialize(ref,bridge=s,names=row.names(x[[1]]))
+    scalaPull(ref,"featureAllocation",rownames(x[[1]]))
   }
 }
 
