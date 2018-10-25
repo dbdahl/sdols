@@ -34,14 +34,16 @@ scalaPush.featureAllocation <- function(x, bridge, withParameters=TRUE) {
         }
       }
     }
-    data[i] <- ncol(fa)
+    data[i] <- sum(apply(fa,2,sum)>0)
     i <- i + 1
     for ( k in seq_len(ncol(fa)) ) {
       what <- which(fa[,k]==1)-1L
-      data[i] <- length(what)
-      i <- i + 1
-      data[i:(i+length(what)-1)] <- what
-      i <- i + length(what)
+      if ( length(what) > 0 ) {
+        data[i] <- length(what)
+        i <- i + 1
+        data[i:(i+length(what)-1)] <- what
+        i <- i + length(what)
+      }
     }
   }
   result <- if ( length(data2) > 0 ) {
