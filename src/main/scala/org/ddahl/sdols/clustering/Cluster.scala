@@ -78,7 +78,10 @@ object Cluster {
 
   def apply[A](parameter: A, i: Int): Cluster[A] = new Cluster(1, Set[Int](i), parameter)
 
-  def apply[A](parameter: A, i: Iterable[Int]): Cluster[A] = new Cluster(i.size, i.toSet, parameter)
+  def apply[A](parameter: A, i: Iterable[Int]): Cluster[A] = {
+    val set = i.toSet
+    new Cluster(set.size, set, parameter)
+  }
 
   def apply[A](parameter: A, i: Set[Int]): Cluster[A] = new Cluster(i.size, i, parameter)
 
@@ -88,7 +91,8 @@ object Cluster {
     val nItems = objInputStream.readInt()
     val seq = Seq.fill(nItems) { objInputStream.readInt() }
     val parameter = objInputStream.readObject().asInstanceOf[A]
-    new Cluster(nItems,seq.toSet,parameter)
+    val set = seq.toSet
+    new Cluster(set.size,set,parameter)
   }
   
 }
