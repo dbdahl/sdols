@@ -1,0 +1,12 @@
+#!/bin/bash
+
+dq start
+
+(
+for i in $(seq -w 20)
+do
+  echo "./torture ~/local/scala/scala/scala-2.12.7/bin/scala ~/local/java/jdk1.8.0_121/bin/java >| torture-2.12.7-1.8.0_121_$i 2> &1"
+  echo "./torture ~/local/scala/scala/scala-2.12.7/bin/scala ~/local/java/jdk-11/bin/java >| torture-2.12.7-11_$i 2> &1"
+done
+) | dq push --shuffle
+
