@@ -1,0 +1,40 @@
+#!/usr/bin/env Rscript
+
+args <- commandArgs(TRUE)
+scalaCmd <- normalizePath(args[1])
+javaCmd <- normalizePath(args[2])
+
+new.iris <- iris
+new.iris[,1:4] <- iris[,1:4] + sapply(apply(iris[,1:4],2,sd),function(x) rnorm(nrow(iris),sd=0.1*x))
+
+d <- rbind(iris,new.iris)
+distance <- as.matrix(dist(scale(d[,1:4])))
+distance <- as.dist(distance + 0.1*min(distance[distance>0]))
+
+Sys.setenv(RSCALA_RECONFIG="live")
+Sys.setenv(JAVACMD=javaCmd)
+Sys.setenv(SCALACMD=scalaCmd)
+library(shallot)
+library(sdols)
+sessionInfo()
+config <- rscala:::scalaConfig(sdols:::s)
+config
+if ( config$scalaCmd != scalaCmd ) stop("Scala command mismatch.")
+if ( config$javaCmd != javaCmd ) stop("Java command mismatch.")
+
+permutation <- permutation(n.items=nrow(d),fixed=FALSE)
+decay <- decay.exponential(temperature(1.0),distance)
+attraction <- attraction(permutation, decay)
+epa <- ewens.pitman.attraction(mass(1.0),discount(0.0),attraction)
+
+counter <- 0
+while ( TRUE ) {
+  partitions <- sample.partitions(epa, 1000, TRUE)
+  x <- process.samples(partitions)
+  epam <- expectedPairwiseAllocationMatrix(x$labels)
+  counter <- counter + 1
+  mem <- rscala::scalaMemory(sdols:::s)
+  cat(sprintf("\r%s %s %s %s",mem[1],mem[2],max(salso(epam)),counter))
+}
+
+
