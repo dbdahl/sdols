@@ -1,12 +1,14 @@
 #!/bin/bash
 
+dq stop
 dq start
+dq requeue false
 
 (
-for i in $(seq -w 20)
+for i in $(seq -w 45)
 do
-  echo "./torture ~/local/scala/scala/scala-2.12.7/bin/scala ~/local/java/jdk1.8.0_121/bin/java >| torture-2.12.7-1.8.0_121_$i 2> &1"
-  echo "./torture ~/local/scala/scala/scala-2.12.7/bin/scala ~/local/java/jdk-11/bin/java >| torture-2.12.7-11_$i 2> &1"
+  echo "./torture /YShare/dahl/.rscala/scala/bin/scala /usr/java/jdk1.8.0_181/bin/java >| torture-2.12.7-1.8.0_121_$i 2>&1"
+  # echo "./torture ~/local/scala/scala/scala-2.12.7/bin/scala ~/local/java/jdk-11/bin/java >| torture-2.12.7-11_$i 2> &1"
 done
-) | dq push --shuffle
+) | dq push
 
