@@ -6,7 +6,7 @@ import scala.reflect.ClassTag
 
 final class Clustering[A](val nItems: Int, val nClusters: Int, protected val x: Set[Cluster[A]]) extends Iterable[Cluster[A]] {
 
-  private val checks = false
+  final private val checks = Clustering.checks
 
   if (checks) {
     if (nClusters != x.size) throw new RuntimeException("Internal error")
@@ -17,6 +17,7 @@ final class Clustering[A](val nItems: Int, val nClusters: Int, protected val x: 
     if (checks) {
       if (cluster.size == 0) throw new IllegalArgumentException("Cluster is empty.")
       if (contains(cluster)) throw new IllegalArgumentException("Clustering already contains this cluster.")
+      for ( oldCluster <- x ) if ( ! oldCluster.x.intersect(cluster.x).isEmpty ) throw new IllegalArgumentException("Cluster contains items that are already clustered.")
     }
     new Clustering(nItems + cluster.size, nClusters + 1, x + cluster)
   }
@@ -169,6 +170,8 @@ final class Clustering[A](val nItems: Int, val nClusters: Int, protected val x: 
 }
 
 object Clustering {
+
+  var checks = false
 
   def empty[A](): Clustering[A] = new Clustering(0, 0, Set[Cluster[A]]())
 
