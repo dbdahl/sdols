@@ -324,7 +324,7 @@ Clustering: 2 ? 2 3 3    Candidates for ? are: 1, 2, 3
 ```
 ## Step 2: Improving the Full Structure
 ```latex
-Clustering: 2 1 2 3 3
+Clustering: 2 2 2 3 3
 ```
 ## Step 2: Improving the Full Structure
 ```latex
