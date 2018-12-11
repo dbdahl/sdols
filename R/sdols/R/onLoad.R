@@ -8,6 +8,14 @@
     import org.ddahl.sdols.clustering._
     import org.ddahl.sdols.featureallocation._
     import org.apache.commons.math3.random.{ RandomDataGenerator => RDG }
+
+    def rdg() = {
+      val ints = R.evalI1("runif(2,-.Machine$integer.max,.Machine$integer.max)")
+      val seed = ((ints(0).asInstanceOf[Long]) << 32) | (ints(1) & 0xffffffffL)
+      val r = new RDG()
+      r.reSeed(seed)
+      r
+    }
   ')
   scalaPushRegister(scalaPush.clustering,"clustering",s)
   scalaPullRegister(scalaPull.clustering,"clustering",s)
