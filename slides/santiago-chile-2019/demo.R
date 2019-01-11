@@ -2,6 +2,7 @@ library("DPpackage")
 
 data(galaxy)
 speeds <- galaxy$speed/1000
+stem(speeds,scale=1)
 stem(speeds,scale=2)
 
 mcmc <- list(nburn=0, nsave=1, nskip=10, ndisplay=0)
@@ -23,9 +24,7 @@ head(draws)
 
 library(sdols)
 epam <- expectedPairwiseAllocationMatrix(draws)
+head(epam)
 salso(epam, loss="lowerBoundVariationOfInformation")
 salso(epam, loss="binder")
-
-
-
 
