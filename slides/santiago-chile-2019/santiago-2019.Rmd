@@ -17,6 +17,7 @@ output:
     theme: "metropolis"
     #colortheme: "dolphin"
     fonttheme: "professionalfonts"
+    fig_caption: false
     includes:
       in_header: latex-topmatter.tex
 ---
@@ -54,6 +55,17 @@ is not easily defined.
 
 - We consider summarizing distributions of latent structures, e.g.,
 clusterings, feature allocations, and networks.
+
+## Homegrown Motivating Example
+
+![](fig/DPpackageCRAN.png)
+
+## Prototypical Bayesian Nonparametric Model
+
+![adf](fig/DPdensity.png)
+
+## R Demonstration
+
 
 ## Overview
 
