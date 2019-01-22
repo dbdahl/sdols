@@ -80,8 +80,12 @@ final class Clustering[A](val nItems: Int, val nClusters: Int, protected val x: 
   def contains(i: Int): Boolean = x.exists(_.contains(i))
 
   def paired(i: Int, k: Int): Boolean = {
-    val cluster = x.find(y => y.contains(i) || y.contains(k)).get
-    cluster.contains(i) && cluster.contains(k)
+    val clusterOption = x.find(y => y.contains(i) || y.contains(k))
+    if ( clusterOption.isEmpty ) false
+    else {
+      val cluster = clusterOption.get
+      cluster.contains(i) && cluster.contains(k)
+    }
   }
 
   def clusterFor(i: Int): Cluster[A] = {
