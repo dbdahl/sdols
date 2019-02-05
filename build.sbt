@@ -2,24 +2,28 @@ name := "sdols"
 
 organization := "org.ddahl"
 
-//version := "1.7.3"
-version := "1.7.3-SNAPSHOT"
+version := "1.7.3.2-SNAPSHOT"
+//version := "1.7.3.2"
 
 scalaVersion := "2.12.8"
 
 crossScalaVersions := Seq("2.11.12", "2.12.8")
 
+mainClass in (Compile,run) := Some("org.ddahl.sdols.Main")
+
 libraryDependencies ++= Seq(
-  "org.ddahl" %% "commonsmath" % "1.2.1",
+  "org.ddahl" %% "commonsmath" % "1.2.2.4",
   "org.apache.commons" % "commons-math3" % "3.6.1",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 )
 
-mainClass in (Compile,run) := Some("org.ddahl.sdols.Main")
+resolvers += Resolver.bintrayRepo("dahl", "maven")
+
+//publishTo := sonatypePublishTo.value
+
+licenses := List(("Apache-2.0",url("https://www.apache.org/licenses/LICENSE-2.0")))
 
 publishMavenStyle := true
-
-publishTo := sonatypePublishTo.value
 
 pomExtra := (
   <url>https://github.com/dbdahl/sdols/</url>
