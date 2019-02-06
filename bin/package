@@ -71,9 +71,9 @@ cd $(dirname $(readlink -f "$0"))/..
 
 bin/setup-remotes
 
-PKG_NAME=$(cat build.sbt | grep "^name := " | cut -d '"' -f 2)
+PKG_NAME=$(cat build.sbt | grep "^\s*name\s*:= " | cut -d '=' -f 2 | cut -d '"' -f 2)
 PKG_NAME_LOWER=$(echo $PKG_NAME | awk '{print tolower($0)}')
-PKG_VERSION=$(cat build.sbt | grep "^version := " | cut -d '"' -f 2)
+PKG_VERSION=$(cat build.sbt | grep "^\s*version\s*:= " | cut -d '=' -f 2 | cut -d '"' -f 2)
 
 if [[ -n "$TASK_SCALA" ]]
 then
