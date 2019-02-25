@@ -1,6 +1,10 @@
+1.7.3.3 (2019-02-25) (Snapshot release, not sent to CRAN)
+  * Support very large expected pairwise allocation matrices.
+  * Updated to rscala 3.2.6.
+
 1.7 (2018-10-29)
   * Minor bug fixes.
-  * Updated to rscala 3.3.2.
+  * Updated to rscala 3.2.2.
 
 1.6 (2018-06-28)
   * Updated to rscala 3.0.2.

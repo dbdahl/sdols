@@ -7,7 +7,7 @@ Authors@R: c(person(given="David B.",family="Dahl",role=c("aut","cre"),email="da
 URL: https://dahl.byu.edu
 BugReports: https://dahl.byu.edu
 Description: Summaries of distributions on clusterings and feature allocations are provided. Specifically, point estimates are obtained by the sequentially-allocated latent structure optimization (SALSO) algorithm to minimize squared error loss, absolute error loss, Binder loss, or the lower bound of the variation of information loss. Clustering uncertainty can be assessed with the confidence calculations and the associated plot.
-Imports: rscala (>= 3.2.4), commonsMath (>= 1.2), stats
+Imports: rscala (>= 3.2.6), commonsMath (>= 1.2), stats
 Depends: R (>= 3.1.0)
 LazyData: TRUE
 License: Apache License 2.0 | file LICENSE

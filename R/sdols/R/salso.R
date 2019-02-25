@@ -83,6 +83,11 @@ salso <- function(expectedPairwiseAllocationMatrix, structure=c("clustering","fe
   maxSize <- as.integer(maxSize[1])
   maxScans <- as.integer(maxScans[1])
   multicore <- as.logical(multicore[1])
+  if ( nrow(epam) > 15000L ) {  # Work around serialization limits of rscala
+    epamRef <- s$'.Array.ofDim[Double]'(nrow(epam),ncol(epam))
+    for ( i in 1:nrow(epam) ) epamRef$update(i-1L,epam[,i])  # Okay because of symmetry
+    epam <- epamRef
+  }
   result <- if ( doClustering ) {
     ref <- s$ClusteringSummary.sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxSize,maxScans,multicore,loss,useOldImplementation)
     scalaPull(ref$"_1"(),"clustering",rownames(expectedPairwiseAllocationMatrix))
