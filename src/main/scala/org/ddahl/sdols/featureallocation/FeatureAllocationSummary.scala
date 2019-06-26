@@ -1,27 +1,30 @@
 package org.ddahl.sdols
 package featureallocation
 
-import org.ddahl.commonsmath._
+import org.apache.commons.math3.linear.Array2DRowRealMatrix
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.mutable.ListBuffer
+import scala.collection.parallel.immutable.ParVector
 
 object FeatureAllocationSummary {
+
+  implicit val ordering = CrossCompatibility.doubleOrdering
 
   def expectedPairwiseAllocationMatrix[A](fas: Seq[FeatureAllocation[A]]): Array[Array[Double]] = {
     if ( fas.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
     val nItems = fas.head.nItems
-    val zero = MatrixFactory(nItems,nItems)
-    (fas.par.aggregate(zero)((sum,x) => sum + x.pairwiseAllocationMatrix,_+_) :/ fas.size).getData
+    val zero = new Array2DRowRealMatrix(nItems,nItems)
+    ParVector(fas:_*).aggregate(zero)((sum,x) => sum.add(new Array2DRowRealMatrix(x.pairwiseAllocationMatrix.map(_.map(_.toDouble)),false)), _.add(_)).scalarMultiply(1.0/fas.size).getData
   }
 
   def sumOfSquaresSlow[A](fa: FeatureAllocation[A], pam: Array[Array[Double]]): Double = {
-    (MatrixFactory(fa.pairwiseAllocationMatrix) - pam).map(x => x*x).sum
+    new Array2DRowRealMatrix(fa.pairwiseAllocationMatrix.map(_.map(_.toDouble)),false).subtract(new Array2DRowRealMatrix(pam,false)).getDataRef.foldLeft(0.0)(_+_.foldLeft(0.0)((a,b) => a + b*b))
   }
 
   def sumOfAbsolutesSlow[A](fa: FeatureAllocation[A], pam: Array[Array[Double]]): Double = {
-    (MatrixFactory(fa.pairwiseAllocationMatrix) - pam).map(_.abs).sum
+    new Array2DRowRealMatrix(fa.pairwiseAllocationMatrix.map(_.map(_.toDouble))).subtract(new Array2DRowRealMatrix(pam,false)).getDataRef.foldLeft(0.0)(_+_.foldLeft(0.0)((a,b) => a + b.abs))
   }
 
   private def engine[A](counts: Array[Array[Int]], pam: Array[Array[Double]], f: Double => Double): Double = {
@@ -55,7 +58,7 @@ object FeatureAllocationSummary {
     if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
     val pam = pamOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
     val lossEngine = getLoss[A](loss)
-    val iter = if ( multicore ) candidates.par else candidates
+    val iter = (if ( multicore ) ParVector(candidates:_*) else candidates).iterator
     iter.minBy { featureAllocation =>
       if ( ( maxSize > 0 ) && ( featureAllocation.size > maxSize ) ) Double.PositiveInfinity
       else lossEngine(featureAllocation, pam)

@@ -2,7 +2,6 @@ package org.ddahl.sdols
 package clustering
 
 import scala.annotation.tailrec
-import scala.reflect.ClassTag
 
 final class Clustering[A](val nItems: Int, val nClusters: Int, protected val x: Set[Cluster[A]]) extends Iterable[Cluster[A]] {
 

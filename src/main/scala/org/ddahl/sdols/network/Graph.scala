@@ -48,7 +48,7 @@ sealed abstract class Graph[A <: Edge](v: Set[Node], e: Set[A], directed: Boolea
         if ( edge.a.index < edge.b.index ) (edge.a,edge.b)
         else (edge.b,edge.a)
       }
-      writer.println(tuple._1.index + separator + tuple._2.index)
+      writer.println("" + tuple._1.index + separator + tuple._2.index)
     })
     writer.close()
   }

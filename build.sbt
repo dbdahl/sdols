@@ -2,48 +2,43 @@ name := "sdols"
 
 organization := "org.ddahl"
 
-version := "1.7.3.5-SNAPSHOT"
-//version := "1.7.3.4"
+//version := "1.7.1"
+version := "1.7.0-SNAPSHOT"
 
 scalaVersion := "2.12.8"
-
-crossScalaVersions := Seq("2.11.12", "2.12.8")
-
-mainClass in (Compile,run) := Some("org.ddahl.sdols.Main")
+crossScalaVersions := Seq("2.11.12", "2.12.8", "2.13.0")
+scalacOptions ++= List("-feature", "-deprecation", "-unchecked")
 
 libraryDependencies ++= Seq(
-  "org.ddahl" %% "commonsmath" % "1.2.2.4",
-  "org.apache.commons" % "commons-math3" % "3.6.1",
-  "org.scalatest" %% "scalatest" % "3.0.5" % "test"
+  "org.scalactic" %% "scalactic" % "3.0.8",
+  "org.scalatest" %% "scalatest" % "3.0.8" % "test",
+  "org.scalacheck" %% "scalacheck" % "1.14.0" % "test"
 )
 
-resolvers += Resolver.bintrayRepo("dahl", "maven")
+libraryDependencies ++= {
+  CrossVersion.partialVersion(scalaVersion.value) match {
+    case Some((2, major)) if major >= 13 =>
+      Seq("org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0")
+    case _ =>
+      Seq()
+  }
+}
 
-//publishTo := sonatypePublishTo.value
+Compile / unmanagedJars := {
+  val rPackages = Seq("commonsMath")
+  rPackages.flatMap { p =>
+    import scala.sys.process._
+    import java.io.File
+    val exe = if ( sys.env.getOrElse("R_HOME","") == "" ) "R"
+    else {
+      Seq(sys.env("R_HOME"),"bin","R").mkString(File.separator)
+    }
+    val output = Seq(exe,"--slave","-e",s"writeLines(rscala:::jarsOfPackage('${p}','${scalaBinaryVersion.value}'))") !!
+    val cells = output.split("\n").toSeq
+    println(cells)
+    cells.map { path => Attributed.blank(new File(path)) }
+  }
+}
 
-licenses := List(("Apache-2.0",url("https://www.apache.org/licenses/LICENSE-2.0")))
-
-publishMavenStyle := true
-
-pomExtra := (
-  <url>https://github.com/dbdahl/sdols/</url>
-  <licenses>
-    <license>
-      <name>Apache License 2.0</name>
-      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-  <scm>
-    <url>https://github.com/dbdahl/sdols/</url>
-    <connection>scm:git:https://github.com/dbdahl/sdols.git</connection>
-  </scm>
-  <developers>
-    <developer>
-      <id>dbdahl</id>
-      <name>David B. Dahl</name>
-      <url>https://dahl.byu.edu</url>
-    </developer>
-  </developers>
-)
+mainClass in (Compile,run) := Some("org.ddahl.sdols.Main")
 

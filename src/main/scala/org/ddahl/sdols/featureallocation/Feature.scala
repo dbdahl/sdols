@@ -1,26 +1,30 @@
 package org.ddahl.sdols
 package featureallocation
 
-final case class Feature[A] private (parameter: A, set: Set[Int], size: Int) extends Ordered[Feature[A]] {
+class FeatureOrdering[A] extends Ordering[Feature[A]] {
 
-  def compare(that: Feature[A]): Int = {
-    val thisMax = this.set.max
+  def compare(this2: Feature[A], that: Feature[A]): Int = {
+    val thisMax = this2.set.max
     val thatMax = that.set.max
     val max = thisMax min thatMax
     var i = 0
     while ( i <= max ) {
-      val a = this.set.contains(i)
+      val a = this2.set.contains(i)
       val b = that.set.contains(i)
       if ( a != b ) return if ( a ) -1 else 1
       i += 1
     }
     if ( thisMax > thatMax ) -1
     else if ( thisMax < thatMax ) 1
-    else if ((this.parameter == null) && (that.parameter == null)) 0
-    else if (this.parameter == null) 1
+    else if ((this2.parameter == null) && (that.parameter == null)) 0
+    else if (this2.parameter == null) 1
     else if (that.parameter == null) -1
     else 0
   }
+
+}
+
+final case class Feature[A] private (parameter: A, set: Set[Int], size: Int) {
 
   def dropParameter = Feature(null: Null, set, size)
 

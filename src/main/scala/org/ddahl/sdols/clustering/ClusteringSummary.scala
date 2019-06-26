@@ -1,14 +1,17 @@
 package org.ddahl.sdols
 package clustering
 
-import org.ddahl.commonsmath._
 import org.apache.commons.math3.util.FastMath.log
+import org.apache.commons.math3.linear.Array2DRowRealMatrix
 import scala.annotation.tailrec
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.collection.parallel.immutable.ParVector
 
 object ClusteringSummary {
+
+  implicit val ordering = CrossCompatibility.doubleOrdering
 
   // Assumes that 'clusterings' is a non-empty sequence of clusterings.
   def expectedPairwiseAllocationMatrix[A](clusterings: Seq[Clustering[A]]): Array[Array[Double]] = {
@@ -150,11 +153,11 @@ object ClusteringSummary {
   }
 
   def sumOfAbsolutesSlow[A](clustering: Clustering[A], pam: Array[Array[Double]]): Double = {
-    (MatrixFactory(clustering.pairwiseAllocationMatrix) - pam).map(_.abs).sum
+    new Array2DRowRealMatrix(clustering.pairwiseAllocationMatrix.map(_.map(_.toDouble)),false).subtract(new Array2DRowRealMatrix(pam,false)).getDataRef.foldLeft(0.0)(_+_.foldLeft(0.0)((a,b) => a + b.abs))
   }
 
   def sumOfSquaresSlow[A](clustering: Clustering[A], pam: Array[Array[Double]]): Double = {
-    (MatrixFactory(clustering.pairwiseAllocationMatrix) - pam).map(x => x*x).sum
+    new Array2DRowRealMatrix(clustering.pairwiseAllocationMatrix.map(_.map(_.toDouble)),false).subtract(new Array2DRowRealMatrix(pam,false)).getDataRef.foldLeft(0.0)(_+_.foldLeft(0.0)((a,b) => a + b*b))
   }
 
   private def binderOffset[A](pam: Array[Array[Double]], f: Double => Double) = {
@@ -227,7 +230,7 @@ object ClusteringSummary {
     if ( candidates.isEmpty ) throw new IllegalArgumentException("'candidates' cannot be empty.")
     val pam = pamOption.getOrElse(expectedPairwiseAllocationMatrix(candidates))
     val (lossEngine, shortcutEngine, pamTransform) = getLoss[A](maxSize, loss, pam)
-    val iter = if ( multicore ) candidates.par else candidates
+    val iter = (if ( multicore ) ParVector(candidates:_*) else candidates).iterator
     iter.minBy { clustering =>
       if ( ( maxSize > 0 ) && ( clustering.size > maxSize ) ) Double.PositiveInfinity
       else lossEngine(clustering, pamTransform)

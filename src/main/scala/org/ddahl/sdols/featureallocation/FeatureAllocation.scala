@@ -3,11 +3,11 @@ package featureallocation
 
 import org.ddahl.sdols.clustering.{Cluster, Clustering}
 
-import scala.collection.mutable.ArrayBuffer
+class FeatureAllocation[A] private (val nItems: Int, val isLeftOrderedForm: Boolean, val features: Vector[Feature[A]]) {
 
-class FeatureAllocation[A] private (val nItems: Int, val isLeftOrderedForm: Boolean, val features: Vector[Feature[A]]) extends Iterable[Feature[A]] {
+  implicit val featureOrdering = new FeatureOrdering[A]()
 
-  override def canEqual(a: Any) = a.isInstanceOf[FeatureAllocation[A]]
+  def canEqual(a: Any) = a.isInstanceOf[FeatureAllocation[A]]
 
   override def equals(that: Any): Boolean = that match {
     case that: FeatureAllocation[A] => that.canEqual(this) && this.leftOrderedForm.features == that.leftOrderedForm.features
@@ -16,17 +16,19 @@ class FeatureAllocation[A] private (val nItems: Int, val isLeftOrderedForm: Bool
 
   override def hashCode: Int = leftOrderedForm.features.hashCode
 
+  def isEmpty = features.isEmpty
+
   def leftOrderedForm = if ( isLeftOrderedForm ) this else  _leftOrderedForm
 
-  private lazy val _leftOrderedForm = new FeatureAllocation(nItems,true,features.sorted)
+  private lazy val _leftOrderedForm = new FeatureAllocation(nItems,true, features.sorted)
 
   def iterator: Iterator[Feature[A]] = features.iterator
-  override def toVector: Vector[Feature[A]] = features
-  override def toSeq: Vector[Feature[A]] = features
-  override def toIndexedSeq: scala.collection.immutable.IndexedSeq[Feature[A]] = features
-  override def toList: List[Feature[A]] = features.toList
+  def toVector: Vector[Feature[A]] = features
+  def toSeq: Vector[Feature[A]] = features
+  def toIndexedSeq: scala.collection.immutable.IndexedSeq[Feature[A]] = features
+  def toList: List[Feature[A]] = features.toList
   def toArray: Array[Feature[A]] = features.toArray
-  override def size: Int = features.size
+  def size: Int = features.size
 
   lazy val isClustering: Boolean = {
     def check: Boolean = {
@@ -115,8 +117,6 @@ class FeatureAllocation[A] private (val nItems: Int, val isLeftOrderedForm: Bool
   def dropParameters: FeatureAllocation[Null] = {
     new FeatureAllocation(nItems,isLeftOrderedForm,features.map(_.dropParameter))
   }
-
-  def toMap = features.groupBy(identity).mapValues(_.size)
 
   def pairwiseAllocationTriangle: Array[Array[Int]] = {
     val r = Array.ofDim[Int](nItems, nItems)
