@@ -2,8 +2,8 @@ name := "sdols"
 
 organization := "org.ddahl"
 
-//version := "1.7.1"
-version := "1.7.0-SNAPSHOT"
+//version := "1.7.5"
+version := "1.7.4-SNAPSHOT"
 
 scalaVersion := "2.12.8"
 crossScalaVersions := Seq("2.11.12", "2.12.8", "2.13.0")
