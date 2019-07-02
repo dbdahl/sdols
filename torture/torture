@@ -18,7 +18,7 @@ rscala::scalaMemory("5G")
 library(shallot)
 library(sdols)
 sessionInfo()
-config <- rscala:::scalaConfig(sdols:::s)
+config <- rscala::scalaConfig(sdols:::s)
 config
 rscala:::scalaMemory(sdols:::s)
 if ( config$scalaCmd != scalaCmd ) stop("Scala command mismatch.")

@@ -1,6 +1,7 @@
-1.7.3.3 (2019-02-25) (Snapshot release, not sent to CRAN)
+1.7.5 (2019-07-02)
   * Support very large expected pairwise allocation matrices.
-  * Updated to rscala 3.2.6.
+  * Support of Scala 2.13.
+  * Updated to latest version of dependencies.
 
 1.7 (2018-10-29)
   * Minor bug fixes.
