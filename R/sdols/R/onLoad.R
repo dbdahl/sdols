@@ -1,7 +1,8 @@
+#' @import rscala
 #' @import commonsMath
-
+#'
 .onLoad <- function(libname, pkgname) {
-  s <- scala(c(pkgname,"commonsMath"))
+  s <- scala("commonsMath")  # Don't need to include sdols since it imports commonsMath.
   scalaLazy(function(s) s + '
     import org.ddahl.sdols._
     import org.ddahl.sdols.network._
