@@ -92,7 +92,7 @@ salso <- function(expectedPairwiseAllocationMatrix, structure=c("clustering","fe
     ref <- s$ClusteringSummary.sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxSize,maxScans,multicore,loss,useOldImplementation)
     scalaPull(ref$"_1"(),"clustering",rownames(expectedPairwiseAllocationMatrix))
   } else {
-    ref <- s$FeatureAllocationSummary.sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxScans,maxSize,multicore,loss)
+    ref <- s$FeatureAllocationSummary.sequentiallyAllocatedLatentStructureOptimization(nCandidates,budgetInSeconds,epam,maxSize,maxScans,multicore,loss)
     scalaPull(ref$"_1"(),"featureAllocation",rownames(expectedPairwiseAllocationMatrix))
   }
   attr(result,"nScans") <- ref$"_2"()
