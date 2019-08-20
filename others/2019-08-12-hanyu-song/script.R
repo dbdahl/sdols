@@ -9,6 +9,7 @@ load("clusterings.RData")
 
 library(rpm)
 system.time(psm <- psm(clusterings))
-system.time(e2 <- salso(psm, loss="vilb", nCandidates=1))
+system.time(e2 <- salso(psm, loss="experimental", nCandidates=1))
+e2$lossValue
 
 
