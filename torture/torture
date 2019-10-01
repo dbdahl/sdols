@@ -18,11 +18,6 @@ rscala::scalaMemory("5G")
 library(shallot)
 library(sdols)
 sessionInfo()
-config <- rscala::scalaConfig(sdols:::s)
-config
-rscala:::scalaMemory(sdols:::s)
-if ( config$scalaCmd != scalaCmd ) stop("Scala command mismatch.")
-if ( config$javaCmd != javaCmd ) stop("Java command mismatch.")
 
 permutation <- permutation(n.items=nrow(d),fixed=FALSE)
 decay <- decay.exponential(temperature(1.0),distance)
@@ -35,7 +30,6 @@ while ( TRUE ) {
   x <- process.samples(partitions)
   epam <- expectedPairwiseAllocationMatrix(x$labels)
   counter <- counter + 1
-  mem <- rscala::scalaMemory(sdols:::s)
   cat(sprintf("\r%s %s %s %s",mem[1],mem[2],max(salso(epam,multicore=FALSE)),counter))
 }
 
