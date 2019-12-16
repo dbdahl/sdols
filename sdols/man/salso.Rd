@@ -4,10 +4,16 @@
 \alias{salso}
 \title{Perform Sequentially-Allocated Latent Structure Optimization}
 \usage{
-salso(expectedPairwiseAllocationMatrix, loss = c("squaredError",
-  "absoluteError", "binder", "lowerBoundVariationOfInformation")[1],
-  nCandidates = 100, budgetInSeconds = 10, maxSize = 0,
-  maxScans = 10, multicore = TRUE)
+salso(
+  expectedPairwiseAllocationMatrix,
+  loss = c("squaredError", "absoluteError", "binder",
+    "lowerBoundVariationOfInformation")[1],
+  nCandidates = 100,
+  budgetInSeconds = 10,
+  maxSize = 0,
+  maxScans = 10,
+  multicore = TRUE
+)
 }
 \arguments{
 \item{expectedPairwiseAllocationMatrix}{A \code{n}-by-\code{n} symmetric matrix

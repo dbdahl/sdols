@@ -4,9 +4,13 @@
 \alias{dlso}
 \title{Perform Draws-Based Latent Structure Optimization}
 \usage{
-dlso(x, loss = c("squaredError", "absoluteError", "binder",
-  "lowerBoundVariationOfInformation")[1], multicore = TRUE,
-  expectedPairwiseAllocationMatrix = NULL)
+dlso(
+  x,
+  loss = c("squaredError", "absoluteError", "binder",
+    "lowerBoundVariationOfInformation")[1],
+  multicore = TRUE,
+  expectedPairwiseAllocationMatrix = NULL
+)
 }
 \arguments{
 \item{x}{A
