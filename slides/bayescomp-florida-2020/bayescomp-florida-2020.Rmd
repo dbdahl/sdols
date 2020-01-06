@@ -114,7 +114,7 @@ A^{(3)} =
 0 & 0 & 1 & 0 & 1\\
 \end{bmatrix}
 $$
-
+<!--
 ## Homegrown Motivating Example
 
 ![](fig/DPpackageCRAN.png)
@@ -124,6 +124,7 @@ $$
 ![adf](fig/DPdensity.png)
 
 ## R Demonstration
+-->
 
 ## Example: Averaging the MCMC Clustering Output
  
@@ -163,10 +164,11 @@ minimize an objective criterion to obtain a *point estimate* based on a collecti
 
 - SALSO is a *stochastic search* method involving a *series of micro optimizations*.
 
-- The method can be applied to *clusterings*, *feature allocations*, *networks*, etc.
+<!-- - The method can be applied to *clusterings*, *feature allocations*, *networks*, etc. -->
 
-- Several objective criterion can be used, including squared error loss, absolute error loss, Binder (1978)
-loss, or the lower bound of the variation of information loss (Wade & Ghahramani 2018), respectively.
+- Currently implementation handles two loss functions:
+    - "binder": Loss function of Binder (1978) loss
+    - "VI.lb": Lower bound of the variation of information loss of Wade & Ghahramani (2018).
 
 ## Loss Functions and Bayes Estimators
 
@@ -176,26 +178,27 @@ loss, or the lower bound of the variation of information loss (Wade & Ghahramani
   $$L(c,\hat{c}) = \I{c = \hat{c}}$$
   yielding the maximum _a posteriori_ (MAP) clustering:
   $$\text{argmax}_{\hat{c}} \ p(\hat{c} \given \text{data})$$
-    - Equal loss for clusterings that differs by one label and a clustering that differs by many labels.
+    - Equal loss for clusterings that differs by one label and clusterings that differs by many labels!?
     - Mode may not represent well the ``center'' of a distribution.
         
 ## Loss Functions and Bayes Estimators
 
-- Dahl (2006) suggested a least-squares criterion:
-    $$\text{argmin}_{\hat{c}} \ \sum_{i=1}^n \sum_{j=1}^n ( A(\hat{c})_{ij} - \mu_{ij} )^2$$
+- Dahl (2006) suggested a least-squares clustering, i.e., the clustering that minimizes:
+    $$f_\text{lsclust}(\hat{c}) = \sum_{i=1}^n \sum_{j=1}^n ( A(\hat{c})_{ij} - \hat{\mu}_{ij} )^2,$$
+    where $\hat{\mu}_{ij}$ is a Monte Carlo estimate of $\mu_{ij} = Pr(c_i = c_j)$.
 - Lau & Green (2007) studied the Binder (1978) loss function in a Bayesian nonparametric context:
     $$L(c,\hat{c}) = \sum_{i<j} \I{c_i     = c_j} \ \I{\hat{c}_i \not= \hat{c}_j} +
                                 \I{c_i \not= c_j} \ \I{\hat{c}_i     = \hat{c}_j}$$
-    yielding the clustering:
-    $$\text{argmin}_{\hat{c}} \ \sum_{i=1}^n \sum_{j=1}^n \I{\hat{c}_i=\hat{c}_j} ( 0.5 - \mu_{ij} )$$
-- Dahl & Newton (2007) noted that minimizing the posterior expected loss of Binder (1978) is
-equivalent to the least-squares criterion in Dahl (2006).
+    yielding a clustering minimizing expectation of the Binder loss:
+    $$f_\text{binder}(\hat{c}) = \sum_{i=1}^n \sum_{j=1}^n \I{\hat{c}_i=\hat{c}_j} ( 0.5 - \hat{\mu}_{ij} )$$
+- Dahl & Newton (2007) noted that minimizing $f_\text{lsclust}$ is
+equivalent to minimizing $f_\text{binder}$.
     
 ## Loss Functions and Bayes Estimators
 
-- Wade & Ghahramani (2018) used the variation of information (VI) of Meilă (2007) as
-    a loss function, yielding the clustering:
-    $$\begin{split}\text{argmin}_{\hat{c}} \sum_{i=1}^n \bigg( & \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg) \\
+- Wade & Ghahramani (2018) suggested the variation of information of Meilă (2007) as
+    a loss function, making the objective function to minimize:
+    $$\begin{split}f_\text{VI}(\hat{c}) = \sum_{i=1}^n \bigg( & \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg) \\
       & - 2 \text{E} \bigg( \log \bigg( \sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i, c_j = c_i} \bigg) \bigg| \text{data} \bigg) \bigg)\end{split}$$
     which is computationally expensive.  Instead, they suggest the clustering that
     minimizes the **lower bound** of the posterior expected value of the variation
