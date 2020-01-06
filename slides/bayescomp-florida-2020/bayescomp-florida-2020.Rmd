@@ -183,13 +183,13 @@ minimize an objective criterion to obtain a *point estimate* based on a collecti
         
 ## Loss Functions and Bayes Estimators
 
-- Dahl (2006) suggested a least-squares clustering, i.e., the clustering that minimizes:
+- Dahl (2006) suggested the clustering that minimizes:
     $$f_\text{lsclust}(\hat{c}) = \sum_{i=1}^n \sum_{j=1}^n ( A(\hat{c})_{ij} - \hat{\mu}_{ij} )^2,$$
     where $\hat{\mu}_{ij}$ is a Monte Carlo estimate of $\mu_{ij} = Pr(c_i = c_j)$.
 - Lau & Green (2007) studied the Binder (1978) loss function in a Bayesian nonparametric context:
     $$L(c,\hat{c}) = \sum_{i<j} \I{c_i     = c_j} \ \I{\hat{c}_i \not= \hat{c}_j} +
                                 \I{c_i \not= c_j} \ \I{\hat{c}_i     = \hat{c}_j}$$
-    yielding a clustering minimizing expectation of the Binder loss:
+    yielding a clustering minimizing the Monte Carlo estimate of the expectation of the Binder loss:
     $$f_\text{binder}(\hat{c}) = \sum_{i=1}^n \sum_{j=1}^n \I{\hat{c}_i=\hat{c}_j} ( 0.5 - \hat{\mu}_{ij} )$$
 - Dahl & Newton (2007) noted that minimizing $f_\text{lsclust}$ is
 equivalent to minimizing $f_\text{binder}$.
@@ -197,14 +197,14 @@ equivalent to minimizing $f_\text{binder}$.
 ## Loss Functions and Bayes Estimators
 
 - Wade & Ghahramani (2018) suggested the variation of information of Meilă (2007) as
-    a loss function, making the objective function to minimize:
-    $$\begin{split}f_\text{VI}(\hat{c}) = \sum_{i=1}^n \bigg( & \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg) \\
+    a loss function:
+    $$\begin{split}L(c,\hat{c}) = \sum_{i=1}^n \bigg( & \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg) \\
       & - 2 \text{E} \bigg( \log \bigg( \sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i, c_j = c_i} \bigg) \bigg| \text{data} \bigg) \bigg)\end{split}$$
-    which is computationally expensive.  Instead, they suggest the clustering that
-    minimizes the **lower bound** of the posterior expected value of the variation
+    which is computationally expensive to estimate.  Instead, they suggest 
+    minimizing the **lower bound** of the posterior expected value of the variation
     of information loss (VI.lb):
-    $$\text{argmin}_{\hat{c}} \sum_{i=1}^n \bigg( \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg)
-      - 2 \log \bigg( \sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i} \mu_{ij} \bigg) \bigg)$$
+    $$f_\text{VI.lb}(\hat{c}) = \sum_{i=1}^n \bigg( \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg)
+      - 2 \log \bigg( \sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i} \hat{\mu}_{ij} \bigg) \bigg)$$
 - Paulon, Trippa, Müller (2018) propose a scientifically-tailored loss function.
 
 ## Monte Carlo Estimate the Posterior Expected Loss
