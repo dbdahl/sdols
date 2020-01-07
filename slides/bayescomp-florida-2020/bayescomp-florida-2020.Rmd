@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ---
 title: |
   | Sequentially-Allocated
@@ -677,3 +678,687 @@ minimize an objective criterion to obtain a *point estimate* based on a collecti
     
 - Can we pick a representative observation?
 - Summarizes other than point estimates?
+=======
+---
+title: |
+  | Sequentially-Allocated
+  | Latent Structure Optimization
+author: |
+  | David B. Dahl --- Brigham Young University
+  | Peter Müller --- University of Texas at Austin
+  |
+  | Bayes Comp 2020
+  | University of Florida
+  | January 8, 2020
+#date: "January 8, 2020"
+
+fontsize: 11pt
+output:
+  beamer_presentation:
+    theme: "metropolis"
+    #colortheme: "dolphin"
+    fonttheme: "professionalfonts"
+    incremental: false
+    fig_caption: false
+    includes:
+      in_header: latex-topmatter.tex
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE)
+knitr::opts_chunk$set(cache=TRUE)
+options(width = 50)
+
+library(salso)
+iris.clusterings <- unname(iris.clusterings)
+tmp <- iris.clusterings[1,]
+iris.clusterings[1,] <- iris.clusterings[13,]
+iris.clusterings[13,] <- tmp
+```
+
+## Motivation
+
+- In a typical Bayesian analysis, considerable effort is placed
+on "**fitting the model**" (e.g., sampling from the posterior)
+but this is **only half of the inference problem**.
+
+- Meaningful inference also requires **summarizing the posterior distribution** of
+the parameters of interest for, e.g., subsequent analysis or communicating results.
+
+- If the parameters of interest live in $\mathbb{R}^n$, common
+posterior summaries are **means** and **medians**.
+
+- Summarizing posterior distributions of parameters with **complicated structure**
+is more challenging, e.g., the "average" clustering, feature allocation, or network
+is not easily defined.
+
+- In this paper, we consider summarizing distributions over partitions.
+
+# Setting the Stage
+
+## Example: First Clustering in MCMC Output
+
+Clustering in **_cluster label_** notation:
+$$c^{(1)} = (1,2,1,2,2)$$
+
+Clustering in **_set partition_** notation:
+$$\pi^{(1)} = \{ \{ 1, 3\}, \{2, 4, 5\} \}$$
+
+Clustering in **_adjacency matrix_** notation;
+$$
+A(c^{(1)}) = 
+\begin{bmatrix}
+1 & 0 & 1 & 0 & 0\\
+0 & 1 & 0 & 1 & 1\\
+1 & 0 & 1 & 0 & 0\\
+0 & 1 & 0 & 1 & 1\\
+0 & 1 & 0 & 1 & 1\\
+\end{bmatrix}
+$$
+
+## Example: Second Clustering in MCMC Output
+
+Clustering in **_cluster label_** notation:
+$$c^{(2)} = (1,1,1,2,3)$$
+
+Clustering in **_set partition_** notation:
+$$\pi^{(2)} = \{ \{ 1, 2, 3\}, \{4\}, \{5\} \}$$
+
+Clustering in **_adjacency matrix_** notation:
+$$
+A(c^{(2)}) = 
+\begin{bmatrix}
+1 & 1 & 1 & 0 & 0\\
+1 & 1 & 1 & 0 & 0\\
+1 & 1 & 1 & 0 & 0\\
+0 & 0 & 0 & 1 & 0\\
+0 & 0 & 0 & 0 & 1\\
+\end{bmatrix}
+$$
+
+## Example: Third Clustering in MCMC Output
+
+Clustering in **_cluster label_** notation:
+$$c^{(3)} = (1,1,2,1,2)$$
+
+Clustering in **_set partition_** notation:
+$$\pi^{(3)} = \{ \{1, 2, 4\}, \{3, 5\} \}$$
+
+Clustering in **_adjacency matrix_** notation:
+$$
+A(c^{(3)}) = 
+\begin{bmatrix}
+1 & 1 & 0 & 1 & 0\\
+1 & 1 & 0 & 1 & 0\\
+0 & 0 & 1 & 0 & 1\\
+1 & 1 & 0 & 1 & 0\\
+0 & 0 & 1 & 0 & 1\\
+\end{bmatrix}
+$$
+<!--
+## Homegrown Motivating Example
+
+![](fig/DPpackageCRAN.png)
+
+## Prototypical Bayesian Nonparametric Model
+
+![adf](fig/DPdensity.png)
+
+## R Demonstration
+-->
+
+## Example: Averaging the MCMC Clustering Output
+ 
+Averaging the vector of cluster labels **does not make sense**.
+
+Averaging the set partitions is **not defined**.
+
+Averaging pairwise allocation matrices **does** make sense:
+$$
+\bar{A} = \frac{1}{B} \sum_{b=1}^B A(c^{(b)}) = 
+\begin{bmatrix}
+1 & 2/3 & 2/3 & 1/3 & 0\\
+2/3 & 1 & 1/3 & 2/3 & 1/3\\
+2/3 & 1/3 & 1 & 0 & 1/3\\
+1/3 & 2/3 & 0 & 1 & 1/3\\
+0 & 1/3 & 1/3 & 1/3 & 1\\
+\end{bmatrix}
+$$
+$\bar{A}$ is the **pairwise similarity matrix (PSM)** and it's $(i,j)$ element
+estimates $\mu_{ij} = \text{Pr}( c_i = c_j \mid \text{data})$.
+
+<!--
+## More Realistic Example
+
+Suppose MCMC output contains 1,000 posterior samples for the partition of 150 observations (encoded with cluster labels), e.g.:
+```{r, echo=TRUE}
+iris.clusterings[1,]
+```
+What is the Bayes estimate of the partition from these 1,000 samples?
+-->
+
+## Overview
+
+- We present the **sequentially-allocated latent structure optimization (SALSO)** method to
+minimize an objective criterion to obtain a *point estimate* based on a collection of randomly-sampled
+*clusterings/partitions*.
+
+- SALSO is a *stochastic search* method involving a *series of micro optimizations*.
+
+<!-- - The method can be applied to *clusterings*, *feature allocations*, *networks*, etc. -->
+
+- Currently implementation handles two loss functions:
+    - "binder": Loss function of Binder (1978) loss
+    - "VI.lb": Lower bound of the variation of information loss of Wade & Ghahramani (2018).
+
+## Loss Functions and Bayes Estimators
+
+- A Bayes estimator minimizes the posterior expected value of a loss function.
+
+- The 0-1 loss function:
+  $$L(c,\hat{c}) = \I{c = \hat{c}}$$
+  yielding the maximum _a posteriori_ (MAP) clustering:
+  $$\text{argmax}_{\hat{c}} \ p(\hat{c} \given \text{data})$$
+    - Equal loss for clusterings that differs by one label and clusterings that differs by many labels!?
+    - Mode may not represent well the ``center'' of a distribution.
+        
+## Loss Functions and Bayes Estimators
+
+- Dahl (2006) suggested the clustering that minimizes:
+    $$f_\text{lsclust}(\hat{c}) = \sum_{i=1}^n \sum_{j=1}^n ( A(\hat{c})_{ij} - \hat{\mu}_{ij} )^2,$$
+    where $\hat{\mu}_{ij}$ is a Monte Carlo estimate of $\mu_{ij} = Pr(c_i = c_j)$.
+- Lau & Green (2007) studied the Binder (1978) loss function in a Bayesian nonparametric context:
+    $$L(c,\hat{c}) = \sum_{i<j} \I{c_i     = c_j} \ \I{\hat{c}_i \not= \hat{c}_j} +
+                                \I{c_i \not= c_j} \ \I{\hat{c}_i     = \hat{c}_j}$$
+    yielding a clustering minimizing the Monte Carlo estimate of the expectation of the Binder loss:
+    $$f_\text{binder}(\hat{c}) = \sum_{i=1}^n \sum_{j=1}^n \I{\hat{c}_i=\hat{c}_j} ( 0.5 - \hat{\mu}_{ij} )$$
+- Dahl & Newton (2007) noted that minimizing $f_\text{lsclust}$ is
+equivalent to minimizing $f_\text{binder}$.
+    
+## Loss Functions and Bayes Estimators
+
+- Wade & Ghahramani (2018) suggested the variation of information of Meilă (2007) as
+    a loss function:
+    $$\begin{split}L(c,\hat{c}) = \sum_{i=1}^n \bigg( & \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg) \\
+      & - 2 \text{E} \bigg( \log \bigg( \sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i, c_j = c_i} \bigg) \bigg| \text{data} \bigg) \bigg)\end{split}$$
+    which is computationally expensive to estimate.  Instead, they suggest 
+    minimizing the **lower bound** of the posterior expected value of the variation
+    of information loss (VI.lb):
+    $$f_\text{VI.lb}(\hat{c}) = \sum_{i=1}^n \bigg( \log\bigg(\sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i}\bigg)
+      - 2 \log \bigg( \sum_{j=1}^n \I{\hat{c}_j = \hat{c}_i} \hat{\mu}_{ij} \bigg) \bigg)$$
+- Paulon, Trippa, Müller (2018) propose a scientifically-tailored loss function.
+
+## Monte Carlo Estimate the Posterior Expected Loss
+
+- For a given $\hat{c}$, both the Binder and the lower bound of the VI loss are based on the $\mu_{ij}$'s.
+- The $(i,j)$ elements of $\bar{A}$ are Monte Carlo estimates of the $\mu_{ij}$'s, leading to 
+a Monte Carlo estimate of the posterior expected loss.
+- But having a way to estimate the posterior expected loss **for a given $\hat{c}$** does _not_ give
+a search algorithm for its minimization.
+
+## Methods for Optimization Given a Loss Function
+
+- Exhaustive search. Infeasible for even moderate $n$, e.g., $B(15) = 1,382,958,545$.
+- Round the estimated expected pairwise allocation matrix (EPAM).  May not lead to a clustering, e.g.:
+$$
+\bar{A} = 
+\begin{bmatrix}
+1 & 2/3 & 2/3 & 1/3 & 0\\
+2/3 & 1 & 1/3 & 2/3 & 1/3\\
+2/3 & 1/3 & 1 & 0 & 1/3\\
+1/3 & 2/3 & 0 & 1 & 1/3\\
+0 & 1/3 & 1/3 & 1/3 & 1\\
+\end{bmatrix}
+\Rightarrow
+\begin{bmatrix}
+1 & 1 & 1 & 0 & 0\\
+1 & 1 & 0 & 1 & 0\\
+1 & 0 & 1 & 0 & 0\\
+0 & 1 & 0 & 1 & 0\\
+0 & 0 & 0 & 0 & 1\\
+\end{bmatrix}
+$$
+- Medvedovic and Sivaganesan (2002) selected a clustering using hierarchal
+clustering using $1-\bar{A}$ as the distance matrix.
+- Dahl (2006) selected the clustering in the MCMC output that minimizes the criterion.
+
+## Methods for Optimization Given a Loss Function
+
+- More sophisticated search algorithms:
+    - Lau & Green (2007) proposed a heuristic item-swapping algorithm based on binary integer programming to minimize the posterior expected Binder loss.
+    - Wade & Ghahramani (2018) proposed a greedy search algorithm based on neighborhoods defined by the Hasse diagram, which can be used for Binder or VI.lb loss.
+
+- We propose the **sequentially-allocated latent structure optimization (SALSO)** method to perform
+a *series of micro optimizations* to stochastically search for the minimizer of the posterior expected value of Binder or VI.lb loss.
+
+# Sequentially-Allocated Latent Structure Optimization
+
+## Sequentially-Allocated Latent Structure Optimization
+
+- The SALSO method is applicable for many types of latent structure, including clusterings, feature allocations, & networks.
+- The steps to SALSO are:
+    1. Starting for an empty structure, build up a full structure by sequentially optimizing the
+       allocation of items.
+    2. Improve the full structure by a series of one-at-a-time optimizations.
+    3. Do the above steps many times for randomly-selected permutations and choose the structure
+       that minimizes the posterior expected loss.
+- The order in which items are allocated is not necessarily their order in the
+dataset; the permutation $\Permutation = (\permutation_1,\ldots,\permutation_n)$
+of $\{1,\ldots,n\}$ gives the sequence in which the $n$ items are allocated.
+
+## Illustration of SALSO Method
+
+- To illustrate the SALSO method, consider clustering 5 items.
+- For simplicity, suppose $\Permutation = (\permutation_1,\ldots,\permutation_5) = (1,2,3,4,5)$.
+- Recall the steps to SALSO are:
+    1. Build up a full structure from an empty structure
+    2. Improve the full structure
+    3. Do it for many random permutations (not just $\Permutation = (1,2,3,4,5)$)
+
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: ~ ~ ~ ~ ~ 
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: ? ~ ~ ~ ~    Candidates for ? are: 1
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 ~ ~ ~ ~
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 ? ~ ~ ~    Candidates for ? are: 1, 2
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 1 ~ ~ ~
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 1 ? ~ ~    Candidates for ? are: 1, 2
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 1 2 ~ ~
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 1 2 ? ~    Candidates for ? are: 1, 2, 3
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 1 2 3 ~
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 1 2 3 ?    Candidates for ? are: 1, 2, 3, 4
+```
+## Step 1: Build Up a Full Structure
+```latex
+Clustering: 1 1 2 3 3
+```
+
+
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 1 1 2 3 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: ? 1 2 3 3    Candidates for ? are: 1, 2, 3, 4
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 1 2 3 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 ? 2 3 3    Candidates for ? are: 1, 2, 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 2 3 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 ? 3 3    Candidates for ? are: 1, 2, 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 2 3 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 2 ? 3    Candidates for ? are: 1, 2, 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 2 1 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 2 1 ?    Candidates for ? are: 1, 2, 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 2 1 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 2 1 3    Scan completed
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 2 2 2 1 3    Put in canonical form
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 1 1 1 2 3
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 1 1 1 2 3    Any change from start of scan?
+```
+## Step 2: Improving the Full Structure
+```latex
+Clustering: 1 1 1 2 3    Yes, so perform another scan
+```
+
+## Step 2 (Again): Improving the Full Structure
+```latex
+Clustering: ? 1 1 2 3    Candidates for ? are: 1, 2, 3, 4
+```
+
+## Step 2 (Again): Improving the Full Structure
+```latex
+Clustering: 1 ? 1 2 3    Candidates for ? are: 1, 2, 3, 4
+```
+
+## Step 2 (Again): Improving the Full Structure
+```latex
+Clustering: 1 1 ? 2 3    Candidates for ? are: 1, 2, 3, 4
+```
+
+## Step 2 (Again): Improving the Full Structure
+```latex
+Clustering: 1 1 1 ? 3    Candidates for ? are: 1, 2, 3, 4
+```
+
+## Step 2 (Again): Improving the Full Structure
+```latex
+Clustering: 1 1 1 2 ?    Candidates for ? are: 1, 2, 3, 4
+```
+
+## Step 2 (Again): Improving the Full Structure
+```latex
+Clustering: 1 1 1 2 4    Put in canonical form
+```
+
+## Step 2 (Again): Improving the Full Structure
+```latex
+Clustering: 1 1 1 2 4    Any change from start of scan?
+```
+
+## Step 2 (Again): Improving the Full Structure
+```latex
+Clustering: 1 1 1 2 4    No, so move to Step 3
+```
+
+## Step 3: Do It For Many Permutations
+
+- The permutation many lead to a local minimizer.
+- Improve the chances of finding the global minimizer by repeating Step 1 and 2 for many
+  random permutations.
+    - _This is embarrassingly parallel._
+- Select the structure the minimizes the posterior expected loss among all those good structures obtained
+  by using many random permutations.
+
+## Review of the Steps of the SALSO Method
+
+1. Build up a full structure from an empty structure
+2. Improve the full structure
+3. Do it for many random  permutations
+
+# Software and Empirical Comparison
+
+## Software Implementation
+
+SALSO is implemented in the R package "salso" available on CRAN.
+
+```{r, echo=TRUE}
+library(salso)
+dim(iris.clusterings)
+probs <- psm(iris.clusterings)
+estimate <- salso(probs, maxSize=3)$estimate
+table(estimate)
+```
+
+##
+
+```{r, echo=TRUE}
+plot(confidence(estimate, probs))
+```
+
+## Comparison Methodology
+
+- Various optimization methods:
+    - Hierarchal clustering of Medvedovic and Sivaganesan (2002)
+      using average or complete linkage [mcclust]
+    - Draws method of Dahl (2006) [salso, mcclust]
+    - Linear programming method of Lau & Green (2007) [mcclust]
+    - Greedy search by Wade & Ghahramani (2018) [mcclust.ext]
+    - SALSO method [salso]
+- Loss functions
+    - Binder loss (Binder 1978)
+    - Lower bound of the variation of information loss (Wade & Ghahramani 2018)
+- Datasets: Three sets of MCMC output from a variety of models with 1,000 samples each.
+
+## Iris
+
+Example 1: Ewens Pitman attraction distribution (Dahl, Day, Tsai 2017) applied to iris data.
+
+Size: 150 observations
+
+| Method       | Binder    | Time           |   
+| -------------|-----------|----------------|
+| SALSO (12)   |   3493.16 | 0.039 seconds  |
+| SALSO (100)  |   3493.16 | 0.218 seconds  |
+| M & S (avg)  |   3497.01 | 0.055 seconds  |
+| W & G        |   3500.12 | 3.8 minutes    |   
+| M & S (comp) |   3512.90 | 0.055 seconds  |
+| L & G        |   3560.01 | 2.7 minutes    |   
+| Draws        |   3607.48 | 0.085 seconds  |
+
+## Iris
+
+Example 1: Ewens Pitman attraction distribution (Dahl, Day, Tsai 2017) applied to iris data.
+
+Size: 150 observations
+
+| Method       |  VI.lb  | Time            |
+|--------------|---------|-----------------|
+| M & S (comp) |  1.3246 |  0.026 seconds  |
+| M & S (avg)  |  1.3246 |  0.026 seconds  |
+| SALSO (12)   |  1.3246 |  0.033 seconds  |
+| SALSO (100)  |  1.3246 |  0.197 seconds  |
+| W & G        |  1.3246 |  7.9 minutes    |
+| Draws        |  1.3320 |  0.102 seconds  |
+| L & G        |  --     |  --             |
+
+## Gaussian_sPPM2
+
+Example 2: Gaussian likelihood with a spatial PPM (Page & Quintana 2016) prior.
+
+Size: 600 observations
+
+| Method       | Binder  | Time          |
+|--------------|---------|---------------|
+| SALSO (12)   |  7509.7 | 0.843 seconds |
+| SALSO (100)  |  7509.7 | 7.033 seconds |
+| L & G        |  7509.7 | 8.2 hours     |  
+| M & S (comp) |  8060.7 | 1.615 seconds |
+| W & G        |  8365.6 | 18.8 hours    |  
+| M & S (avg)  |  9409.1 | 1.604 seconds |
+| Draws        | 10464.5 | 0.765 seconds |
+
+## Gaussian_sPPM2
+
+Example 2: Gaussian likelihood with a spatial PPM (Page & Quintana 2016) prior.
+
+Size: 600 observations
+
+| Method       | VI.lb   | Time          |
+|--------------|---------|---------------|
+| M & S (avg)  |  2.7543 | 0.700 seconds |
+| SALSO (12)   |  2.8241 | 3.94 seconds  |
+| M & S (comp) |  2.8526 | 0.715 seconds |
+| SALSO (100)  |  2.8633 | 26.61 seconds |
+| Draws        |  3.7788 | 1.176 seconds |
+| W & G        |  4.6411 | 36.3 hours    |
+| L & G        |  --     | --            |
+
+
+## BivariateGaussian_sPPM
+
+Example 3: Bivariate Gaussian likelihood with a spatial PPM (Page & Quintana 2016) prior.
+
+Size: 600 observations
+
+| Method       | Binder    | Time           |
+| -------------|-----------|----------------|
+| SALSO (12)   |  46270.74 | 0.937 seconds  |
+| SALSO (100)  |  46270.74 | 7.709 seconds  |
+| L & G        |  46271.21 | 9.8 hours      |
+| M & S (avg)  |  46724.64 | 1.609 seconds  |
+| M & S (comp) |  47844.03 | 1.641 seconds  |
+| Draws        |  53182.66 | 1.005 seconds  |
+| W & G        |  57761.10 | 24.1 hours     |
+
+## BivariateGaussian_sPPM
+
+Example 3: Bivariate Gaussian likelihood with a spatial PPM (Page & Quintana 2016) prior.
+
+Size: 600 observations
+
+| Method       |  VI.lb  | Time            |
+|--------------|---------|-----------------|
+| SALSO (100)  |  1.5620 |  14.182 seconds |
+| SALSO (12)   |  1.5649 |  1.552 seconds  |
+| M & S (comp) |  1.5829 |  0.673 seconds  |
+| M & S (avg)  |  1.5858 |  0.733 seconds  |
+| Draws        |  1.9108 |  0.555 seconds  |
+| W & G        |  7.2197 |  41.6 hours     |
+| L & G        |  --     |  --             |
+
+ ## DPbetabinom
+ 
+ Example 1: Posterior density sample for a semiparametric beta-binomial model using a Dirichlet process prior, from the \texttt{DPbetabinom} example code in the \texttt{DPpackage} library.
+ 
+ Size: 106 observations
+ 
+ | Method       |  Binder |  Time     |  VI.lb    |  Time      |
+ |--------------|--------:|----------:|----------:|-----------:|
+ | salso (10)   |  1914   |    0.0    |    1.44   |    0.0     |
+ | salso (100)  |  1914   |    0.1    |    1.44   |    0.7     |
+ | salso (1000) |  1914   |    1.3    |    1.44   |    1.9     |
+ | W & G        |  2015   |    30.3   |    1.44   |    1:39.7  |
+ | L & G        |  1914   |    30.4   |    --     |    --      |
+ | M & S (avg)  |  2123   |    0.0    |    1.55   |    0.0     |
+ | M & S (comp) |  2104   |    0.0    |    1.59   |    0.0     |
+ | draws        |  2067   |    0.7    |    1.67   |    1.4     |
+ 
+ ## DPbinary
+ 
+ Example 2: Posterior density sample for a semiparametric binary regression model, from the \texttt{DPbinary} example code in the \texttt{DPpackage} library.
+ 
+ Size: 150 observations
+ 
+ | Method       |  Binder |  Time      | VI.lb   | Time      |
+ |--------------|--------:|-----------:|--------:|----------:|
+ | salso (10)   |  906.6  |    0.4     |   3.69  |    0.1    |
+ | salso (100)  |  906.6  |    0.4     |   3.69  |    0.7    |
+ | salso (1000) |  906.6  |    1.5     |   3.68  |    5.5    |
+ | W & G        |  906.8  |   19.2     |   3.70  |    35.0   |
+ | L & G        |  906.6  |   59.0     |   --    |    --     |
+ | M & S (avg)  |  5303.3 |    0.0     |   3.71  |    0.0    |
+ | M & S (comp) |  5303.3 |    0.0     |   3.71  |    0.0    |
+ | draws        |  1115.2 |    1.3     |   4.27  |    2.0    |
+
+    
+ ## ex2.draw
+ 
+ Example 3: Clusterings from a Dirichlet process scale-location mixture model with normal components fitted to a simulated dataset as found in \texttt{ex2.draw} from the \texttt{mcclust.ext} package.
+ 
+ Size: 200 observations
+ 
+ | Method       |  Binder | Time         | VI.lb     | Time        |
+ |--------------|--------:|-------------:|----------:|------------:|
+ | salso (10)   |  1761   |    0.0       |   0.6683  |   0.1       |
+ | salso (100)  |  1761   |    0.2       |   0.6683  |   0.7       |
+ | salso (1000) |  1761   |    1.2       |   0.6683  |   4.1       |
+ | W & G        |  4449   |    10:00.6   |   0.6684  |   21:00.0   |
+ | L & G        |  1761   |    5:31.1    |   --      |   --        |
+ | M & S (avg)  |  1878   |    0.0       |   0.6725  |   0.0       |
+ | M & S (comp) |  2006   |    0.0       |   0.8555  |   0.0       |
+ | draws        |  1875   |    1.5       |   0.7225  |   2.4       |
+ 
+ ## cls.draw2
+ 
+ Example 4: Output of a Dirichlet process mixture model with normal components fitted to the dataset \texttt{Ysim2} from the \texttt{mcclust} package.
+ 
+ Size: 400 observations
+ 
+ | Method       |  Binder | Time           | VI.lb      | Time           |
+ |--------------|--------:|---------------:|-----------:|---------------:|
+ | salso (10)   |  3402   |   0.1          |   0.5900   |    0.2         |
+ | salso (100)  |  3402   |   0.5          |   0.5896   |    1.6         |
+ | salso (1000) |  3402   |   4.7          |   0.5896   |    16.3        |
+ | W & G        |  3409   |   5:23:01.3    |   0.5913   |    9:49:51.70  |
+ | L & G        |  3402   |   1:11:36.3    |   --       |    --          |
+ | M & S (avg)  |  3481   |   0.0          |   0.5933   |    0.0         |
+ | M & S (comp) |  3562   |   0.0          |   0.6129   |    0.0         |
+ | draws        |  3917   |   0.5          |   0.7239   |    0.4         |
+
+## Constrained Optimization
+
+- We may want to constrain the optimization.
+    - e.g.: For the sake of interpretation, it may be helpful to **limit** the number of clusters or features.
+
+- Solution: Tweak the loss function to give inifinite loss for violate constraint
+    - e.g.: Infinite loss for clusterings with more clusters than desired.
+
+- Implementation: During micro optimization, never create a structure that violates the constraint.
+    - e.g.: Don't consider allocations that create clusters beyond the desired \texttt{maxSize}.
+
+Suppose we want at most three clusters.
+```latex
+Clustering: ? 1 2 3 3    Candidates for ? are: 1, 2, 3
+                                      but not: 4
+```
+
+## Ways to Improve the Method?
+
+Modified method:
+
+1. Build up a full structure from an empty structure
+    - Periodically reallocate items (**a la** Step 2) in the as-of-yet incomplete structure.
+2. Improve the full structure
+3. Do it for many random permutations
+
+## Conclusion
+
+- We presented the **sequentially-allocated latent structure optimization (SALSO)** method to
+minimize an objective criterion to obtain a *point estimate* based on a collection of randomly-sampled
+*latent features*.
+
+- SALSO is a *stochastic search* method involving a *series of micro optimizations*.
+
+- Status:
+    - Well-developed for *clusterings*.  Implemented in the "salso" package on CRAN.
+    - Want to apply to other structures, e.g., *feature allocations*, *networks*, *variable selection*.
+    
+- Can we pick a representative observation?
+- Summarizes other than point estimates?
+>>>>>>> e187b1c742b2bc223a22cc5ec1cd5880b54a2576
