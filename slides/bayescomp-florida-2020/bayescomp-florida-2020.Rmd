@@ -9,18 +9,19 @@ author: |
   | Bayes Comp 2020
   | University of Florida
   | January 8, 2020
-#date: "January 8, 2020"
-
-fontsize: 11pt
 output:
   beamer_presentation:
-    theme: "metropolis"
-    #colortheme: "dolphin"
-    fonttheme: "professionalfonts"
-    incremental: false
-    fig_caption: false
+    fig_caption: no
+    fonttheme: professionalfonts
     includes:
       in_header: latex-topmatter.tex
+    incremental: no
+    theme: metropolis
+  ioslides_presentation:
+    incremental: no
+  slidy_presentation:
+    incremental: no
+fontsize: 11pt
 ---
 
 ```{r setup, include=FALSE}
@@ -567,6 +568,74 @@ Size: 600 observations
 | Draws        |  1.9108 |  0.555 seconds  |
 | W & G        |  7.2197 |  41.6 hours     |
 | L & G        |  --     |  --             |
+
+## DPbetabinom
+
+Example 1: Posterior density sample for a semiparametric beta-binomial model using a Dirichlet process prior, from the \texttt{DPbetabinom} example code in the \texttt{DPpackage} library.
+
+Size: 106 observations
+
+| Method       |  Binder |  Time     |  VI.lb    |  Time      |
+|--------------|--------:|----------:|----------:|-----------:|
+| salso (10)   |  1914   |    0.0    |    1.44   |    0.0     |
+| salso (100)  |  1914   |    0.1    |    1.44   |    0.7     |
+| salso (1000) |  1914   |    1.3    |    1.44   |    1.9     |
+| W & G        |  2015   |    30.3   |    1.44   |    1:39.7  |
+| L & G        |  1914   |    30.4   |    --     |    --      |
+| M & S (avg)  |  2123   |    0.0    |    1.55   |    0.0     |
+| M & S (comp) |  2104   |    0.0    |    1.59   |    0.0     |
+| draws        |  2067   |    0.7    |    1.67   |    1.4     |
+
+## DPbinary
+
+Example 2: Posterior density sample for a semiparametric binary regression model, from the \texttt{DPbinary} example code in the \texttt{DPpackage} library.
+
+Size: 150 observations
+
+| Method       |  Binder |  Time      | VI.lb   | Time      |
+|--------------|--------:|-----------:|--------:|----------:|
+| salso (10)   |  906.6  |    0.4     |   3.69  |    0.1    |
+| salso (100)  |  906.6  |    0.4     |   3.69  |    0.7    |
+| salso (1000) |  906.6  |    1.5     |   3.68  |    5.5    |
+| W & G        |  906.8  |   19.2     |   3.70  |    35.0   |
+| L & G        |  906.6  |   59.0     |   --    |    --     |
+| M & S (avg)  |  5303.3 |    0.0     |   3.71  |    0.0    |
+| M & S (comp) |  5303.3 |    0.0     |   3.71  |    0.0    |
+| draws        |  1115.2 |    1.3     |   4.27  |    2.0    |
+
+## ex2.draw
+
+Example 3: Clusterings from a Dirichlet process scale-location mixture model with normal components fitted to a simulated dataset as found in \texttt{ex2.draw} from the \texttt{mcclust.ext} package.
+
+Size: 200 observations
+
+| Method       |  Binder | Time         | VI.lb     | Time        |
+|--------------|--------:|-------------:|----------:|------------:|
+| salso (10)   |  1761   |    0.0       |   0.6683  |   0.1       |
+| salso (100)  |  1761   |    0.2       |   0.6683  |   0.7       |
+| salso (1000) |  1761   |    1.2       |   0.6683  |   4.1       |
+| W & G        |  4449   |    10:00.6   |   0.6684  |   21:00.0   |
+| L & G        |  1761   |    5:31.1    |   --      |   --        |
+| M & S (avg)  |  1878   |    0.0       |   0.6725  |   0.0       |
+| M & S (comp) |  2006   |    0.0       |   0.8555  |   0.0       |
+| draws        |  1875   |    1.5       |   0.7225  |   2.4       |
+
+## cls.draw2
+
+Example 4: Output of a Dirichlet process mixture model with normal components fitted to the dataset \texttt{Ysim2} from the \texttt{mcclust} package.
+
+Size: 400 observations
+
+| Method       |  Binder | Time           | VI.lb      | Time           |
+|--------------|--------:|---------------:|-----------:|---------------:|
+| salso (10)   |  3402   |   0.1          |   0.5900   |    0.2         |
+| salso (100)  |  3402   |   0.5          |   0.5896   |    1.6         |
+| salso (1000) |  3402   |   4.7          |   0.5896   |    16.3        |
+| W & G        |  3409   |   5:23:01.3    |   0.5913   |    9:49:51.70  |
+| L & G        |  3402   |   1:11:36.3    |   --       |    --          |
+| M & S (avg)  |  3481   |   0.0          |   0.5933   |    0.0         |
+| M & S (comp) |  3562   |   0.0          |   0.6129   |    0.0         |
+| draws        |  3917   |   0.5          |   0.7239   |    0.4         |
 
 ## Constrained Optimization
 
