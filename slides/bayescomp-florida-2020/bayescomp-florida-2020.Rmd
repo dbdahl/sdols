@@ -741,6 +741,22 @@ Size: 400 observations
 | Draws        |   3917   |        0.5  |   0.7239   |        0.4  |
 
 
+## Comparing the Quality of L & G and SALSO Estimates
+
+- Randomly sample datasets of 100 or 200 items from the 400 items in the cls.draw2 dataset.
+
+- L & G and SALSO estimates differ in about:
+    - 0.7% of the $400 \choose 100$ datasets of size 100
+    - 3% of the $400 \choose 200$ datasets of size 200
+
+- Among 200 such cases, every time SALSO provided a smaller posterior expected loss.
+
+
+## How Well Does Computation Scale?
+
+<!-- From sdols-paper/code/empirical_study/compare -->
+![Timings](fig/timings.pdf)
+
 ## Constrained Optimization
 
 - We may want to constrain the optimization.
