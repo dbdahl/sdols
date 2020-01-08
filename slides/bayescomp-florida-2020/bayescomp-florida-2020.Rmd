@@ -740,6 +740,47 @@ Size: 400 observations
 | M & S (comp) |   3562   |        0.0  |   0.6129   |        0.0  |
 | Draws        |   3917   |        0.5  |   0.7239   |        0.4  |
 
+## Subsets (size 15)
+
+* Subsets of size 15 were taken from larger datasets to allow the global minimum to be identified by enumeration. The number of subsets until the first difference is recorded for both W & G and L & G. The results for this differing subset are compared to each other and to the global minimum.
+
+* In each difference, salso outperformed the methods of W & G and L & G.
+
+* In each difference, the result of salso was exactly equal to the global minimum.
+
+ 
+## Results: W & G vs. salso
+
+* Dataset: DPbinarySamples
+
+|                                     |  Binder  |  VI.lb   |
+|-------------------------------------|---------:|---------:|
+|mean subsets to first difference     |   911    |   777    |
+|median subsets to first difference   |   552    |   886    |
+|sd subsets to first difference       |   957    |   615    |
+
+* Dataset: cls.draw2
+
+|                                     |  Binder  |  VI.lb   |
+|-------------------------------------|---------:|---------:|
+|mean subsets to first difference     |   11     |   11     |
+|median subsets to first difference   |   6      |   11     |
+|sd subsets to first difference       |   11     |   7      |
+
+## Results: L & G vs. salso
+
+* Dataset: DPbinarySamples
+
+   + After of 20,000 subsets of size 15, no differences were found
+
+* Dataset: cls.draw2
+
+|                                     |  Binder  |
+|-------------------------------------|---------:|
+|mean subsets to first difference     |   523    |
+|median subsets to first difference   |   391    |
+|sd subsets to first difference       |   510    |
+
 
 ## Comparing the Quality of L & G and SALSO Estimates
 
