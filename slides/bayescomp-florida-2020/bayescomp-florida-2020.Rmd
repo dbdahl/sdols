@@ -51,41 +51,54 @@ posterior summaries are **means** and **medians**.
 is more challenging, e.g., the "average" clustering, feature allocation, or network
 is not easily defined.
 
-- In this paper, we consider summarizing distributions over partitions.
+- In this paper, we consider summarizing partition/clustering distributions.
 
 # Setting the Stage
 
 ## MCMC Samples from the Posterior Clustering Distribution
 
 ```latex
-      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10]
- [1,]    0    0    0    1    0    0    0    1    0     1
- [2,]    0    1    1    1    0    0    0    1    0     0
- [3,]    0    1    0    0    1    1    0    1    1     1
- [4,]    0    1    2    1    1    1    2    1    1     1
- [5,]    0    0    0    1    0    2    1    3    0     0
- [6,]    0    0    0    0    1    0    0    0    1     0
- [7,]    0    0    1    0    2    3    0    0    3     0
- [8,]    0    0    0    0    1    0    0    2    0     0
- [9,]    0    0    0    1    2    0    0    0    2     0
-[10,]    0    0    1    1    2    2    1    1    3     1
-[11,]    0    1    0    0    1    1    1    2    1     0
-[12,]    0    0    1    0    2    2    2    2    2     0
-[13,]    0    0    0    0    1    2    0    0    2     0
-[14,]    0    0    1    0    1    0    0    0    1     0
-[15,]    0    0    0    0    1    1    0    0    1     0
-[16,]    0    0    0    0    1    0    0    0    1     0
-[17,]    0    0    1    1    0    0    1    0    0     1
-[18,]    0    1    1    1    0    0    1    1    0     1
-[19,]    0    1    0    0    1    1    0    1    1     1
-[20,]    0    1    0    0    2    1    0    0    1     0
+                [,1] [,2] [,3] [,4] [,5]
+           [1,]    1    2    1    2    2
+           [2,]    1    1    1    2    3
+           [3,]    1    1    2    1    1
+           [4,]    1    2    2    2    2
+           [5,]    1    1    2    1    1
+           [6,]    1    1    2    2    1
+           [7,]    1    1    1    1    1
+           [8,]    1    2    2    2    1
+           [9,]    1    2    1    1    1
+          [10,]    1    2    2    3    4
+          [11,]    1    2    2    2    1
+          [12,]    1    1    1    1    1
+          [13,]    1    1    1    1    2
+          [14,]    1    1    1    1    1
 ```
-
 
 ## Example: First Clustering in MCMC Output
 
 Clustering in **_cluster label_** notation:
 $$c^{(1)} = (1,2,1,2,2)$$
+
+Clustering in **_set partition_** notation:
+$$\pi^{(1)} = \{ \{ 1, 3\}, \{2, 4, 5\} \}$$
+
+Clustering in **_adjacency matrix_** notation;
+$$
+A(c^{(1)}) = 
+\begin{bmatrix}
+1 & 0 & 1 & 0 & 0\\
+0 & 1 & 0 & 1 & 1\\
+1 & 0 & 1 & 0 & 0\\
+0 & 1 & 0 & 1 & 1\\
+0 & 1 & 0 & 1 & 1\\
+\end{bmatrix}
+$$
+
+## Example: First Clustering in MCMC Output
+
+Clustering in **_cluster label_** notation:
+$$c^{(1)} = (\clubsuit,\heartsuit,\clubsuit,\heartsuit,\heartsuit)$$
 
 Clustering in **_set partition_** notation:
 $$\pi^{(1)} = \{ \{ 1, 3\}, \{2, 4, 5\} \}$$
@@ -243,7 +256,7 @@ a search algorithm for its minimization.
 ## Methods for Optimization Given a Loss Function
 
 1. Exhaustive search. Feasible for small $n$ only, e.g., $B(15) = 1,382,958,545$.
-2. Round the elements of the adjacency matrix.  May not lead to a clustering, e.g.:
+2. Round the elements of the pairwise similarity matrix.  May not lead to a clustering, e.g.:
 $$
 \bar{A} = 
 \begin{bmatrix}
@@ -262,7 +275,7 @@ $$
 0 & 0 & 0 & 0 & 1\\
 \end{bmatrix}
 $$
-3. Medvedovic and Sivaganesan (2002) selected a clustering using hierarchal
+3. Medvedovic and Sivaganesan (2002) selected a clustering using hierarchical
 clustering using $1-\bar{A}$ as the distance matrix.
 4. Dahl (2006) selected the clustering in the MCMC output that minimizes the objective function.
 
@@ -274,6 +287,24 @@ clustering using $1-\bar{A}$ as the distance matrix.
 
 7. We propose the **sequentially-allocated latent structure optimization (SALSO)** method to perform
 a *series of micro optimizations* to stochastically search for the minimizer of the posterior expectation of Binder or VI.lb loss.
+
+## cls.draw2
+ 
+Example 4: Output of a Dirichlet process mixture model with normal components fitted to the dataset \texttt{Ysim2} from the \texttt{mcclust} package.
+ 
+Size: 400 observations
+ 
+| Method       |  Binder  |       Time  | VI.lb      |       Time  |
+|--------------|---------:|------------:|-----------:|------------:|
+| SALSO (10)   | **3402** |        0.1  |   0.5900   |        0.2  |
+| SALSO (100)  | **3402** |        0.5  | **0.5896** |        1.6  |
+| SALSO (1000) | **3402** |        4.7  | **0.5896** |       16.3  |
+| W & G        |   3409   |  5:23:01.3  |   0.5913   |  9:49:51.7  |
+| L & G        | **3402** |  1:11:36.3  |       --   |         --  |
+| M & S (avg)  |   3481   |        0.0  |   0.5933   |        0.0  |
+| M & S (comp) |   3562   |        0.0  |   0.6129   |        0.0  |
+| Draws        |   3917   |        0.5  |   0.7239   |        0.4  |
+
 
 # Sequentially-Allocated Latent Structure Optimization
 
@@ -658,7 +689,7 @@ plot(confidence(estimate, probs))
 ## Comparison Methodology
 
 - Various optimization methods:
-    - Hierarchal clustering of Medvedovic and Sivaganesan (2002)
+    - Hierarchical clustering of Medvedovic and Sivaganesan (2002)
       using average or complete linkage [base R]
     - Draws method of Dahl (2006) [salso, mcclust]
     - Linear programming method of Lau & Green (2007) [mcclust]
@@ -740,16 +771,23 @@ Size: 400 observations
 | M & S (comp) |   3562   |        0.0  |   0.6129   |        0.0  |
 | Draws        |   3917   |        0.5  |   0.7239   |        0.4  |
 
-## Subsets (size 15)
 
-* Subsets of size 15 were taken from larger datasets to allow the global minimum to be identified by enumeration. The number of subsets until the first difference is recorded for both W & G and L & G. The results for this differing subset are compared to each other and to the global minimum.
+## Comparing the Quality of Estimates --- Subset of Size 15
 
-* In each difference, salso outperformed the methods of W & G and L & G.
+* Random subsets of size 15 were taken from cls.draw2 so the global minimum can be found via enumeration.
 
-* In each difference, the result of salso was exactly equal to the global minimum.
+* Record the number of random subsets until the first difference between i. SALSO and ii. W & G or L & G.
 
- 
-## Results: W & G vs. salso
+* In each difference, SALSO produced the global minimum.
+
+| # of Subsets | W & G (Binder) | W & G (VI.lb)  | L & G (Binder) |
+|--------------|---------------:|---------------:|---------------:|
+| Mean         |    11          |          11    |       523      |
+| Median       |    6           |          11    |       391      |
+| Std. Dev.    |    11          |          7     |       510      |
+
+<!-- 
+## Results: W & G vs. SALSO
 
 * Dataset: DPbinarySamples
 
@@ -767,7 +805,7 @@ Size: 400 observations
 |median subsets to first difference   |   6      |   11     |
 |sd subsets to first difference       |   11     |   7      |
 
-## Results: L & G vs. salso
+## Results: L & G vs. SALSO
 
 * Dataset: DPbinarySamples
 
@@ -780,9 +818,10 @@ Size: 400 observations
 |mean subsets to first difference     |   523    |
 |median subsets to first difference   |   391    |
 |sd subsets to first difference       |   510    |
+-->
 
 
-## Comparing the Quality of L & G and SALSO Estimates
+## Comparing the Quality of Estimates --- Subset of Sizes 100 & 200
 
 - Randomly sample datasets of 100 or 200 items from the 400 items in the cls.draw2 dataset.
 
@@ -803,7 +842,7 @@ Size: 400 observations
 - We may want to constrain the optimization.
     - e.g.: For the sake of interpretation, it may be helpful to **limit** the number of clusters or features.
 
-- Solution: Tweak the loss function to give inifinite loss for violated constraints.
+- Solution: Tweak the loss function to give infinite loss for violated constraints.
     - e.g.: Infinite loss for clusterings with more clusters than desired.
 
 - Implementation: During micro optimization, never create a structure that violates the constraint.
@@ -831,13 +870,14 @@ Modified method:
 
 - We presented the **sequentially-allocated latent structure optimization (SALSO)** method to
 minimize an objective criterion to obtain a *point estimate* based on a collection of randomly-sampled
-*latent features*.
+*clusterings*.
 
 - SALSO is a *stochastic search* method involving a *series of micro optimizations*.
 
 - Status:
-    - Well-developed for *clusterings* and implemented in the "salso" package on CRAN.
+    - Well-developed for *clusterings*
+    - Implemented in the "salso" ~~"sdols"~~ package on CRAN.
     - Want to apply to other structures, e.g., *feature allocations*, *networks*, *variable selection*.
     
-- Can we pick a representative observation?
+<!-- - Can we pick a representative observation? -->
 - Summaries other than point estimates?
