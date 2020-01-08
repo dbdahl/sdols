@@ -159,7 +159,7 @@ Averaging the vector of cluster labels **does not make sense**.
 
 Averaging the set partitions is **not defined**.
 
-Averaging pairwise allocation matrices **does** make sense:
+Averaging adjacency matrices **does** make sense:
 $$
 \bar{A} = \frac{1}{B} \sum_{b=1}^B A(c^{(b)}) = 
 \begin{bmatrix}
@@ -243,7 +243,7 @@ a search algorithm for its minimization.
 ## Methods for Optimization Given a Loss Function
 
 1. Exhaustive search. Feasible for small $n$ only, e.g., $B(15) = 1,382,958,545$.
-2. Round the elements of the estimated pairwise probability matrix.  May not lead to a clustering, e.g.:
+2. Round the elements of the adjacency matrix.  May not lead to a clustering, e.g.:
 $$
 \bar{A} = 
 \begin{bmatrix}
