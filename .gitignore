@@ -10,3 +10,4 @@
 /R/*/inst/java/scala*/*.jar
 /R/*/.Rhistory
 .Rproj.user
+.Rhistory

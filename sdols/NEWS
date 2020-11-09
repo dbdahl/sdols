@@ -1,3 +1,6 @@
+3.0.0 (2020-11-07)
+  * Deprecate the entire package in favor of the 'salso' package.
+
 2.0.0 (2019-10-01)
   * Deprecate functions that are superceded by those in the salso package.
   * Remove experimental support for feature allocation support.
