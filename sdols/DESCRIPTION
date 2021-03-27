@@ -7,7 +7,6 @@ URL: https://dahl.byu.edu
 BugReports: https://dahl.byu.edu
 Description: Summaries of distributions on clusterings and feature allocations are provided. Specifically, point estimates are obtained by the sequentially-allocated latent structure optimization (SALSO) algorithm to minimize squared error loss, absolute error loss, Binder loss, or the lower bound of the variation of information loss. Clustering uncertainty can be assessed with the confidence calculations and the associated plot.
 Depends: R (>= 3.3.0), salso (>= 0.1.16)
-LazyData: TRUE
 License: Apache License 2.0 | file LICENSE
 Encoding: UTF-8
 RoxygenNote: 7.1.1
